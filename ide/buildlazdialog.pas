@@ -58,7 +58,7 @@ uses
   CodeToolManager, DefineTemplates,
   // IDEIntf
   LazIDEIntf, IDEMsgIntf, IDEHelpIntf, IDEImagesIntf, IDEWindowIntf,
-  PackageIntf, IDEExternToolIntf, IDEDialogs, IDEUtils,
+  PackageIntf, IDEExternToolIntf, IDEDialogs, IDEUtils, BaseIDEIntf,
   // IDE
   LazarusIDEStrConsts, TransferMacros, LazConf, DialogProcs,
   MainBar, EnvironmentOpts,
@@ -417,6 +417,9 @@ var
   IdeBuildMode: TIdeBuildMode;
   s: String;
   DefaultTargetFilename: String;
+  {$IFDEF WINDOWS}
+  env: TStringList;
+  {$ENDIF}
 begin
   // Get target files and directories.
   Result:=mrCancel;
@@ -435,8 +438,14 @@ begin
     EnvironmentOverrides.Values['LCL_PLATFORM']:=LCLPlatformDirNames[Profile.TargetPlatform];
     EnvironmentOverrides.Values['LANG']:= 'en_US';
     s:=EnvironmentOptions.GetParsedCompilerFilename;
-    if s<>'' then
+    if s<>'' then begin
       EnvironmentOverrides.Values['PP']:=s;
+      {$IFDEF WINDOWS}
+      env := EnvironmentAsStringList;
+      EnvironmentOverrides.Values['PATH']:= ExtractFileDir(s) + ';' + env.Values['PATH'];
+      env.Free;
+      {$ENDIF}
+    end;
 
     Executable:=EnvironmentOptions.GetParsedMakeFilename;
     if (Executable<>'') and (not FileExistsUTF8(Executable)) then
@@ -1069,28 +1078,28 @@ begin
       Add('Win32');
       Add('Win64');
       Add('WinCE');
-      Add('Go32v2');
-      Add('OS2');
-      Add('BeOS');
-      Add('Haiku');
-      Add('QNX');
-      Add('NetWare');
+      Add('go32v2');
+      Add('os2');
+      Add('beos');
+      Add('haiku');
+      Add('qnx');
+      Add('netware');
       Add('wdosx');
       Add('emx');
-      Add('Watcom');
-      Add('NetwLibC');
-      Add('Amiga');
-      Add('AROS');
-      Add('Atari');
-      Add('PalmOS');
-      Add('GBA');
-      Add('NDS');
-      Add('MacOS');
-      Add('MorphOS');
-      Add('Embedded');
-      Add('Symbian');
-      Add('MSDOS');
-      Add('Wii');
+      Add('watcom');
+      Add('netwlibc');
+      Add('amiga');
+      Add('aros');
+      Add('atari');
+      Add('palmos');
+      Add('gba');
+      Add('nds');
+      Add('macos');
+      Add('morphos');
+      Add('embedded');
+      Add('symbian');
+      Add('msdos');
+      Add('wii');
       Add('iOS');
     end;
     ItemIndex:=0;
