@@ -8625,6 +8625,17 @@ procedure TCustomSynEdit.MoveCaretVert(DY: integer; UseScreenLine: Boolean);
 var
   NewCaret: TPoint;
 begin
+//  NewCaret:=CaretXY;
+//  if UseScreenLine then begin
+//    NewCaret:=TextXYToScreenXY(NewCaret);
+//    NewCaret.y := NewCaret.y + DY;
+//    NewCaret:=ScreenXYToTextXY(NewCaret);
+//    DoIncPaintLock(Self); // No editing is taking place
+//// TODO: preserve X pos
+//    FCaret.LineCharPos := NewCaret;
+//    DoDecPaintLock(Self);
+//  end
+//  else begin
   DoIncPaintLock(Self); // No editing is taking place
   if UseScreenLine then begin
     FCaret.ViewedLinePos := FCaret.ViewedLinePos + DY;
@@ -8635,6 +8646,7 @@ begin
     FCaret.LinePos := NewCaret.Y;
   end;
   DoDecPaintLock(Self);
+  end;
 end;
 
 procedure TCustomSynEdit.SetCaretAndSelection(const ptCaret, ptBefore,
