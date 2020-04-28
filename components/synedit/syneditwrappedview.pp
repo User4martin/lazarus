@@ -1,4 +1,4 @@
-unit SynEditWrappedView experimental;
+unit SynEditWrappedView;
 
 {$mode objfpc}{$H+}
 
@@ -28,8 +28,7 @@ type
   TSynWordWrapInvalidLinesRecordSize = specialize TLazListClassesItemSize<TSynWordWrapInvalidLinesRecord>;
   TSynWordWrapInvalidLines = object(specialize TLazShiftBufferListObjBase<PSynWordWrapInvalidLinesRecord, TSynWordWrapInvalidLinesRecordSize>)
   private
-    function GetFirstInvalidEndLine: Integer; inline;
-    function GetFirstInvalidLine: Integer; inline;
+    function GetFirstInvalidLine: Integer;
     function GetLastInvalidLine: Integer;
     function GetItem(AnIndex: Integer): TSynWordWrapInvalidLinesRecord; inline;
 
@@ -47,7 +46,6 @@ type
     procedure MoveRangeAtStartTo(var ADestLines: TSynWordWrapInvalidLines; ASourceEndLine, AnAdjust: Integer);
     procedure MoveRangeAtEndTo(var ADestLines: TSynWordWrapInvalidLines; ASourceStartLine, AnAdjust: Integer);
     property FirstInvalidLine: Integer read GetFirstInvalidLine;
-    property FirstInvalidEndLine: Integer read GetFirstInvalidEndLine;
     property LastInvalidLine: Integer read GetLastInvalidLine;
     property Item[AnIndex: Integer]: TSynWordWrapInvalidLinesRecord read GetItem;
   end;
@@ -58,7 +56,6 @@ type
   private
     FAvlNode: TSynWordWrapIndexPage;
     FInvalidLines: TSynWordWrapInvalidLines;
-    FDeferredAdjustFromOffs, FDeferredAdjustFromVal: Integer;
 
     (* FWrappedExtraSums:
        Sum of all extra lines due to wrapping up to (and including) the current element.
@@ -82,12 +79,13 @@ type
 
     function GetWrappedOffsetFor(ARealOffset: IntIdx): IntIdx; inline;
 
-    function  GetFirstInvalidLine: Integer; inline;
-    function  GetFirstInvalidEndLine: Integer; inline;
-    function  GetLastInvalidLine: Integer; inline;
-    procedure AddToInvalidList; inline;
-    procedure RemoveFromInvalidList(AMode: TRemoveFromInvalidListMode = rfiDefault); inline;
-    procedure MaybeUpdateViewedSizeDifference;  inline;
+    function  GetFirstInvalidLine: Integer;
+    function  GetLastInvalidLine: Integer;
+    procedure AddToInvalidList;
+deprecated;
+    procedure RemoveFromInvalidList(AMode: TRemoveFromInvalidListMode = rfiDefault);
+deprecated;
+    procedure MaybeUpdateViewedSizeDifference;
 
     property Capacity: Integer read GetCapacity write SetCapacity;
   public
@@ -104,9 +102,7 @@ type
 
     procedure InvalidateLines(AFromOffset, AToOffset: Integer); //
     procedure ValidateLine(ALineOffset, AWrappCount: Integer);
-    procedure EndValidate;
     property FirstInvalidLine: Integer read GetFirstInvalidLine;
-    property FirstInvalidEndLine: Integer read GetFirstInvalidEndLine;
     property LastInvalidLine: Integer read GetLastInvalidLine;
 
     procedure InsertLinesAtOffset(ALineOffset, ALineCount: Integer);
@@ -122,22 +118,29 @@ type
   { TSynWordWrapIndexPage }
 
   TSynWordWrapIndexPage = class(TSynEditLineMapPage)
+  protected
+    function GetFirstInvalidLine: Integer; override;
+    function GetLastInvalidLine: Integer; override;
+    function GetViewedRealCountDifference: Integer; override;
+
+    //function Left: TSynWordWrapIndexPage;
+    //function Parent: TSynWordWrapIndexPage;
+    //function Right: TSynWordWrapIndexPage;
+  public
+    //function Precessor: TSynWordWrapIndexPage; reintroduce;
+    //function Successor: TSynWordWrapIndexPage; reintroduce;
+    //function Precessor(var aStartPosition, aSizesBeforeSum: Integer): TSynWordWrapIndexPage; reintroduce;
+    //function Successor(var aStartPosition, aSizesBeforeSum: Integer): TSynWordWrapIndexPage; reintroduce;
+
   private
     FSynWordWrapLineMap: TSynWordWrapLineMap;
     FSynEditWrappedPlugin :TLazSynEditLineWrapPlugin;
 
     procedure UpdateViewedSizeDifference;
-    procedure MaybeJoinWithSibling;
   protected
-    function GetFirstInvalidLine: Integer; override;
-    function GetFirstInvalidEndLine: Integer; override;
-    function GetLastInvalidLine: Integer; override;
-    function GetViewedRealCountDifference: Integer; override;
-
     function GetWrappedOffsetFor(ARealOffset: IntIdx): IntIdx; override;
     function IsValid: boolean; override;
-  public
-    property SynWordWrapLineMapStore: TSynWordWrapLineMap read FSynWordWrapLineMap; experimental; // 'For test case only';
+public property SynWordWrapLineMapStore: TSynWordWrapLineMap read FSynWordWrapLineMap;// for test
   public
     constructor Create(ATree: TSynLineMapAVLTree); override;
     destructor Destroy; override;
@@ -156,7 +159,6 @@ type
     procedure MoveLinesAtEndTo(ADestPage: TSynEditLineMapPage; ASourceStartLine, ACount: Integer); override;
 
     // must be FirstInvalidLine (or Last) => so FirstInvalidLine can be set.
-    procedure EndValidate; override;
     procedure ValidateLine(ALineOffset, AWrappCount: Integer); override;
     procedure InvalidateLines(AFromOffset, AToOffset: Integer); override; // TODO: adjust offset
     function ExtendAndInvalidateLines(AFromLineIdx, AToLineIdx: TLineIdx): Boolean; override;
@@ -166,39 +168,19 @@ type
     function RealEndLine: Integer; override; // Offset + RealCount - 1;
 
     function GetOffsetForWrap(AWrapOffset: IntIdx; out ASubOffset: IntIdx): IntIdx; override;
+//    property WrappedOffsetFor[ARealOffset: IntIdx]: IntIdx read GetWrappedOffsetFor;
 
     function TextXYIdxToViewXYIdx(ATextXYIdx: TPhysPoint; ANodeStartLine: IntIdx): TPhysPoint; override;
     function ViewXYIdxToTextXYIdx(AViewXYIdx: TPhysPoint; ANodeStartLine: IntIdx): TPhysPoint; override;
   end;
 
 
-  TLazSynEditWrapCaretPos = (wcpEOL, wcpBOL);
-
-  { TLazSynDisplayWordWrap }
-
-  TLazSynDisplayWordWrap = class(TLazSynDisplayLineMapping)
-  private
-    FWrapPlugin: TLazSynEditLineWrapPlugin;
-
-    FCurSubLineLogStartIdx, FCurSubLineNextLogStartIdx, FCurSubLinePhysStartIdx: Integer;
-    FCurToken: TLazSynDisplayTokenInfo;
-    FCurLineLogIdx: Integer;
-  public
-    constructor Create(AWrappedView: TSynEditLineMappingView; AWrapPlugin: TLazSynEditLineWrapPlugin);
-    //destructor Destroy; override;
-    procedure SetHighlighterTokensLine(AWrappedLine: TLineIdx; out
-      ARealLine: TLineIdx; out AStartBytePos, ALineByteLen: Integer); override;
-    function GetNextHighlighterToken(out ATokenInfo: TLazSynDisplayTokenInfo): Boolean; override;
-  end;
-
   { TLazSynEditLineWrapPlugin }
 
   TLazSynEditLineWrapPlugin = class(TLazSynEditPlugin)
   private
-    FCaretWrapPos: TLazSynEditWrapCaretPos;
     procedure DoLinesChanged(Sender: TObject);
     procedure DoWidthChanged(Sender: TObject; Changes: TSynStatusChanges);
-    function GetWrapColumn: Integer;
 public
     FLineMapView: TSynEditLineMappingView;
     function CreatePageMapNode(AMapTree: TSynLineMapAVLTree
@@ -207,39 +189,25 @@ public
     procedure SetEditor(const AValue: TCustomSynEdit); override;
 
     function CalculateNextBreak(ALine: PChar; ALogStartFrom: IntIdx; AMaxWidth: Integer;
-      const PhysCharWidths: TPhysicalCharWidths; out APhysWidth: Integer): IntIdx;
-    function  GetSublineCount (ALine: String; AMaxWidth: Integer; const APhysCharWidths: TPhysicalCharWidths): Integer; inline;
-    procedure GetSublineBounds(ALine: String; AMaxWidth: Integer;
-      const APhysCharWidths: TPhysicalCharWidths; ASubLine: Integer; out ALogStartX,
-      ANextLogStartX, APhysStart: IntIdx; out APhysWidth: integer);
-    function  GetSubLineFromX (ALine: String; AMaxWidth: Integer; const APhysCharWidths: TPhysicalCharWidths; var APhysXPos: Integer): integer;
-
-    procedure GetWrapInfoForViewedXY(var AViewedXY: TPhysPoint; AFlags: TViewedXYInfoFlags; out AFirstViewedX: IntPos; ALogPhysConvertor: TSynLogicalPhysicalConvertor);
+      PhysCharWidths: TPhysicalCharWidths; out APhysWidth: Integer): IntIdx;
+    function  GetSublineCount (ALine: String; AMaxWidth: Integer; APhysCharWidths: TPhysicalCharWidths): Integer;
+    procedure GetSublineBounds(ALine: String; AMaxWidth: Integer; APhysCharWidths: TPhysicalCharWidths;
+      ASubLine: Integer; out ALogStartX, ANextLogStartX, APhysStart: IntIdx);
+    function  GetSubLineFromX (ALine: String; AMaxWidth: Integer; APhysCharWidths: TPhysicalCharWidths; var APhysXPos: Integer): integer;
 
     function TextXYToLineXY(ATextXY: TPhysPoint): TPhysPoint;
     function LineXYToTextX(ARealLine: IntPos; ALineXY: TPhysPoint): Integer;
-    function CalculateWrapForLine(ALineIdx: IntIdx; AMaxWidth: integer): Integer; inline;
+    function CalculateWrapForLine(ALineIdx: IntIdx; AMaxWidth: integer): Integer;
   public
     constructor Create(AOwner: TComponent); override;
 
     procedure WrapAll; experimental;
     procedure ValidateAll; experimental;
-
-    property CaretWrapPos: TLazSynEditWrapCaretPos read FCaretWrapPos write FCaretWrapPos;
-    property WrapColumn: Integer read GetWrapColumn;
   end;
 
 implementation
 
 { TSynWordWrapInvalidLines }
-
-function TSynWordWrapInvalidLines.GetFirstInvalidEndLine: Integer;
-begin
-  if Count = 0 then
-    Result := -1
-  else
-    Result := Item[0].Last;
-end;
 
 function TSynWordWrapInvalidLines.GetFirstInvalidLine: Integer;
 begin
@@ -318,6 +286,7 @@ procedure TSynWordWrapInvalidLines.InvalidateLines(AFromOffset, AToOffset: Integ
 var
   i, j, c: Integer;
 begin
+//debugln(['TSynWordWrapInvalidLines.InvalidateLines ',AFromOffset, ' .. ',AToOffset]);
   c := Count;
   i := FindIndexFor(AFromOffset);
   if (i > 0) and (Item[i-1].Last >= AFromOffset-1) then begin
@@ -646,12 +615,16 @@ end;
 procedure TSynWordWrapLineMap.AddToInvalidList;
 begin
   FAvlNode.AddToInvalidList;
+  //if (FInvalidLines.Count > 0) then
+  //  FInvalidEntryList.AddToInvalidList(Self);
 end;
 
 procedure TSynWordWrapLineMap.RemoveFromInvalidList(
   AMode: TRemoveFromInvalidListMode);
 begin
   FAvlNode.RemoveFromInvalidList(AMode);
+  //if (FInvalidLines.Count = 0) or (AMode in [rfiForce, rfiMarkAsValidating]) then
+  //  FInvalidEntryList.RemoveFromInvalidList(Self, AMode);
 end;
 
 procedure TSynWordWrapLineMap.MaybeUpdateViewedSizeDifference;
@@ -669,25 +642,21 @@ begin
 end;
 
 procedure TSynWordWrapLineMap.ValidateLine(ALineOffset, AWrappCount: Integer);
+
+  procedure AdjustFrom(ATarget, AnAdjustVal: Integer);
+  var
+    i: Integer;
+  begin
+    for i := ATarget to FWrappedExtraSumsCount - 1 do
+      FWrappedExtraSums[i] := FWrappedExtraSums[i] + AnAdjustVal;
+  end;
+
 var
   i, j: Integer;
 begin
   assert(ALineOffset >= 0, 'TSynWordWrapLineMap.ValidateLine: ALineOffset >= 0');
   assert((FOffsetAtStart = 0) or (FWrappedExtraSumsCount > 0), 'TSynWordWrapLineMap.ValidateLine: (FOffsetAtStart = 0) or (FWrappedExtraSumsCount > 0)');
   FInvalidLines.ValidateLines(ALineOffset);
-
-  if ALineOffset - FOffsetAtStart < FDeferredAdjustFromOffs then begin
-    EndValidate;
-  end
-  else
-  if FDeferredAdjustFromOffs > 0 then begin
-    j := FDeferredAdjustFromVal;
-    //AWrappCount := AWrappCount + j;
-    for i := FDeferredAdjustFromOffs to Min(FWrappedExtraSumsCount - 1, ALineOffset - FOffsetAtStart) do
-      FWrappedExtraSums[i] := FWrappedExtraSums[i] + j;
-    FDeferredAdjustFromOffs := 0;
-  end;
-
 
   if ALineOffset < FOffsetAtStart then begin
     if AWrappCount <> 1 then begin
@@ -756,25 +725,10 @@ begin
 
     else
     begin
-      j := AWrappCount - 1 + GetWrappedExtraSumBefore(ALineOffset);
-      FDeferredAdjustFromOffs := ALineOffset + 1;
-      FDeferredAdjustFromVal  := FDeferredAdjustFromVal + j - FWrappedExtraSums[ALineOffset];
-      FWrappedExtraSums[ALineOffset] := j;
+      j := AWrappCount - 1 + GetWrappedExtraSumBefore(ALineOffset) - FWrappedExtraSums[ALineOffset];
+      AdjustFrom(ALineOffset, j);
     end;
   end;
-end;
-
-procedure TSynWordWrapLineMap.EndValidate;
-var
-  v, i: Integer;
-begin
-  if FDeferredAdjustFromOffs > 0 then begin
-    v := FDeferredAdjustFromVal;
-    for i := FDeferredAdjustFromOffs to FWrappedExtraSumsCount - 1 do
-      FWrappedExtraSums[i] := FWrappedExtraSums[i] + v;
-  end;
-  FDeferredAdjustFromOffs := 0;
-  FDeferredAdjustFromVal  := 0;
 
   if (FInvalidLines.Count = 0) then begin
     FAvlNode.UpdateViewedSizeDifference;
@@ -788,6 +742,7 @@ procedure TSynWordWrapLineMap.MoveLinesAtStartTo(ADestPage: TSynWordWrapLineMap;
 var
   MinLineCount, TrgO1: Integer;
 begin
+//debugln('TSynWordWrapLineMap.MoveLinesAtStartTo %d %d', [ ASourceEndLine, ATargetStartLine]);
   assert(ATargetStartLine >= ADestPage.FWrappedExtraSumsCount + ADestPage.FOffsetAtStart, 'TSynWordWrapLineMap.InsertLinesFromPage: ATargetStartLine > ADestPage.FWrappedExtraSumsCount + ADestPage.FOffsetAtStart');
 
   FInvalidLines.MoveRangeAtStartTo(ADestPage.FInvalidLines, ASourceEndLine, ATargetStartLine);
@@ -846,6 +801,7 @@ procedure TSynWordWrapLineMap.MoveLinesAtEndTo(ADestPage: TSynWordWrapLineMap;
 var
   OldOffset, SrcO1, SrcO2, MinLineCount: Integer;
 begin
+//debugln('TSynWordWrapLineMap.MoveLinesAtEndTo %d %d', [ASourceStartLine,ALineCount]);
   assert(ASourceStartLine-FOffsetAtStart+ALineCount >= FWrappedExtraSumsCount, 'TSynWordWrapLineMap.MoveLinesAtEndTo: ASourceStartLine+ACount >= FWrappedExtraSumsCount');
 
   ADestPage.FInvalidLines.InsertLines(0, ALineCount);
@@ -900,12 +856,11 @@ begin
     @ADestPage.FWrappedExtraSums[ALineCount + OldOffset],
     ADestPage.FWrappedExtraSumsCount,
     SrcO2 - SrcO1);
-  if MinLineCount > 0 then
-    WrapInfoCopyAndAdjustFromTo(
-      @FWrappedExtraSums[ASourceStartLine],
-      @ADestPage.FWrappedExtraSums[0],
-      MinLineCount,
-      -SrcO1);
+  WrapInfoCopyAndAdjustFromTo(
+    @FWrappedExtraSums[ASourceStartLine],
+    @ADestPage.FWrappedExtraSums[0],
+    MinLineCount,
+    -SrcO1);
   WrapInfoFillFrom(
     @ADestPage.FWrappedExtraSums[MinLineCount],
     ALineCount - MinLineCount + OldOffset,
@@ -1070,11 +1025,6 @@ begin
   Result := FInvalidLines.FirstInvalidLine;
 end;
 
-function TSynWordWrapLineMap.GetFirstInvalidEndLine: Integer;
-begin
-  Result := FInvalidLines.FirstInvalidEndLine;
-end;
-
 function TSynWordWrapLineMap.GetLastInvalidLine: Integer;
 begin
   Result := FInvalidLines.LastInvalidLine;
@@ -1085,11 +1035,6 @@ end;
 function TSynWordWrapIndexPage.GetFirstInvalidLine: Integer;
 begin
   Result := FSynWordWrapLineMap.FirstInvalidLine;
-end;
-
-function TSynWordWrapIndexPage.GetFirstInvalidEndLine: Integer;
-begin
-  Result := FSynWordWrapLineMap.FirstInvalidEndLine;
 end;
 
 function TSynWordWrapIndexPage.GetLastInvalidLine: Integer;
@@ -1107,66 +1052,6 @@ begin
   UpdateNodeSize(FSynWordWrapLineMap.ViewedRealCountDifference);
 end;
 
-procedure TSynWordWrapIndexPage.MaybeJoinWithSibling;
-var
-  dummy, NextLineOffs, PrevLineOffs, NextLineDist, PrevLineDist: Integer;
-  NextPage, PrevPage: TSynEditLineMapPage;
-begin
-  if (FSynWordWrapLineMap.FirstInvalidLine < 0) and
-     (RealCount <= Tree.PageJoinSize)
-  then begin
-    NextLineOffs := 0;
-    dummy := 0;
-    NextPage := Successor(NextLineOffs, dummy);
-    if NextPage <> nil then begin
-      assert(NextLineOffs > RealEndLine, 'TSynWordWrapIndexPage.MaybeJoinWithSibling: NextLineOffs > RealEndLine');
-      NextLineDist := NextLineOffs - RealEndLine + NextPage.RealStartLine;
-      if (NextPage.RealCount > Tree.PageJoinSize) or
-         (NextLineDist > Tree.PageJoinDistance) or
-         (NextPage.FirstInvalidLine >= 0) or
-         (not NextPage.CanExtendStartTo(-NextLineOffs + RealStartLine, True))
-      then
-        NextLineOffs := 0;
-    end
-    else
-      NextLineOffs := 0;
-
-    PrevLineOffs := 0;
-    dummy := 0;
-    PrevPage := Precessor(PrevLineOffs, dummy);
-    if PrevPage <> nil then begin
-      PrevLineOffs := -PrevLineOffs;
-      assert(PrevLineOffs > PrevPage.RealEndLine, 'TSynWordWrapIndexPage.MaybeJoinWithSibling: -PrevLineOffs > PrevPage.RealEndLine');
-      PrevLineDist := PrevLineOffs + RealStartLine - PrevPage.RealEndLine;
-      if (PrevPage.RealCount > Tree.PageJoinSize) or
-         (PrevLineDist> Tree.PageJoinDistance) or
-         (PrevPage.FirstInvalidLine >= 0) or
-         (not PrevPage.CanExtendEndTo(PrevLineOffs + RealEndLine, True))
-      then
-        PrevLineOffs := 0;
-    end
-    else
-      PrevLineOffs := 0;
-
-  if (NextLineOffs > 0) and
-     ( (PrevLineOffs = 0) or (PrevLineDist > NextLineDist) )
-  then begin
-    MoveLinesAtEndTo(NextPage, 0, NextLineOffs);
-    //FSynWordWrapLineMap.MoveLinesAtEndTo(TSynWordWrapIndexPage(ADestPage).FSynWordWrapLineMap, ASourceStartLine, ACount);
-    Tree.FreeNode(Self);
-    NextPage.AdjustPosition(-NextLineOffs);
-  end
-  else
-  if (PrevLineOffs > 0)
-  then begin
-    MoveLinesAtStartTo(PrevPage, PrevLineOffs-1, PrevLineOffs);
-    Tree.FreeNode(Self);
-  end;
-
-
-  end;
-end;
-
 function TSynWordWrapIndexPage.GetWrappedOffsetFor(ARealOffset: IntIdx): IntIdx;
 begin
   Result := FSynWordWrapLineMap.GetWrappedOffsetFor(ARealOffset);
@@ -1180,15 +1065,15 @@ end;
 function TSynWordWrapIndexPage.CanExtendStartTo(ALineOffs: Integer;
   AIgnoreJoinDist: Boolean): boolean;
 begin
-  Result := (RealEndLine - ALineOffs < Tree.PageSplitSize) and
-            (AIgnoreJoinDist or (RealStartLine - ALineOffs < Tree.PageJoinDistance));
+  Result := (RealEndLine - ALineOffs < Tree.FPageSplitSize) and
+            (AIgnoreJoinDist or (RealStartLine - ALineOffs < Tree.FPageJoinDistance));
 end;
 
 function TSynWordWrapIndexPage.CanExtendEndTo(ALineOffs: Integer;
   AIgnoreJoinDist: Boolean): boolean;
 begin
-  Result := (ALineOffs - RealStartLine < Tree.PageSplitSize) and
-            (AIgnoreJoinDist or (ALineOffs - RealEndLine < Tree.PageJoinDistance));
+  Result := (ALineOffs - RealStartLine < Tree.FPageSplitSize) and
+            (AIgnoreJoinDist or (ALineOffs - RealEndLine < Tree.FPageJoinDistance));
 end;
 
 function TSynWordWrapIndexPage.GetOffsetForWrap(AWrapOffset: IntIdx; out
@@ -1274,14 +1159,11 @@ var
   rs, re, LineOffs, dummy, Cnt: Integer;
   NextPage, PrevPage: TSynEditLineMapPage;
 begin
+//debuglnEnter(['> TSynLineMapAVLTree.InsertLines ',AStartLine,' ',ALineCount ]); try //DebugDump;
+
   assert(AStartLine >= 0, 'TSynWordWrapIndexPage.AdjustForLinesInserted: AStartLine >= 0');
 
-  rs := RealStartLine;
-  re := RealEndLine;
-
-  if (AStartLine <= rs) or (AStartLine > re) or
-     (re - rs + 1 + ALineCount <= Tree.PageSplitSize)
-  then begin
+  if (AStartLine <= RealStartLine) or (AStartLine > RealEndLine) then begin
     InsertLinesAtOffset(AStartLine, ALineCount);
     if AStartLine = 0 then
       AdjustPosition(-ALineCount);
@@ -1293,6 +1175,8 @@ begin
   *)
   assert(RealCount > 0, 'TSynWordWrapIndexPage.InsertLines: RealCount > 0');
 
+  rs := RealStartLine;
+  re := RealEndLine;
   if AStartLine > rs + (re-rs) div 2 then begin
     // try split to next
     LineOffs := 0;
@@ -1359,6 +1243,7 @@ begin
     PrevPage.InsertLinesAtOffset(AStartLine, ALineCount);
   end;
 
+//finally  debuglnExit(['< TSynLineMapAVLTree.InsertLines ' ]); end;
 //  inherited AdjustForLinesInserted(AStartLine, ALineCount, ABytePos);
 end;
 
@@ -1366,7 +1251,6 @@ procedure TSynWordWrapIndexPage.AdjustForLinesDeleted(AStartLine,
   ALineCount: IntIdx; ABytePos: Integer);
 begin
   DeleteLinesAtOffset(AStartLine, ALineCount);
-  MaybeJoinWithSibling;
 end;
 
 procedure TSynWordWrapIndexPage.InsertLinesAtOffset(ALineOffset,
@@ -1399,12 +1283,6 @@ begin
   FSynWordWrapLineMap.DeleteLinesAtOffset(ASourceStartLine, ACount);
 end;
 
-procedure TSynWordWrapIndexPage.EndValidate;
-begin
-  FSynWordWrapLineMap.EndValidate;
-  MaybeJoinWithSibling;
-end;
-
 procedure TSynWordWrapIndexPage.ValidateLine(ALineOffset, AWrappCount: Integer);
 begin
   FSynWordWrapLineMap.ValidateLine(ALineOffset, AWrappCount);
@@ -1425,87 +1303,6 @@ begin
   Result := FSynWordWrapLineMap.Offset + FSynWordWrapLineMap.RealCount - 1;
 end;
 
-{ TLazSynDisplayWordWrap }
-
-constructor TLazSynDisplayWordWrap.Create(AWrappedView: TSynEditLineMappingView;
-  AWrapPlugin: TLazSynEditLineWrapPlugin);
-begin
-  FWrapPlugin := AWrapPlugin;
-  inherited Create(AWrappedView);
-end;
-
-procedure TLazSynDisplayWordWrap.SetHighlighterTokensLine(
-  AWrappedLine: TLineIdx; out ARealLine: TLineIdx; out AStartBytePos,
-  ALineByteLen: Integer);
-var
-  IsNext: Boolean;
-  PrevSub: IntIdx;
-  LineTxt: String;
-  PWidth: TPhysicalCharWidths;
-  PhysWidth, MaxW: Integer;
-begin
-  IsNext := (AWrappedLine = FCurWrappedLine + 1) and (FCurWrappedLine >= 0);
-  PrevSub := FCurrentWrapSubline;
-
-  inherited SetHighlighterTokensLine(AWrappedLine, ARealLine, AStartBytePos, ALineByteLen);
-
-  LineTxt := FLineMappingView.NextLines.Strings[ARealLine];
-  FLineMappingView.LogPhysConvertor.CurrentLine := ARealLine;
-  PWidth := FLineMappingView.LogPhysConvertor.CurrentWidthsDirect;
-  //PWidth  := FLineMappingView.GetPhysicalCharWidths(ARealLine);
-  MaxW    := FWrapPlugin.WrapColumn;
-  if IsNext and (FCurrentWrapSubline = PrevSub + 1) then begin
-    FCurSubLineLogStartIdx := FCurSubLineNextLogStartIdx;
-    FCurSubLineNextLogStartIdx := FWrapPlugin.CalculateNextBreak(PChar(LineTxt), FCurSubLineNextLogStartIdx,
-      MaxW, PWidth, PhysWidth);
-    FCurSubLinePhysStartIdx := FCurSubLinePhysStartIdx + PhysWidth;
-  end
-  else begin
-    FWrapPlugin.GetSublineBounds(LineTxt, MaxW, PWidth, FCurrentWrapSubline,
-      FCurSubLineLogStartIdx, FCurSubLineNextLogStartIdx, FCurSubLinePhysStartIdx, PhysWidth);
-  end;
-  AStartBytePos := AStartBytePos + FCurSubLineLogStartIdx;
-  ALineByteLen := FCurSubLineNextLogStartIdx - FCurSubLineLogStartIdx;
-
-  FCurLineLogIdx := 0;
-end;
-
-function TLazSynDisplayWordWrap.GetNextHighlighterToken(out
-  ATokenInfo: TLazSynDisplayTokenInfo): Boolean;
-var
-  PreStart: Integer;
-begin
-  If FCurLineLogIdx >= FCurSubLineNextLogStartIdx then begin
-    Result := False;
-    exit;
-  end;
-
-  repeat
-    PreStart := FCurSubLineLogStartIdx - FCurLineLogIdx;
-    Result := inherited GetNextHighlighterToken(ATokenInfo);
-    if (not Result) or (ATokenInfo.TokenLength <= 0) then begin
-      exit;
-    end;
-    FCurToken := ATokenInfo;
-
-    FCurLineLogIdx := FCurLineLogIdx + ATokenInfo.TokenLength;
-  until FCurLineLogIdx > FCurSubLineLogStartIdx;
-
-  if PreStart > 0 then begin
-    ATokenInfo.TokenStart := ATokenInfo.TokenStart + PreStart;
-    ATokenInfo.TokenLength := ATokenInfo.TokenLength - PreStart;
-    Result := ATokenInfo.TokenLength > 0;
-    if not Result then
-      exit;
-  end;
-
-
-  If FCurLineLogIdx > FCurSubLineNextLogStartIdx then begin
-    ATokenInfo.TokenLength := ATokenInfo.TokenLength - (FCurLineLogIdx - FCurSubLineNextLogStartIdx);
-    Result := ATokenInfo.TokenLength > 0;
-  end;
-end;
-
 { TLazSynEditLineWrapPlugin }
 
 procedure TLazSynEditLineWrapPlugin.DoLinesChanged(Sender: TObject);
@@ -1516,13 +1313,7 @@ end;
 procedure TLazSynEditLineWrapPlugin.DoWidthChanged(Sender: TObject;
   Changes: TSynStatusChanges);
 begin
-  FLineMapView.KnownLengthOfLongestLine := WrapColumn;
   FLineMapView.InvalidateLines(0, FLineMapView.NextLines.Count);
-end;
-
-function TLazSynEditLineWrapPlugin.GetWrapColumn: Integer;
-begin
-  Result := TSynEdit(Editor).CharsInWindow;
 end;
 
 function TLazSynEditLineWrapPlugin.CreatePageMapNode(AMapTree: TSynLineMapAVLTree): TSynEditLineMapPage;
@@ -1540,7 +1331,7 @@ end;
 
 function TLazSynEditLineWrapPlugin.CalculateNextBreak(ALine: PChar;
   ALogStartFrom: IntIdx; AMaxWidth: Integer;
-  const PhysCharWidths: TPhysicalCharWidths; out APhysWidth: Integer): IntIdx;
+  PhysCharWidths: TPhysicalCharWidths; out APhysWidth: Integer): IntIdx;
 const
   // todo, other break chars // utf8
   BREAKCHARS = [#9, #32, '.', ',', ':', ';', '=', '-', '+', '*', '/', '(', ')', '{', '}', '[', ']', '!', '<', '>'];
@@ -1567,6 +1358,7 @@ begin
           inc(PhysWidthPtr);
           inc(Result);
           dec(AMaxWidth, CurCharPhysWidth);
+          CurCharPhysWidth := PhysWidthPtr^ and PCWMask;
         end
         else begin
           ALine := nil; // break outer loop
@@ -1604,6 +1396,7 @@ begin
         inc(PhysWidthPtr);
         inc(Result);
         dec(AMaxWidth, CurCharPhysWidth);
+        CurCharPhysWidth := PhysWidthPtr^ and PCWMask;
       end
       else
         break;
@@ -1613,7 +1406,7 @@ begin
 end;
 
 function TLazSynEditLineWrapPlugin.GetSublineCount(ALine: String;
-  AMaxWidth: Integer; const APhysCharWidths: TPhysicalCharWidths): Integer;
+  AMaxWidth: Integer; APhysCharWidths: TPhysicalCharWidths): Integer;
 var
   x, dummy: Integer;
 begin
@@ -1628,25 +1421,27 @@ begin
 end;
 
 procedure TLazSynEditLineWrapPlugin.GetSublineBounds(ALine: String;
-  AMaxWidth: Integer; const APhysCharWidths: TPhysicalCharWidths; ASubLine: Integer;
-  out ALogStartX, ANextLogStartX, APhysStart: IntIdx; out APhysWidth: integer);
+  AMaxWidth: Integer; APhysCharWidths: TPhysicalCharWidths; ASubLine: Integer;
+  out ALogStartX, ANextLogStartX, APhysStart: IntIdx);
+var
+  PhysWidth: Integer;
 begin
   ALogStartX := 0;
   ANextLogStartX := 0;
   APhysStart := 0;
   if Length(ALine) = 0 then
     exit;
-  ANextLogStartX := CalculateNextBreak(PChar(ALine), ALogStartX, AMaxWidth, APhysCharWidths, APhysWidth);
+  ANextLogStartX := CalculateNextBreak(PChar(ALine), ALogStartX, AMaxWidth, APhysCharWidths, PhysWidth);
   while ASubLine > 0 do begin
     ALogStartX := ANextLogStartX;
-    APhysStart := APhysStart + APhysWidth;
-    ANextLogStartX := CalculateNextBreak(PChar(ALine), ALogStartX, AMaxWidth, APhysCharWidths, APhysWidth);
+    APhysStart := APhysStart + PhysWidth;
+    ANextLogStartX := CalculateNextBreak(PChar(ALine), ALogStartX, AMaxWidth, APhysCharWidths, PhysWidth);
     dec(ASubLine);
   end;
 end;
 
 function TLazSynEditLineWrapPlugin.GetSubLineFromX(ALine: String;
-  AMaxWidth: Integer; const APhysCharWidths: TPhysicalCharWidths;
+  AMaxWidth: Integer; APhysCharWidths: TPhysicalCharWidths;
   var APhysXPos: Integer): integer;
 var
   x, PhysWidth: Integer;
@@ -1656,74 +1451,23 @@ begin
     exit;
   Result := -1;
   x := 0;
-  APhysXPos := ToIdx(APhysXPos);
   while (x < Length(ALine)) do begin
     inc(Result);
     x := CalculateNextBreak(PChar(ALine), x, AMaxWidth, APhysCharWidths, PhysWidth);
-    if x >= Length(ALine) then
-      break;
-    if (FCaretWrapPos = wcpBOL) and (PhysWidth = APhysXPos) and (x < Length(ALine))
-    then begin
-      inc(Result);
-      APhysXPos := APhysXPos - PhysWidth;
-      break;
-    end;
     if PhysWidth >= APhysXPos then
       break;
     APhysXPos := APhysXPos - PhysWidth;
   end;
-  APhysXPos := ToPos(APhysXPos);
-end;
-
-procedure TLazSynEditLineWrapPlugin.GetWrapInfoForViewedXY(
-  var AViewedXY: TPhysPoint; AFlags: TViewedXYInfoFlags;
-  out AFirstViewedX: IntPos; ALogPhysConvertor: TSynLogicalPhysicalConvertor);
-var
-  SubLineOffset, YIdx: TLineIdx;
-  LineTxt: String;
-  PWidth: TPhysicalCharWidths;
-  LogX, NextLogX, PhysX: IntIdx;
-  PhysWidth: Integer;
-begin
-
-  YIdx := FLineMapView.Tree.GetLineForForWrap(ToIdx(AViewedXY.y), SubLineOffset);
-  YIdx := FLineMapView.NextLines.ViewToTextIndex(YIdx);
-
-  LineTxt := FLineMapView.Strings[YIdx];
-  ALogPhysConvertor.CurrentLine := YIdx;
-  PWidth  := ALogPhysConvertor.CurrentWidthsDirect;
-
-  GetSublineBounds(LineTxt, WrapColumn, PWidth, SubLineOffset, LogX, NextLogX, PhysX, PhysWidth);
-
-  case CaretWrapPos of
-    wcpEOL: begin
-        if (SubLineOffset > 0) and (AViewedXY.x <= 1) then
-          AViewedXY.x := 2
-        else
-        if (NextLogX < length(LineTxt)) and (AViewedXY.x > ToPos(PhysWidth)) then
-          AViewedXY.x := ToPos(PhysWidth);
-        AFirstViewedX := 2;
-      end;
-    wcpBOL: begin
-        if (NextLogX < length(LineTxt)) and (AViewedXY.x >= ToPos(PhysWidth)) then
-          AViewedXY.x := ToPos(PhysWidth) - 1;
-        AFirstViewedX := 1;
-      end;
-  end;
-
-  AViewedXY.y := ToPos(YIdx);
-  AViewedXY.x := AViewedXY.x + PhysX;
 end;
 
 function TLazSynEditLineWrapPlugin.TextXYToLineXY(ATextXY: TPhysPoint
   ): TPhysPoint;
 begin
-  FLineMapView.LogPhysConvertor.CurrentLine := ATextXY.y;
   Result.x := ATextXY.x;
   Result.y :=
     GetSubLineFromX(FLineMapView.NextLines.Strings[ATextXY.y],
-      WrapColumn,
-      FLineMapView.LogPhysConvertor.CurrentWidthsDirect,
+      TSynEdit(Editor).CharsInWindow,
+      FLineMapView.GetPhysicalCharWidths(ATextXY.y),
       Result.x
     );
 end;
@@ -1732,13 +1476,12 @@ function TLazSynEditLineWrapPlugin.LineXYToTextX(ARealLine: IntPos;
   ALineXY: TPhysPoint): Integer;
 var
   dummy, dummy2: IntIdx;
-  dummy3: integer;
 begin
-  FLineMapView.LogPhysConvertor.CurrentLine := ARealLine;
+// TODO phys
   GetSublineBounds(FLineMapView.NextLines.Strings[ARealLine],
-    WrapColumn,
-    FLineMapView.LogPhysConvertor.CurrentWidthsDirect,
-    ALineXY.y, dummy, dummy2, Result, dummy3
+    TSynEdit(Editor).CharsInWindow,
+    FLineMapView.GetPhysicalCharWidths(ARealLine),
+    ALineXY.y, dummy, dummy2, Result
   );
   Result := Result + ALineXY.x;
 end;
@@ -1746,9 +1489,8 @@ end;
 function TLazSynEditLineWrapPlugin.CalculateWrapForLine(ALineIdx: IntIdx;
   AMaxWidth: integer): Integer;
 begin
-  FLineMapView.LogPhysConvertor.CurrentLine := ALineIdx;
   Result := GetSublineCount(FLineMapView.NextLines.Strings[ALineIdx], AMaxWidth,
-    FLineMapView.LogPhysConvertor.CurrentWidthsDirect);
+    FLineMapView.GetPhysicalCharWidths(ALineIdx));
 end;
 
 constructor TLazSynEditLineWrapPlugin.Create(AOwner: TComponent);
@@ -1757,17 +1499,14 @@ begin
   FLineMapView := TSynEditLineMappingView(TSynEdit(Editor).TextViewsManager.SynTextViewByClass[TSynEditLineMappingView]);
   if FLineMapView = nil then begin
     FLineMapView := TSynEditLineMappingView.Create;
-    FLineMapView.SetDisplayView(TLazSynDisplayWordWrap.Create(FLineMapView, Self));
     TSynEdit(Editor).TextViewsManager.AddTextView(FLineMapView);
   end;
   if FLineMapView.PageMapCreator <> nil then
     raise Exception.Create('Conflicting Plugin detected');
 
   FLineMapView.PageMapCreator := @CreatePageMapNode;
-  FLineMapView.WrapInfoForViewedXYProc := @GetWrapInfoForViewedXY;
   FLineMapView.AddLinesChangedHandler(@DoLinesChanged);
   TSynEdit(Editor).RegisterStatusChangedHandler(@DoWidthChanged, [scCharsInWindow]);
-  FLineMapView.KnownLengthOfLongestLine := WrapColumn;
   WrapAll;
 end;
 
@@ -1784,20 +1523,24 @@ end;
 
 procedure TLazSynEditLineWrapPlugin.ValidateAll;
 var
-  AMaxWidth, i, w: Integer;
+  AMaxWidth, i, w, t: Integer;
   LowLine, HighLine: TLineIdx;
 begin
 if not FLineMapView.Tree.NeedsValidation then exit;
-  AMaxWidth := WrapColumn;
+  AMaxWidth := TSynEdit(Editor).CharsInWindow;
+DebugLnEnter(['>>>> validate all', AMaxWidth]); //FWrapData.DebugDump;
 
+  t := 0;
   while FLineMapView.Tree.NextBlockForValidation(LowLine, HighLine) do begin
     for i := LowLine to HighLine do begin
       w := CalculateWrapForLine(i, AMaxWidth);
+      if w > 1 then inc(t);
       FLineMapView.Tree.ValidateLine(i, w);
+//DebugLn(['.>']); FWrapData.DebugDump;
     end;
   end;
-  FLineMapView.Tree.EndValidate;
-  FLineMapView.SendNotification(senrLineMappingChanged, FLineMapView, 0, 0);
+DebugLn(['=>']); FLineMapView.Tree.DebugDump;
+DebugLnExit(['<<<< validate all ',t]);
   TSynEdit(Editor).Invalidate;
 end;
 

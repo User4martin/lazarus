@@ -616,8 +616,12 @@ end;
 
 procedure TTestBase.SetSynEditHeight(Lines: Integer; PartLinePixel: Integer);
 begin
-  FSynEdit.Height := FSynEdit.LineHeight * Lines + PartLinePixel +
-    (FSynEdit.Height - FSynEdit.ClientHeight);
+end;
+
+procedure TTestBase.SetSynEditWidth(Chars: Integer; PartCharPixel: Integer);
+begin
+  FSynEdit.Width := FSynEdit.CharWidth * Chars + PartCharPixel +
+    (FSynEdit.Width - (FSynEdit.TextArea.Right - FSynEdit.TextArea.Left + 1));
 end;
 
 procedure TTestBase.SetSynEditWidth(Chars: Integer; PartCharPixel: Integer);

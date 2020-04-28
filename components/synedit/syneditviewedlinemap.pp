@@ -1,4 +1,4 @@
-unit SynEditViewedLineMap experimental;
+unit SynEditViewedLineMap;
 
 {$mode objfpc}{$H+}
 {$modeswitch AdvancedRecords}
@@ -7,8 +7,8 @@ unit SynEditViewedLineMap experimental;
 interface
 
 uses
-  Classes, SysUtils, SynEditMiscClasses, LazSynEditText, SynEditTypes,
-  SynEditMiscProcs, LazUTF8, LazLoggerBase, LCLProc;
+  Classes, SysUtils, math, SynEditMiscClasses, LazSynEditText, SynEditTypes,
+  SynEditMiscProcs, LazUTF8, LazListClasses, LazLoggerBase, LCLProc;
 
 const
   SYN_WORD_WRAP_SPLIT_SIZE     = 2500;  // At least  2 * SYN_WORD_WRAP_JOIN_SIZE
@@ -44,7 +44,6 @@ type
   protected
 function GetWrappedOffsetFor(ARealOffset: IntIdx): IntIdx;  virtual; abstract;
     function GetFirstInvalidLine: Integer; virtual;
-    function GetFirstInvalidEndLine: Integer; virtual;
     function GetLastInvalidLine: Integer; virtual;
     function GetViewedRealCountDifference: Integer; virtual;
 
@@ -82,11 +81,9 @@ function GetWrappedOffsetFor(ARealOffset: IntIdx): IntIdx;  virtual; abstract;
     procedure MoveLinesAtEndTo(ADestPage: TSynEditLineMapPage; ASourceStartLine, ACount: Integer);  virtual;
 
     property FirstInvalidLine: Integer read GetFirstInvalidLine;
-    property FirstInvalidEndLine: Integer read GetFirstInvalidEndLine;
     property LastInvalidLine: Integer read GetLastInvalidLine;
 
     // must be FirstInvalidLine (or Last) => so FirstInvalidLine can be set.
-    procedure EndValidate; virtual;
     procedure ValidateLine(ALineOffset, AWrappCount: Integer); virtual;
     procedure InvalidateLines(AFromOffset, AToOffset: Integer); virtual; // TODO: adjust offset
     function  ExtendAndInvalidateLines(AFromLineIdx, AToLineIdx: TLineIdx): Boolean; virtual;
@@ -111,10 +108,9 @@ function GetWrappedOffsetFor(ARealOffset: IntIdx): IntIdx;  virtual; abstract;
     FData: TSynEditLineMapPage;
     FStartLine: Integer;             // first line with wrap info
     FViewedCountDifferenceBefore: Integer; // Lines after wrap, before this node
-    function GetFirstInvalidEndLine: Integer; inline;
-    function GetFirstInvalidLine: Integer; inline;
-    function GetLastInvalidLine: Integer; inline;
-    function GetViewedLineCountDifference: Integer;  inline;
+    function GetFirstInvalidLine: Integer;
+    function GetLastInvalidLine: Integer;
+    function GetViewedLineCountDifference: Integer;
   public
     procedure Init(aData : TSynEditLineMapPage; aStartLine, aWrappedBefore: Integer);
     procedure ClearData;
@@ -133,8 +129,8 @@ function GetWrappedOffsetFor(ARealOffset: IntIdx): IntIdx;  virtual; abstract;
                                  ANewPageStartLine: Integer = -1);
     procedure SplitNodeToNewNext(out ANextPage: TSynEditLineMapPageHolder; ASourceStartLine: Integer);
 
-    function CanExtendStartTo(ALineIdx: Integer; AIgnoreJoinDist: Boolean = False): boolean;
-    function CanExtendEndTo(ALineIdx: Integer; AIgnoreJoinDist: Boolean = False): boolean;
+    function CanExtendStartTo(ALineIdx: Integer; AIgnoreJoinDist: Boolean = False): boolean; deprecated;
+    function CanExtendEndTo(ALineIdx: Integer; AIgnoreJoinDist: Boolean = False): boolean; deprecated;
 
     procedure AdjustPosition(AValue : Integer); // Must not change order with prev/next node
 
@@ -153,7 +149,6 @@ function GetWrappedOffsetFor(ARealOffset: IntIdx): IntIdx;  virtual; abstract;
     function ViewXYIdxToTextXYIdx(AViewXYIdx: TPhysPoint): TPhysPoint;
 
     property FirstInvalidLine: Integer read GetFirstInvalidLine;
-    property FirstInvalidEndLine: Integer read GetFirstInvalidEndLine;
     property LastInvalidLine: Integer read GetLastInvalidLine;
 
     property ViewedCountDifferenceBefore: Integer read FViewedCountDifferenceBefore; // viewed - real
@@ -166,17 +161,21 @@ function GetWrappedOffsetFor(ARealOffset: IntIdx): IntIdx;  virtual; abstract;
   TSynLineMapAVLTree = class(TSynSizedDifferentialAVLTree)
   private
     FPageCreatorProc: TLineMapPageCreatorProc;
+public // TODO: properties
     FPageSplitSize: Integer;
     FPageJoinSize, FPageJoinDistance: Integer;
     FCurrentValidatingNode: TSynEditLineMapPageHolder;
-    FCurrentValidatingNodeLastLine: Integer;
     FInvalidEntryList: TSynEditLineMapPageLinkedList;
 
     function GetViewedLineCountDifference: Integer;
     function NextNodeForValidation: TSynEditLineMapPageHolder;
   protected
     function CreateNode(APosition: Integer): TSynSizedDifferentialAVLNode; override;
-  public
+    procedure FreeNode(ANode: TSynEditLineMapPage);
+
+
+  protected
+public
     (* Find Page by real Line *)
     function FirstPage: TSynEditLineMapPageHolder;
     function LastPage: TSynEditLineMapPageHolder;
@@ -193,16 +192,12 @@ function GetWrappedOffsetFor(ARealOffset: IntIdx): IntIdx;  virtual; abstract;
     procedure DebugDump;
     property PageCreatorProc: TLineMapPageCreatorProc read FPageCreatorProc write FPageCreatorProc;
 
-    procedure FreeNode(ANode: TSynEditLineMapPage); inline;
-    procedure RemoveNode(ANode: TSynEditLineMapPage); reintroduce; inline;
-
     property Root: TSynSizedDifferentialAVLNode read FRoot write FRoot;
     property RootOffset : Integer read FRootOffset write FRootOffset;
 
     function NeedsValidation: Boolean;
     // ValidateLine must only be called AFTER NextBlockForValidation / with no modifications to the tree
     function NextBlockForValidation(out ALowLine, AHighLine: TLineIdx): boolean;
-    procedure EndValidate;
     procedure ValidateLine(ALineIdx: TLineIdx; AWrappCount: Integer);
     procedure InvalidateLines(AFromLineIdx, AToLineIdx: TLineIdx);
 
@@ -215,10 +210,6 @@ function GetWrappedOffsetFor(ARealOffset: IntIdx): IntIdx;  virtual; abstract;
 
     function TextXYIdxToViewXYIdx(ATextXYIdx: TPhysPoint): TPhysPoint; inline;
     function ViewXYIdxToTextXYIdx(AViewXYIdx: TPhysPoint): TPhysPoint; inline;
-
-    property PageSplitSize: Integer read FPageSplitSize;
-    property PageJoinSize: Integer read FPageJoinSize;
-    property PageJoinDistance: Integer read FPageJoinDistance;
   end;
 
 
@@ -229,16 +220,20 @@ type
 
   TLazSynDisplayLineMapping = class(TLazSynDisplayViewEx)
   private
-    FCurWrapPage: TSynEditLineMapPageHolder;
-  protected
-    FCurWrappedLine: TLineIdx;
     FLineMappingView: TSynEditLineMappingView;
-    FCurrentWrapSubline: IntIdx;
+    FCurWrapPage: TSynEditLineMapPageHolder;
+    FCurWrappedLine: TLineIdx;
+
+    FCurSubLineLogStartIdx, FCurSubLineLogEndIdx: Integer;
+    FCurToken: TLazSynDisplayTokenInfo;
+    FCurLineLogIdx: Integer;
+//    FEolAttr: TSynHighlighterAttributes;
   public
     constructor Create(AWrappedView: TSynEditLineMappingView);
+    destructor Destroy; override;
     procedure SetHighlighterTokensLine(AWrappedLine: TLineIdx; out
       ARealLine: TLineIdx; out AStartBytePos, ALineByteLen: Integer); override;
-//    function GetNextHighlighterToken(out ATokenInfo: TLazSynDisplayTokenInfo): Boolean; override;
+    function GetNextHighlighterToken(out ATokenInfo: TLazSynDisplayTokenInfo): Boolean; override;
     procedure FinishHighlighterTokens; override;
     function TextToViewIndex(ATextIndex: TLineIdx): TLineRange; override;
     function ViewToTextIndex(AViewIndex: TLineIdx): TLineIdx; override;
@@ -246,15 +241,13 @@ type
     function GetLinesCount: Integer; override;
   end;
 
-  TWrapInfoForViewedXYProc = procedure(var AViewedXY: TPhysPoint; AFlags: TViewedXYInfoFlags; out AFirstViewedX: IntPos; ALogPhysConvertor: TSynLogicalPhysicalConvertor) of object;
-
   { TSynEditLineMappingView }
 
   TSynEditLineMappingView = class(TSynEditStringsLinked)
   private
     FDisplayFiew: TLazSynDisplayLineMapping;
-    FWrapInfoForViewedXYProc: TWrapInfoForViewedXYProc;
     FKnownLengthOfLongestLine: integer;
+//    FSynEdit: TSynEdit;
     FLineMappingData: TSynLineMapAVLTree;
     FPaintLock: Integer;
     FNotifyLinesChanged: Boolean;
@@ -265,6 +258,7 @@ type
     function GetPageMapCreator: TLineMapPageCreatorProc;
     procedure LineCountChanged(Sender: TSynEditStrings; aIndex, aCount: Integer);
     procedure LineTextChanged(Sender: TSynEditStrings; aIndex, aCount: Integer);
+//    Procedure LinesCleared(Sender: TObject);
     Procedure LineEdited(Sender: TSynEditStrings; aLinePos, aBytePos, aCount,
                             aLineBrkCnt: Integer; aText: String);
     procedure SetPageMapCreator(AValue: TLineMapPageCreatorProc);
@@ -272,14 +266,9 @@ type
     function GetDisplayView: TLazSynDisplayView; override;
     function GetViewedCount: integer; override;
     procedure SetManager(AManager: TSynTextViewsManager); override;
-    procedure InternalGetInfoForViewedXY(AViewedXY: TPhysPoint;
-      AFlags: TViewedXYInfoFlags; out AViewedXYInfo: TViewedXYInfo;
-      ALogPhysConvertor: TSynLogicalPhysicalConvertor); override;
   public
     constructor Create; //(ASynEdit: TSynEdit);
     destructor Destroy; override;
-    procedure SetDisplayView(ADisplayView: TLazSynDisplayLineMapping);
-
     function GetLengthOfLongestLine: integer; override;
     function TextToViewIndex(aTextIndex: TLineIdx): TLinePos; override;
     function ViewToTextIndex(aViewIndex: TLineIdx): TLineIdx; override;
@@ -295,7 +284,6 @@ type
     property KnownLengthOfLongestLine: integer read FKnownLengthOfLongestLine write FKnownLengthOfLongestLine;
 
     property Tree: TSynLineMapAVLTree read FLineMappingData; experimental;
-    property WrapInfoForViewedXYProc: TWrapInfoForViewedXYProc read FWrapInfoForViewedXYProc write FWrapInfoForViewedXYProc;
   end;
 
 
@@ -347,7 +335,6 @@ begin
     AnEntry.FNextPageWithInvalid := AnEntry //// TODO: XXXXXXXXXXXXXXXXXXXXXXXX
   else
     AnEntry.FNextPageWithInvalid := nil;
-  AnEntry.FPrevPageWithInvalid := nil;
 end;
 
 { TSynEditLineMapPage }
@@ -373,11 +360,6 @@ procedure TSynEditLineMapPage.RemoveFromInvalidList(
 begin
   if IsValid or (AMode in [rfiForce, rfiMarkAsValidating]) then
     Tree.FInvalidEntryList.RemoveFromInvalidList(Self, AMode);
-end;
-
-function TSynEditLineMapPage.GetFirstInvalidEndLine: Integer;
-begin
-  Result := -1;
 end;
 
 function TSynEditLineMapPage.GetFirstInvalidLine: Integer;
@@ -472,11 +454,6 @@ begin
   //
 end;
 
-procedure TSynEditLineMapPage.EndValidate;
-begin
-  //
-end;
-
 procedure TSynEditLineMapPage.ValidateLine(ALineOffset, AWrappCount: Integer);
 begin
   //
@@ -555,17 +532,6 @@ begin
     Result := -1;
 end;
 
-function TSynEditLineMapPageHolder.GetFirstInvalidEndLine: Integer;
-begin
-  if FData <> nil then begin
-    Result := FData.FirstInvalidEndLine;
-    if Result >= 0 then
-      Result := Result + FStartLine;
-  end
-  else
-    Result := -1;
-end;
-
 function TSynEditLineMapPageHolder.GetLastInvalidLine: Integer;
 begin
   if FData <> nil then begin
@@ -581,6 +547,7 @@ function TSynEditLineMapPageHolder.GetViewedLineCountDifference: Integer;
 begin
   Result := 0;
   if FData <> nil then
+// TODO: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX forwarder methods below
     Result := FData.ViewedRealCountDifference;
 end;
 
@@ -661,6 +628,7 @@ begin
     APrevPage := Prev;
 
   if not APrevPage.HasPage then begin
+    //SplitNodeToNewPrev(APrevPage, ASourceEndLine, Max(0, ASourceEndLine - Page.FTree.FPageSplitSize));
     SplitNodeToNewPrev(APrevPage, ASourceEndLine, FStartLine);
     exit;
   end;
@@ -689,6 +657,9 @@ begin
     exit;
   end;
 
+//DebugLnEnter('SplitNodeToNext fstart %d next.fstart %d ## MoveEndTo from %d cnt %d', [FStartLine, ANextPage.FStartLine, ASourceStartLine-FStartLine, ANextPage.FStartLine-ASourceStartLine]);
+Page.DumpNode(); ANextPage.Page.DumpNode();
+
   assert(ANextPage.FStartLine > ASourceStartLine, 'TSynEditLineMapPageHolder.SplitNodeToNext: ANextPage.FStartLine > ASourceStartLine');
   Cnt := ANextPage.FStartLine - ASourceStartLine;
   FData.MoveLinesAtEndTo(
@@ -697,6 +668,9 @@ begin
     Cnt);
   ANextPage.AdjustPosition(-Cnt);
   assert(ANextPage.RealCount <= Page.FTree.FPageSplitSize, 'TSynEditLineMapPageHolder.SplitNodeToNext: ANextPage.RealCount <= FPageSplitSize');
+
+//DebugLn('#'); Page.DumpNode(); ANextPage.Page.DumpNode();
+//debuglnExit();
 end;
 
 procedure TSynEditLineMapPageHolder.SplitNodeToNewPrev(out
@@ -733,12 +707,17 @@ begin
   assert(ASourceStartLine > FStartLine, 'TSynEditLineMapPageHolder.SplitNodeToNewNext: ASourceStartLine > FStartLine');
 
   ANextPage := FData.FTree.FindPageForLine(ASourceStartLine, afmCreate);
+//DebugLnEnter('SplitNodeTo-NEW-Next fstart %d next.fstart %d ## MoveEndTo from %d cnt %d', [FStartLine, ANextPage.FStartLine, ASourceStartLine-FStartLine, ANextPage.FStartLine-ASourceStartLine]);
 
   FData.MoveLinesAtEndTo(
     ANextPage.FData,
     ASourceStartLine - FStartLine,
     Max(FData.LastInvalidLine, FData.RealCount));  // May be bigger than needed....
   assert(ANextPage.RealCount <= Page.FTree.FPageSplitSize, 'TSynEditLineMapPageHolder.SplitNodeToNext: ANextPage.RealCount <= Page.FTree.FPageSplitSize');
+
+//DebugLn('#'); Page.DumpNode(); ANextPage.Page.DumpNode();
+//debuglnExit();
+
 end;
 
 function TSynEditLineMapPageHolder.CanExtendStartTo(ALineIdx: Integer;
@@ -843,16 +822,6 @@ begin
   DisposeNode(TSynSizedDifferentialAVLNode(ANode));
 end;
 
-procedure TSynLineMapAVLTree.RemoveNode(ANode: TSynEditLineMapPage);
-begin
-  if (FInvalidEntryList <> nil) and
-     ( (ANode.FPrevPageWithInvalid <> nil) or (ANode.FNextPageWithInvalid <> nil))
-  then
-    FInvalidEntryList.RemoveFromInvalidList(ANode, rfiForce);
-  inherited RemoveNode(ANode);
-  ANode.FTree := nil;
-end;
-
 procedure TSynLineMapAVLTree.AdjustForLinesInserted(ALineIdx, ALineCount,
   ABytePos: Integer);
 var
@@ -878,9 +847,10 @@ end;
 procedure TSynLineMapAVLTree.AdjustForLinesDeleted(AStartLine, ALineCount,
   ABytePos: Integer);
 var
-  TmpPage, NextPage, FirstTmpPage: TSynEditLineMapPageHolder;
+  TmpPage, SiblingNode, NextPage, FirstTmpPage: TSynEditLineMapPageHolder;
   CurLine, CountRemaining, d, LineAfter: Integer;
 begin
+debuglnEnter(['TSynLineMapAVLTree.DeleteLines ',AStartLine, ' ',ALineCount ]); try DebugDump;
   CurLine := AStartLine;
   CountRemaining := ALineCount;
 
@@ -906,11 +876,12 @@ begin
     FirstTmpPage.ClearData;
 
   LineAfter := AStartLine + ALineCount;
-  while TmpPage.HasPage and (LineAfter >= TmpPage.NextNodeLine) do begin
-    NextPage := TmpPage.Next;
-    FreeNode(TmpPage.Page);
-    TmpPage := NextPage;
-  end;
+  if TmpPage.HasPage then
+    while LineAfter >= TmpPage.NextNodeLine do begin
+      NextPage := TmpPage.Next;
+      FreeNode(TmpPage.Page);
+      TmpPage := NextPage;
+    end;
 
   if FirstTmpPage.HasPage then begin
     FirstTmpPage.AdjustForLinesDeleted(CurLine, CountRemaining, ABytePos);
@@ -924,6 +895,36 @@ begin
     TmpPage.ClearData;
 
   inherited AdjustForLinesDeleted(AStartLine, ALineCount);
+
+  //if FirstTmpPage.HasPage then
+  //  FirstTmpPage.AdjustForLinesDeleted(AStartLine - FirstTmpPage.StartLine, ALineCount, ABytePos);
+  //if TmpPage.HasPage then
+  //  TmpPage.AdjustForLinesDeleted(AStartLine - TmpPage.StartLine, ALineCount, ABytePos);
+
+exit;
+//////////////////////
+//  if TmpPage.RealCount >= FPageJoinSize then
+//    exit;
+//
+//  SiblingNode := TmpPage.Prev;
+//  if SiblingNode.CanExtendEndTo(TmpPage.RealEndLine) then begin
+//    debugln(['JOIN FRONT ', TmpPage.StartLine]);
+////TODO: do not adjust....
+//    TmpPage.SplitNodeToPrev(SiblingNode, TmpPage.RealEndLine);
+//    FreeNode(TmpPage.Page);
+//    //exit;
+//  end;
+//
+//  SiblingNode := TmpPage.Next;
+//  if SiblingNode.CanExtendStartTo(TmpPage.RealStartLine) then begin
+//    debugln(['JOIN END ', TmpPage.StartLine]);
+//    TmpPage.SplitNodeToNext(SiblingNode, TmpPage.StartLine);
+//    FreeNode(TmpPage.Page);
+//  end;
+//
+//
+//// TODO: Merge
+finally DebugDump; debuglnExit(['TSynLineMapAVLTree.DeleteLines ' ]); end;
 end;
 
 constructor TSynLineMapAVLTree.Create;
@@ -943,8 +944,8 @@ end;
 
 destructor TSynLineMapAVLTree.Destroy;
 begin
-  inherited Destroy;
   FInvalidEntryList.Destroy;
+  inherited Destroy;
 end;
 
 procedure TSynLineMapAVLTree.Clear;
@@ -1007,6 +1008,7 @@ begin
     exit;
 
   while true do begin
+//  while nd <> nil do begin
     rRealStartLine := rRealStartLine + nd.FPositionOffset;
     NewSumSizes := rSumViewedSizesBefore + nd.LeftSizeSum;
 
@@ -1048,36 +1050,14 @@ end;
 function TSynLineMapAVLTree.NextBlockForValidation(out ALowLine,
   AHighLine: TLineIdx): boolean;
 begin
-  if FCurrentValidatingNode.HasPage then begin
-    ALowLine := FCurrentValidatingNode.FirstInvalidLine;
-    if ALowLine >= 0 then begin
-      Result := True;
-      AHighLine := FCurrentValidatingNode.FirstInvalidEndLine;
-      FCurrentValidatingNodeLastLine := -1; // If there was a next node, inval lines would be on that next node, and not on this
-      exit;
-    end;
-    FCurrentValidatingNode.Page.EndValidate;
-    FCurrentValidatingNode.ClearData;
-  end;
-
   Result := FInvalidEntryList.FFirstEntry <> nil;
   if not Result then
     exit;
 
   FCurrentValidatingNode := NextNodeForValidation; // TODO: directly fill FCurrentValidatingNode;
   Result := FCurrentValidatingNode.HasPage;
-  assert(result, 'TSynLineMapAVLTree.NextBlockForValidation: result');
   ALowLine  := FCurrentValidatingNode.FirstInvalidLine;
-  AHighLine := FCurrentValidatingNode.FirstInvalidEndLine;
-  FCurrentValidatingNodeLastLine := -1; // If there was a next node, inval lines would be on that next node, and not on this
-end;
-
-procedure TSynLineMapAVLTree.EndValidate;
-begin
-  if FCurrentValidatingNode.HasPage then begin
-    FCurrentValidatingNode.Page.EndValidate;
-    FCurrentValidatingNode.ClearData;
-  end;
+  AHighLine := FCurrentValidatingNode.LastInvalidLine;
 end;
 
 procedure TSynLineMapAVLTree.ValidateLine(ALineIdx: TLineIdx;
@@ -1088,69 +1068,60 @@ var
   NewScrEnd: Integer;
   SiblingNode: TSynEditLineMapPageHolder;
 begin
-  assert(FCurrentValidatingNode.HasPage, 'TSynLineMapAVLTree.ValidateLine: FCurrentValidatingNode.HasPage');
-  assert(ALineIdx >= FCurrentValidatingNode.StartLine, 'TSynLineMapAVLTree.ValidateLine: ALineIdx >= FCurrentValidatingNode.StartLine');
-
-  if (FCurrentValidatingNodeLastLine > 0) and (ALineIdx > FCurrentValidatingNodeLastLine) then begin
-    FCurrentValidatingNode.Page.EndValidate;
-    FCurrentValidatingNode := FindPageForLine(ALineIdx);
-    assert(FCurrentValidatingNode.HasPage, 'TSynLineMapAVLTree.ValidateLine: FCurrentValidatingNode.HasPage');
-  end;
-
-  RealStart := FCurrentValidatingNode.RealStartLine;
-  RealEnd := FCurrentValidatingNode.RealEndLine;
-
-  if ( (ALineIdx > RealEnd   - FPageSplitSize) and  // max extended start
-       (ALineIdx < RealStart + FPageSplitSize)      // max extended end
-     ) or
-     (AWrappCount = 1)
+  if (ALineIdx < FCurrentValidatingNode.FirstInvalidLine) or
+     (ALineIdx > FCurrentValidatingNode.LastInvalidLine)
   then begin
-    FCurrentValidatingNode.ValidateLine(ALineIdx, AWrappCount);
-    exit;
+debugln(['TSynLineMapAVLTree.ValidateLine ^^^^^^^^^^^^^^^^^^^^^^^^^^ replace cur val node']);
+    FCurrentValidatingNode := FindPageForLine(ALineIdx);
   end;
+  assert(FCurrentValidatingNode.HasPage, 'TSynLineMapAVLTree.ValidateLine: FCurrentValidatingNode.HasPage');
 
-  // need splitting
-  FCurrentValidatingNode.Page.EndValidate;
-  SiblingNode.ClearData;
+  if (AWrappCount <> 1) then begin
+    RealStart := FCurrentValidatingNode.RealStartLine;
+    RealEnd := FCurrentValidatingNode.RealEndLine;
+    SiblingNode.ClearData;
 
-  if (ALineIdx < RealStart) then begin
-    SiblingNode := FCurrentValidatingNode.Prev;
-    if SiblingNode.CanExtendEndTo(ALineIdx) then begin
-      // split to prev node
-      SblRealStart := SiblingNode.RealStartLine;
-      if RealStart - 1 - SblRealStart < FPageSplitSize then
-        NewScrEnd := RealStart - 1 // entire FOffsetAtStart
-      else
-        NewScrEnd := ALineIdx + (FPageSplitSize - (ALineIdx - SblRealStart)) div 2; // additional space: (FPageSplitSize - SblRealStartDiff)
-      assert(NewScrEnd < RealStart, 'TSynLineMapAVLTree.ValidateLine: NewScrEnd < RealStartLine');
-      FCurrentValidatingNode.SplitNodeToPrev(SiblingNode, NewScrEnd);
+    if (ALineIdx < RealStart) and (RealEnd - ALineIdx >= FPageSplitSize) then begin
+      SiblingNode := FCurrentValidatingNode.Prev;
+      if SiblingNode.CanExtendEndTo(ALineIdx) then begin
+        // split to prev node
+        SblRealStart := SiblingNode.RealStartLine;
+        if RealStart - 1 - SblRealStart < FPageSplitSize then
+          NewScrEnd := RealStart - 1 // entire FOffsetAtStart
+        else
+          NewScrEnd := ALineIdx + (FPageSplitSize - (ALineIdx - SblRealStart)) div 2; // additional space: (FPageSplitSize - SblRealStartDiff)
+        assert(NewScrEnd < RealStart, 'TSynLineMapAVLTree.ValidateLine: NewScrEnd < RealStartLine');
+        FCurrentValidatingNode.SplitNodeToPrev(SiblingNode, NewScrEnd);
+      end
+      else begin
+        // split to new PREV node
+        NewScrEnd := RealStart - 1;
+        if NewScrEnd - ALineIdx >= FPageSplitSize then
+          NewScrEnd := ALineIdx + FPageSplitSize;
+        FCurrentValidatingNode.SplitNodeToNewPrev(SiblingNode, NewScrEnd);
+      end;
     end
-    else begin
-      // split to new PREV node
-      NewScrEnd := RealStart - 1;
-      if NewScrEnd - ALineIdx >= FPageSplitSize then
-        NewScrEnd := ALineIdx + FPageSplitSize;
-      FCurrentValidatingNode.SplitNodeToNewPrev(SiblingNode, NewScrEnd);
+
+    else
+    if (ALineIdx > RealEnd) and (ALineIdx - RealStart >= FPageSplitSize) then begin
+      SiblingNode := FCurrentValidatingNode.Next;
+      if SiblingNode.CanExtendStartTo(ALineIdx) then begin
+        // split to next node
+        FCurrentValidatingNode.SplitNodeToNext(SiblingNode, ALineIdx);
+      end
+      else begin
+        // new node
+        FCurrentValidatingNode.SplitNodeToNewNext(SiblingNode, ALineIdx);
+      end;
+// check if old node is now all valid
+
     end;
-    FCurrentValidatingNodeLastLine := NewScrEnd; // This may be BEFORE "RealEnd + FPageSplitSize"
-  end
 
-  else
-  if (ALineIdx > RealEnd) then begin
-    SiblingNode := FCurrentValidatingNode.Next;
-    if SiblingNode.CanExtendStartTo(ALineIdx) then begin
-      // split to next node
-      FCurrentValidatingNode.SplitNodeToNext(SiblingNode, ALineIdx);
-    end
-    else begin
-      // new node
-      FCurrentValidatingNode.SplitNodeToNewNext(SiblingNode, ALineIdx);
+    if SiblingNode.HasPage then begin
+      SiblingNode.ValidateLine(ALineIdx, AWrappCount);
+      exit;
     end;
   end;
-
-  assert(SiblingNode.HasPage, 'TSynLineMapAVLTree.ValidateLine: SiblingNode.HasPage');
-  FCurrentValidatingNode.Page.EndValidate;
-  FCurrentValidatingNode := SiblingNode;
 
   FCurrentValidatingNode.ValidateLine(ALineIdx, AWrappCount);
 end;
@@ -1161,6 +1132,7 @@ var
   CurrentPage, NextPage, NewPage: TSynEditLineMapPageHolder;
   l: Integer;
 begin
+debuglnEnter(['TSynLineMapAVLTree.InvalidateLines ' ]); try
   CurrentPage := FindPageForLine(AFromLineIdx, afmPrev);
   if not CurrentPage.HasPage then begin
     CurrentPage := FirstPage;
@@ -1194,6 +1166,7 @@ begin
     NewPage := FindPageForLine(AFromLineIdx, afmCreate);
     NewPage.ExtendAndInvalidateLines(AFromLineIdx, AToLineIdx); // Must be able to extend at end
   end;
+finally {DebugLn(['=>']); DebugDump;} debuglnExit(['TSynLineMapAVLTree.InvalidateLines ' ]); end;
 end;
 
 function TSynLineMapAVLTree.NextNodeForValidation: TSynEditLineMapPageHolder;
@@ -1243,6 +1216,8 @@ var
   pg: TSynEditLineMapPageHolder;
 begin
   pg := FindPageForWrap(AWrapLine);
+//  if not pg.HasPage then
+//    pg := LastPage; //// XXXXXXXXXXXXXXXXX NEEDED ???
   if not pg.HasPage then begin
     Result := 0;
     AWrapOffset := 0;
@@ -1284,33 +1259,96 @@ constructor TLazSynDisplayLineMapping.Create(AWrappedView: TSynEditLineMappingVi
 begin
   FLineMappingView := AWrappedView;
   FCurWrappedLine := -1;
+  //FEolAttr := TSynHighlighterAttributes.Create('');
+  //FEolAttr.Background := clLtGray;
   inherited Create;
+end;
+
+destructor TLazSynDisplayLineMapping.Destroy;
+begin
+  //FEolAttr.Destroy;
+  inherited Destroy;
 end;
 
 procedure TLazSynDisplayLineMapping.SetHighlighterTokensLine(
   AWrappedLine: TLineIdx; out ARealLine: TLineIdx; out AStartBytePos,
   ALineByteLen: Integer);
 var
-  RealIdx: IntIdx;
+  CurStart, CurEnd: TPoint;
 begin
-  if (not FCurWrapPage.HasPage) or (FCurWrapPage.StartLine > AWrappedLine) or
-     (AWrappedLine >= FCurWrapPage.RealEndLine)
-  then begin
+  if FCurWrappedLine <> AWrappedLine then begin
     FCurWrapPage := FLineMappingView.FLineMappingData.FindPageForWrap(AWrappedLine);
     FCurWrappedLine := AWrappedLine;
   end;
 
-  RealIdx := FCurWrapPage.StartLine +
-    FCurWrapPage.Page.GetOffsetForWrap(AWrappedLine - FCurWrapPage.StartLine - FCurWrapPage.ViewedCountDifferenceBefore, FCurrentWrapSubline);
+  // TODO: just one call // re-use info from previous line....
+//  AWrappedLine := ToPos(AWrappedLine);
+  CurStart := FCurWrapPage.ViewXYIdxToTextXYIdx(Point(1, AWrappedLine));
+  CurEnd   := FCurWrapPage.ViewXYIdxToTextXYIdx(Point(1, AWrappedLine+1));
 
-  inherited SetHighlighterTokensLine(RealIdx, ARealLine, AStartBytePos, ALineByteLen);
+  inherited SetHighlighterTokensLine(CurStart.y, ARealLine, AStartBytePos, ALineByteLen);
+
+  AStartBytePos := ToIdx(AStartBytePos) + CurStart.x;
+  if CurEnd.y = CurStart.y then
+    ALineByteLen := CurEnd.x - CurStart.x
+  else
+    ALineByteLen := ALineByteLen - ToIdx(CurStart.x);
+
+  FCurLineLogIdx := 0;
+  FCurSubLineLogStartIdx := ToIdx(CurStart.x);
+  FCurSubLineLogEndIdx := FCurSubLineLogStartIdx + ALineByteLen;
+end;
+
+function TLazSynDisplayLineMapping.GetNextHighlighterToken(out
+  ATokenInfo: TLazSynDisplayTokenInfo): Boolean;
+var
+  PreStart: Integer;
+begin
+  If FCurLineLogIdx >= FCurSubLineLogEndIdx then begin
+    ///////
+      ATokenInfo.TokenStart := nil;
+      ATokenInfo.TokenLength := 0;
+      ATokenInfo.TokenAttr := nil; //FEolAttr;
+      Result := true;
+      exit;
+    /////
+
+
+    Result := False;
+    exit;
+  end;
+
+  repeat
+    PreStart := FCurSubLineLogStartIdx - FCurLineLogIdx;
+    Result := inherited GetNextHighlighterToken(ATokenInfo);
+    if (not Result) or (ATokenInfo.TokenLength <= 0) then begin
+      //FCurToken := nil;
+      exit;
+    end;
+    FCurToken := ATokenInfo;
+
+    FCurLineLogIdx := FCurLineLogIdx + ATokenInfo.TokenLength;
+  until FCurLineLogIdx > FCurSubLineLogStartIdx;
+
+  if PreStart > 0 then begin
+    ATokenInfo.TokenStart := ATokenInfo.TokenStart + PreStart;
+    ATokenInfo.TokenLength := ATokenInfo.TokenLength - PreStart;
+    Result := ATokenInfo.TokenLength > 0;
+    if not Result then
+      exit;
+  end;
+
+
+  If FCurLineLogIdx > FCurSubLineLogEndIdx then begin
+    ATokenInfo.TokenLength := ATokenInfo.TokenLength - (FCurLineLogIdx - FCurSubLineLogEndIdx);
+    Result := ATokenInfo.TokenLength > 0;
+  end;
 end;
 
 procedure TLazSynDisplayLineMapping.FinishHighlighterTokens;
 begin
   inherited FinishHighlighterTokens;
   FCurWrappedLine := -1;
-  FCurWrapPage.ClearData;
 end;
 
 function TLazSynDisplayLineMapping.TextToViewIndex(ATextIndex: TLineIdx
@@ -1421,8 +1459,6 @@ end;
 
 function TSynEditLineMappingView.GetDisplayView: TLazSynDisplayView;
 begin
-  if FDisplayFiew = nil then
-    FDisplayFiew := TLazSynDisplayLineMapping.Create(Self);
   Result := FDisplayFiew;
 end;
 
@@ -1453,28 +1489,12 @@ begin
   end;
 end;
 
-procedure TSynEditLineMappingView.InternalGetInfoForViewedXY(
-  AViewedXY: TPhysPoint; AFlags: TViewedXYInfoFlags; out
-  AViewedXYInfo: TViewedXYInfo; ALogPhysConvertor: TSynLogicalPhysicalConvertor
-  );
-var
-  FirstViewedX: IntPos;
-begin
-  WrapInfoForViewedXYProc(AViewedXY, AFlags, FirstViewedX, ALogPhysConvertor);
-
-  inherited InternalGetInfoForViewedXY(AViewedXY, AFlags, AViewedXYInfo,
-    ALogPhysConvertor);
-
-  AViewedXYInfo.CorrectedViewedXY :=
-    YToPos(FLineMappingData.TextXYIdxToViewXYIdx(YToIdx(AViewedXYInfo.CorrectedViewedXY)));
-  AViewedXYInfo.FirstViewedX := FirstViewedX;
-end;
-
 constructor TSynEditLineMappingView.Create;
 begin
   inherited Create;
   FNotifyLinesHandlers := TMethodList.Create;
   FLineMappingData := TSynLineMapAVLTree.Create;
+  FDisplayFiew := TLazSynDisplayLineMapping.Create(Self);
   FKnownLengthOfLongestLine := -1;
 end;
 
@@ -1484,13 +1504,6 @@ begin
   FreeAndNil(FNotifyLinesHandlers);
   FLineMappingData.Free;
   FDisplayFiew.Free;
-end;
-
-procedure TSynEditLineMappingView.SetDisplayView(
-  ADisplayView: TLazSynDisplayLineMapping);
-begin
-  FDisplayFiew.Free;
-  FDisplayFiew := ADisplayView;
 end;
 
 function TSynEditLineMappingView.GetLengthOfLongestLine: integer;
@@ -1512,7 +1525,7 @@ function TSynEditLineMappingView.ViewToTextIndex(aViewIndex: TLineIdx
 var
   SubLineOffset: TLineIdx;
 begin
-  aViewIndex := FLineMappingData.GetLineForForWrap(aViewIndex, SubLineOffset);
+  aViewIndex := FLineMappingData.GetLineForForWrap(ToIdx(aViewIndex), SubLineOffset);
   Result := inherited ViewToTextIndex(aViewIndex);
 end;
 
