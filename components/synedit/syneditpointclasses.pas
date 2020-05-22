@@ -708,6 +708,18 @@ begin
   Result := Point(FCharPos, FLinePos);
 end;
 
+//function TSynEditBaseCaret.GetViewedLineCharPos: TPoint;
+//begin
+//  if not(scViewedPosValid in FFlags) then
+//    FViewedLineCharPos := Lines.TextXYToViewXY(LineCharPos);
+//  include(FFlags, scViewedPosValid);
+//  Result := FViewedLineCharPos;
+//  if scHasLineMapHandler in FFlags then begin
+//    Lines.AddChangeHandler(senrLineMappingChanged, @DoLinesMappingChanged);
+//    Include(FFlags, scHasLineMapHandler);
+//  end;
+//end;
+
 function TSynEditBaseCaret.GetViewedLineCharPos: TPoint;
 begin
   ValidateViewedPos;
