@@ -50,6 +50,9 @@ type
      FUploadBinary: boolean;
      FAfterConnectMonitorCmds: TXmlConfStringList;
      FSkipUploadOfSectionList: TXmlConfStringList;
+     // Temporary test code
+     FAfterUploadBreakZero: boolean;
+     FAfterUploadMonitorReset: boolean;
 
      function portIsStored: Boolean;
      function hostIsStored: Boolean;
@@ -67,6 +70,10 @@ type
      property UploadBinary: Boolean read FUploadBinary write FUploadBinary stored uploadBinaryIsStored default DEF_uploadBinary;
      property AfterConnectMonitorCmds: TXmlConfStringList read FAfterConnectMonitorCmds write SetAfterConnectMonitorCmds;
      property SkipUploadOfSectionList: TXmlConfStringList read FSkipUploadOfSectionList write SetSkipUploadOfSectionList;
+
+     // Temporary test code
+     property AfterUploadBreakZero: boolean read FAfterUploadBreakZero write FAfterUploadBreakZero default false;
+     property AfterUploadMonitorReset: boolean read FAfterUploadMonitorReset write FAfterUploadMonitorReset default false;
    end;
 
   { TFpDebugDebuggerPropertiesMemLimits }
@@ -285,6 +292,8 @@ begin
       FAfterConnectMonitorCmds.Assign(aSource.FAfterConnectMonitorCmds);
     if Assigned(asource.FSkipUploadOfSectionList) then
       FSkipUploadOfSectionList.Assign(aSource.FSkipUploadOfSectionList);
+    FAfterUploadBreakZero := TFpDebugDebuggerPropertiesGdbServer(Source).FAfterUploadBreakZero;
+    FAfterUploadMonitorReset := TFpDebugDebuggerPropertiesGdbServer(Source).FAfterUploadMonitorReset;
 
     FpDbgRsp.AHost := FHost;
     FpDbgRsp.APort := FPort;
@@ -297,6 +306,8 @@ begin
     if not Assigned(FpDbgRsp.ASkipSectionsList) then
       FpDbgRsp.ASkipSectionsList := TStringList.Create;
     FpDbgRsp.ASkipSectionsList.Assign(FSkipUploadOfSectionList);
+    FpDbgRsp.AAfterUploadBreakZero := FAfterUploadBreakZero;
+    FpDbgRsp.AAfterUploadMonitorReset := FAfterUploadMonitorReset;
   end;
 end;
 
