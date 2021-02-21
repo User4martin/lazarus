@@ -85,7 +85,7 @@ type
     // because a hex representation of a number is interpreted as big endian
     function convertHexWithLittleEndianSwap(constref hextext: string; out value: qword): boolean;
   public
-    constructor Create(const AHost: String; APort: Word; AHandler: TSocketHandler = Nil); Overload;
+    constructor Create; Overload;
     destructor Destroy; override;
     // Wait for async signal - blocking
     function WaitForSignal(out msg: string; out registers: TInitializedRegisters): integer;
@@ -118,6 +118,9 @@ type
     property lastStatusEvent: TStatusEvent read FStatusEvent;
   end;
 
+var
+  AHost: string = 'localhost';
+  APort: integer = 2345;
 
 implementation
 
@@ -427,11 +430,9 @@ begin
   result := pos('OK', reply) = 1;
 end;
 
-constructor TRspConnection.Create(const AHost: String; APort: Word;
-  AHandler: TSocketHandler);
+constructor TRspConnection.Create;
 begin
   inherited Create(AHost, APort);
-  //self.IOTimeout := 1000;  // socket read timeout = 1000 ms
   InitCriticalSection(fCS);
 end;
 
