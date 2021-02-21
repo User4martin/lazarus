@@ -42,17 +42,25 @@ type
    const
      DEF_host = 'localhost';
      DEF_port = 2345;
+     DEF_uploadExe = false;
+     DEF_uploadEEPROM = false;
    private
      FHost: string;
      FPort: integer;
+     FUploadExe: boolean;
+     FUploadEEPROM: boolean;
      function portIsStored: Boolean;
      function hostIsStored: Boolean;
+     function uploadExeIsStored: Boolean;
+     function uploadEEPROMIsStored: Boolean;
    public
      constructor Create;
      procedure Assign(Source: TPersistent); override;
    published
      property Host: string read FHost write FHost stored hostIsStored;
      property Port: integer read FPort write FPort stored portIsStored default DEF_port;
+     property UploadExe: boolean read FUploadExe write FUploadExe stored uploadExeIsStored default DEF_uploadExe;
+     property UploadEEPROM: boolean read FUploadEEPROM write FUploadEEPROM stored uploadEEPROMIsStored default DEF_uploadEEPROM;
    end;
 
   { TFpDebugDebuggerPropertiesMemLimits }
@@ -219,6 +227,16 @@ begin
   Result := FHost <> DEF_host;
 end;
 
+function TFpDebugDebuggerPropertiesGdbServer.uploadExeIsStored: Boolean;
+begin
+  Result := FUploadExe <> DEF_uploadExe;
+end;
+
+function TFpDebugDebuggerPropertiesGdbServer.uploadEEPROMIsStored: Boolean;
+begin
+  Result := FUploadEEPROM <> DEF_uploadEEPROM;
+end;
+
 constructor TFpDebugDebuggerPropertiesGdbServer.Create;
 begin
   inherited Create;
@@ -231,8 +249,12 @@ begin
   if Source is TFpDebugDebuggerPropertiesGdbServer then begin
     FHost := TFpDebugDebuggerPropertiesGdbServer(Source).FHost;
     FPort := TFpDebugDebuggerPropertiesGdbServer(Source).FPort;
+    FUploadExe := TFpDebugDebuggerPropertiesGdbServer(Source).FUploadExe;
+    FUploadEEPROM := TFpDebugDebuggerPropertiesGdbServer(Source).FUploadEEPROM;
     FpDbgRsp.AHost := FHost;
     FpDbgRsp.APort := FPort;
+    FpDbgRsp.AUploadExe := FUploadExe;
+    FpDbgRsp.AUploadEEPROM := FUploadEEPROM;
   end;
 end;
 
