@@ -31,6 +31,7 @@ interface
 
 uses
   FpDbgUtil, FpdMemoryTools, {$ifdef FORCE_LAZLOGGER_DUMMY} LazLoggerDummy {$else} LazLoggerBase {$endif}, DbgIntfDebuggerBase, sysutils,
+  DebuggerPropertiesBase,
   Classes, syncobjs, Forms;
 
 type
@@ -49,18 +50,24 @@ type
      FPort: integer;
      FUploadExe: boolean;
      FUploadEEPROM: boolean;
+     FAfterConnectMonitorCmds: TXmlConfStringList;
+
      function portIsStored: Boolean;
      function hostIsStored: Boolean;
+     procedure SetAfterConnectMonitorCmds(AValue: TXmlConfStringList);
      function uploadExeIsStored: Boolean;
      function uploadEEPROMIsStored: Boolean;
+     function afterConnectMonitorIsStored: Boolean;
    public
      constructor Create;
+     destructor Destroy; override;
      procedure Assign(Source: TPersistent); override;
    published
      property Host: string read FHost write FHost stored hostIsStored;
      property Port: integer read FPort write FPort stored portIsStored default DEF_port;
      property UploadExe: boolean read FUploadExe write FUploadExe stored uploadExeIsStored default DEF_uploadExe;
      property UploadEEPROM: boolean read FUploadEEPROM write FUploadEEPROM stored uploadEEPROMIsStored default DEF_uploadEEPROM;
+     property AfterConnectMonitorCmds: TXmlConfStringList read FAfterConnectMonitorCmds write SetAfterConnectMonitorCmds;
    end;
 
   { TFpDebugDebuggerPropertiesMemLimits }
@@ -227,6 +234,12 @@ begin
   Result := FHost <> DEF_host;
 end;
 
+procedure TFpDebugDebuggerPropertiesGdbServer.SetAfterConnectMonitorCmds(
+  AValue: TXmlConfStringList);
+begin
+  FAfterConnectMonitorCmds.Assign(AValue);
+end;
+
 function TFpDebugDebuggerPropertiesGdbServer.uploadExeIsStored: Boolean;
 begin
   Result := FUploadExe <> DEF_uploadExe;
@@ -237,24 +250,46 @@ begin
   Result := FUploadEEPROM <> DEF_uploadEEPROM;
 end;
 
+function TFpDebugDebuggerPropertiesGdbServer.afterConnectMonitorIsStored: Boolean;
+begin
+  Result := FAfterConnectMonitorCmds.Text <> '';
+end;
+
 constructor TFpDebugDebuggerPropertiesGdbServer.Create;
 begin
   inherited Create;
+  FAfterConnectMonitorCmds := TXmlConfStringList.Create;
   FHost := DEF_host;
   FPort := DEF_port;
 end;
 
+destructor TFpDebugDebuggerPropertiesGdbServer.Destroy;
+begin
+  FreeAndNil(FAfterConnectMonitorCmds);
+  inherited Destroy;
+end;
+
 procedure TFpDebugDebuggerPropertiesGdbServer.Assign(Source: TPersistent);
+var
+  asource: TFpDebugDebuggerPropertiesGdbServer;
 begin
   if Source is TFpDebugDebuggerPropertiesGdbServer then begin
     FHost := TFpDebugDebuggerPropertiesGdbServer(Source).FHost;
     FPort := TFpDebugDebuggerPropertiesGdbServer(Source).FPort;
     FUploadExe := TFpDebugDebuggerPropertiesGdbServer(Source).FUploadExe;
     FUploadEEPROM := TFpDebugDebuggerPropertiesGdbServer(Source).FUploadEEPROM;
+
+    aSource := TFpDebugDebuggerPropertiesGdbServer(Source);
+    if Assigned(asource.FAfterConnectMonitorCmds) then
+      FAfterConnectMonitorCmds.Assign(aSource.FAfterConnectMonitorCmds);
+
     FpDbgRsp.AHost := FHost;
     FpDbgRsp.APort := FPort;
     FpDbgRsp.AUploadExe := FUploadExe;
     FpDbgRsp.AUploadEEPROM := FUploadEEPROM;
+    if not Assigned(FpDbgRsp.AAfterConnectMonitorCmds) then
+      FpDbgRsp.AAfterConnectMonitorCmds := TStringList.Create;
+    FpDbgRsp.AAfterConnectMonitorCmds.Assign(FAfterConnectMonitorCmds);
   end;
 end;
 

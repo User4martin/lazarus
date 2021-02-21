@@ -85,6 +85,7 @@ type
     // For little endian targets this creates an endian swap if the string is parsed by Val
     // because a hex representation of a number is interpreted as big endian
     function convertHexWithLittleEndianSwap(constref hextext: string; out value: qword): boolean;
+    function FHexEncodeStr(s: string): string;
   public
     constructor Create(AFileName: string); Overload;
     destructor Destroy; override;
@@ -111,6 +112,7 @@ type
     function WriteData(const AAdress: TDbgPtr;
       const ASize: Cardinal; const AData): Boolean;
 
+    function SendMonitorCmd(const s: string): boolean;
     // check state of target - ?
     function Init: integer;
 
@@ -124,6 +126,7 @@ var
   APort: integer = 2345;
   AUploadExe: boolean = false;
   AUploadEEPROM: boolean = false;
+  AAfterConnectMonitorCmds: TStringList;
 
 implementation
 
@@ -389,6 +392,20 @@ begin
   end
   else
     result := false;
+end;
+
+function TRspConnection.FHexEncodeStr(s: string): string;
+var
+  i: integer;
+  tmp: string;
+begin
+  setlength(Result, length(s)*2);
+  for i := 1 to length(s) do
+  begin
+    tmp := HexStr(ord(s[i]), 2);
+    Result[2*i - 1] := tmp[1];
+    Result[2*i] := tmp[2];
+  end;
 end;
 
 procedure TRspConnection.Break();
@@ -805,6 +822,14 @@ begin
     DebugLn(DBG_WARNINGS, ['Warning: "M" command returned unexpected result: ', reply]);
 end;
 
+function TRspConnection.SendMonitorCmd(const s: string): boolean;
+var
+  cmdstr, reply: string;
+begin
+  cmdstr := 'qRcmd,' + FHexEncodeStr(s);
+  result := FSendCmdWaitForReply(cmdstr, reply);
+end;
+
 function TRspConnection.Init: integer;
 var
   reply: string;
@@ -814,6 +839,7 @@ var
   imgReader: TDbgImageReader;
   pSection: PDbgImageSection;
   dataStart: qword;
+  i: integer;
 begin
   result := 0;
   reply := '';
@@ -826,6 +852,12 @@ begin
     end;
 
     // Fancy stuff - load exe & sections, run monitor cmds etc
+    if assigned(AAfterConnectMonitorCmds) and (AAfterConnectMonitorCmds.Count > 0) then
+     begin
+       for i := 0 to AAfterConnectMonitorCmds.Count-1 do
+         SendMonitorCmd(AAfterConnectMonitorCmds[i]);
+     end;
+
     if (AUploadExe or AUploadEEPROM) and (FFileName <> '') then
     begin
       try
@@ -879,5 +911,9 @@ initialization
   DBG_VERBOSE := DebugLogger.FindOrRegisterLogGroup('DBG_VERBOSE' {$IFDEF DBG_VERBOSE} , True {$ENDIF} );
   DBG_WARNINGS := DebugLogger.FindOrRegisterLogGroup('DBG_WARNINGS' {$IFDEF DBG_WARNINGS} , True {$ENDIF} );
   DBG_RSP := DebugLogger.FindOrRegisterLogGroup('DBG_RSP' {$IFDEF DBG_RSP} , True {$ENDIF} );
+
+finalization
+  if Assigned(AAfterConnectMonitorCmds) then
+    FreeAndNil(AAfterConnectMonitorCmds);
 end.
 
