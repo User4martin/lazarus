@@ -514,6 +514,8 @@ type
     function InstructionLength: Integer; virtual;
   end;
 
+  TAsmCallSearchResult = (csUnknown, csNoCallFound, csCallFound);
+
   { TDbgAsmDecoder }
 
   TDbgAsmDecoder = class
@@ -529,6 +531,8 @@ type
     procedure ReverseDisassemble(var AAddress: Pointer; out ACodeBytes: String; out ACode: String); virtual;
 
     function GetInstructionInfo(AnAddress: TDBGPtr): TDbgAsmInstruction; virtual; abstract;
+    // IsAfterCallStatement: If unknown => return True
+    function IsAfterCallStatement(AnAddress: TDBGPtr; out ACalledAddress: TDBGPtr): TAsmCallSearchResult; virtual;
     function GetFunctionFrameInfo(AnAddress: TDBGPtr; out AnIsOutsideFrame: Boolean): Boolean; virtual;
 
     property LastErrorWasMemReadErr: Boolean read GetLastErrorWasMemReadErr;
@@ -1552,6 +1556,13 @@ begin
   // After disassemble tmpAddress points to the starting address of next instruction
   // Decrement with the instruction length to point to the start of this instruction
   AAddress := AAddress - instrLen;
+end;
+
+function TDbgAsmDecoder.IsAfterCallStatement(AnAddress: TDBGPtr; out
+  ACalledAddress: TDBGPtr): TAsmCallSearchResult;
+begin
+  ACalledAddress := 0;
+  Result := csUnknown;
 end;
 
 function TDbgAsmDecoder.GetFunctionFrameInfo(AnAddress: TDBGPtr; out
@@ -2782,13 +2793,14 @@ const
   MAX_FRAMES = 50000; // safety net
 var
   Address, FrameBase, LastFrameBase: QWord;
-  Size, CountNeeded, IP, BP, CodeReadErrCnt, SP: integer;
+  Size, CountNeeded, IP, BP, CodeReadErrCnt, SP, c: integer;
   AnEntry: TDbgCallstackEntry;
   R: TDbgRegisterValue;
   nIP, nBP, nSP: String;
   NextIdx: LongInt;
-  OutSideFrame: Boolean;
-  StackPtr: TDBGPtr;
+  OutSideFrame, UseCheckCaller: Boolean;
+  StackPtr, CalledAddress: TDBGPtr;
+  CallFound: TAsmCallSearchResult;
 begin
   // TODO: use AFrameRequired // check if already partly done
   if FCallStackEntryList = nil then
@@ -2850,43 +2862,91 @@ begin
     FCallStackEntryList.Add(AnEntry);
   end;
 
+  UseCheckCaller := Process.GlobalOptions.ExperimentalStackUnRoll;
+UseCheckCaller := true;
+
   NextIdx := FCallStackEntryList.Count;
   if AFrameRequired < 0 then
     AFrameRequired := MaxInt;
   CountNeeded := AFrameRequired - FCallStackEntryList.Count;
   LastFrameBase := 0;
   CodeReadErrCnt := 0;
-  while (CountNeeded > 0) and (FrameBase <> 0) and (FrameBase > LastFrameBase) do
+  while (CountNeeded > 0) and
+        ( (FrameBase <> 0) or UseCheckCaller) and
+        ( (FrameBase > LastFrameBase) or (LastFrameBase = 0) ) and
+        ( CodeReadErrCnt <= 5 )
+  do
   begin
-    if not Process.Disassembler.GetFunctionFrameInfo(Address, OutSideFrame) then begin
-      if Process.Disassembler.LastErrorWasMemReadErr then begin
-      inc(CodeReadErrCnt);
-      if CodeReadErrCnt > 5 then break; // If the code cannot be read the stack pointer is wrong.
-      end;
-        OutSideFrame := False;
-    end;
+    OutSideFrame := FrameBase = 0;
     LastFrameBase := FrameBase;
+
+    if not OutSideFrame then
+      if not Process.Disassembler.GetFunctionFrameInfo(Address, OutSideFrame) then begin
+        if Process.Disassembler.LastErrorWasMemReadErr then begin
+        inc(CodeReadErrCnt);
+        if CodeReadErrCnt > 5 then break; // If the code cannot be read the stack pointer is wrong.
+        end;
+          OutSideFrame := False;
+      end;
 
     if (not OutSideFrame) and (NextIdx = 1) and (AnEntry.ProcSymbol <> nil) then begin
       OutSideFrame := Address = LocToAddrOrNil(AnEntry.ProcSymbol.Address); // the top frame must be outside frame, if it is at entrypoint / needed for exceptions
     end;
 
+    if not OutSideFrame then begin
+debugln(['$$$$$ IN FRAME ']);
+      if not Process.ReadData(FrameBase + Size, Size, Address) or (Address = 0) then begin
+        OutSideFrame := True;
+      end
+      else begin
+        if UseCheckCaller then begin
+          CallFound :=  Process.Disassembler.IsAfterCallStatement(Address, CalledAddress);
+          OutSideFrame := CallFound = csNoCallFound;
+if OutSideFrame then debugln('### ==== changing to outside frame ##################');
+        end;
+
+        if not OutSideFrame then begin
+          {$PUSH}{$R-}{$Q-}
+          StackPtr := FrameBase + 2 * Size; // After popping return-addr from "FrameBase + Size"
+          {$POP}
+          if not Process.ReadData(FrameBase, Size, FrameBase) then Break;
+          CodeReadErrCnt := 0; // we found a good frame
+        end;
+      end;
+    end;
+
     if OutSideFrame then begin
+debugln(['$$$$$ OUTSIDE FRAME ']);
       if not Process.ReadData(StackPtr, Size, Address) or (Address = 0) then Break;
       {$PUSH}{$R-}{$Q-}
+      if UseCheckCaller then begin
+        CallFound :=  Process.Disassembler.IsAfterCallStatement(Address, CalledAddress);
+debugln(['// ',(CallFound = csNoCallFound) , ' ', StackPtr, '  ', FrameBase, ' ## ',CodeReadErrCnt ]);
+        if (CallFound = csNoCallFound) {and (StackPtr > FrameBase)} then begin
+          inc(CodeReadErrCnt); // limit attempts
+          c := 20;
+          StackPtr := StackPtr and TDBGPtr(-2); // make even
+          while (CallFound = csNoCallFound) and (c > 0) {and (StackPtr > FrameBase)}
+          do begin
+            dec(c);
+            StackPtr := StackPtr + 2; // only try even addresses
+            if not Process.ReadData(StackPtr, Size, Address) or (Address = 0) then Break;
+            CallFound :=  Process.Disassembler.IsAfterCallStatement(Address, CalledAddress);
+          end;
+debugln(['@@@@@@@@ FOUND AT ',c]);
+        end;
+        if CallFound = csNoCallFound then
+          break;
+      end;
       StackPtr := StackPtr + 1 * Size; // After popping return-addr from "StackPtr"
-      LastFrameBase := LastFrameBase - 1; // Make the loop think thas LastFrameBase was smaller
+
+      if LastFrameBase > 0 then
+        LastFrameBase := LastFrameBase - 1; // Make the loop think thas LastFrameBase was smaller
       {$POP}
       // last stack has no frame
       //AnEntry.RegisterValueList.DbgRegisterAutoCreate[nBP].SetValue(0, '0',Size, BP);
-    end
-    else begin
-      {$PUSH}{$R-}{$Q-}
-      StackPtr := FrameBase + 2 * Size; // After popping return-addr from "FrameBase + Size"
-      {$POP}
-      if not Process.ReadData(FrameBase + Size, Size, Address) or (Address = 0) then Break;
-      if not Process.ReadData(FrameBase, Size, FrameBase) then Break;
     end;
+
     AnEntry := TDbgCallstackEntry.create(Self, NextIdx, FrameBase, Address);
     AnEntry.RegisterValueList.DbgRegisterAutoCreate[nIP].SetValue(Address, IntToStr(Address),Size, IP);
     AnEntry.RegisterValueList.DbgRegisterAutoCreate[nBP].SetValue(FrameBase, IntToStr(FrameBase),Size, BP);
@@ -2894,7 +2954,6 @@ begin
     FCallStackEntryList.Add(AnEntry);
     Dec(CountNeeded);
     inc(NextIdx);
-    CodeReadErrCnt := 0;
     If (NextIdx > MAX_FRAMES) then
       break;
   end;

@@ -268,6 +268,7 @@ type
     procedure Disassemble(var AAddress: Pointer; out ACodeBytes: String; out ACode: String); override;
     function GetInstructionInfo(AnAddress: TDBGPtr): TDbgAsmInstruction; override;
 
+    function IsAfterCallStatement(AnAddress: TDBGPtr; out ACalledAddress: TDBGPtr): TAsmCallSearchResult; override;
     function GetFunctionFrameInfo(AnAddress: TDBGPtr; out
       AnIsOutsideFrame: Boolean): Boolean; override;
   end;
@@ -3725,6 +3726,217 @@ destructor TX86AsmDecoder.Destroy;
 begin
   ReleaseRefAndNil(FLastInstr);
   inherited Destroy;
+end;
+
+function TX86AsmDecoder.IsAfterCallStatement(AnAddress: TDBGPtr; out
+  ACalledAddress: TDBGPtr): TAsmCallSearchResult;
+var
+  ADataLen: Cardinal;
+  Is64: Boolean;
+  Dummy: Int64;
+
+  procedure CheckOpFF(CheckLen: Integer);
+  var
+    Instr: TInstruction;
+    a: PByte;
+  begin
+    if (FCodeBin[ADataLen - CheckLen] = $FF) and
+       ((FCodeBin[ADataLen - CheckLen + 1] and $38) in [(2<<3), (3<<3)])
+    then begin
+      if (ADataLen >= CheckLen + 1) and Is64 and
+         (FCodeBin[ADataLen - CheckLen - 1] in [$40..$47])
+       then
+         inc(CheckLen);
+      a := @FCodeBin[ADataLen-CheckLen];
+      Disassemble(a, Instr);
+      if (a - @FCodeBin[ADataLen-CheckLen] = CheckLen) and (Instr.OpCode = OPcall) then begin
+debugln(['############# FF ',Instr.Operand[1].Value ]);
+        Result := csCallFound;
+      end;
+    end;
+  end;
+
+begin
+  assert(MAX_CODEBIN_LEN >= 6, 'TX86AsmDecoder.IsAfterCallStatement: MAX_CODEBIN_LEN >= 5');
+  Result := csUnknown;
+  ACalledAddress := 0;
+
+  ADataLen := 10;
+  if not ReadCodeAt(AnAddress - ADataLen, ADataLen) or (ADataLen <> 10)  then begin
+    ADataLen := 6;
+    if not ReadCodeAt(AnAddress - ADataLen, ADataLen) or (ADataLen <> 6)  then begin
+debugln(['##### FAILED MEM READ ############# ', dbghex(AnAddress)]);
+      Result := csNoCallFound; // memory can not be read
+      exit;
+    end;
+  end;
+debugln(['##### MEM READ OK ', dbghex(AnAddress)]);
+
+  (* Data, before Address could be
+    // 32 / 64
+    $CC      => Interrupt
+    $CD $xx  => Interrupt
+    $CE ???  => Interrupt
+    $F1 ???  => Interrupt
+
+    $E8 rel16/32  => call
+
+    $FF ....  => call
+
+    // 32 BIT
+    $9A ptr16/32    => callf
+
+    // PREFIX bytes
+    FCodeBin[n] in [$48..$4F]   // RexW  // 64 bit only
+rex.b???
+    FCodeBin[n] = $66           // preOpr "precission size" // 64 and 32
+
+  *)
+
+  (*
+#0 ntdll!ZwWaitForWorkViaWorkerFactory at :0
+#1 ntdll!TpReleaseCleanupGroupMembers at :0
+#2 KERNEL32!BaseThreadInitThunk at :0
+#3 ntdll!RtlUserThreadStart at :0
+#4 ?? at :0
+
+00007FFBF0202DC2 e899da0400               callq  0x7ffbf0250860 <ntdll!ZwWaitForWorkViaWorkerFactory>
+00007FFBEF5E702E ff15ecc10600             callq  *0x6c1ec(%rip)        # 0x7ffbef653220
+00007FFBF020264B ff15af091300             callq  *0x1309af(%rip)        # 0x7ffbf0333000
+
+
+#0 win32u!NtUserMsgWaitForMultipleObjectsEx at :0
+#1 USER32!MsgWaitForMultipleObjectsEx at :0
+#2 APPWAITMESSAGE(0x152b9f0) at win32\win32object.inc:485
+#3 IDLE(0x152b4d0, true) at include\application.inc:453
+#4 HANDLEMESSAGE(0x152b4d0) at include\application.inc:1265
+#5 RUNLOOP(0x152b4d0) at include\application.inc:1383
+#6 APPRUN(0x152b9f0, {Proc = {procedure (POINTER)} 0x13ffe08, Self = 0x152b4d0}) at include\interfacebase.inc:54
+#7 RUN(0x152b4d0) at include\application.inc:1371
+#8 main at LazDebFpTest.lpr:17
+
+00007FFBEE4E0787 48ff15f2240700           rex.W callq *0x724f2(%rip)        # 0x7ffbee552c80 <gapfnScSendMessage+4848>
+000000010023D6F1 e87a48dcff               callq  0x100001f70 <__$dll$user32$MsgWaitForMultipleObjects>
+0000000100038D0A ff93 0001 0000             callq  *0x100(%rbx)
+000000010003B65D e8aed5ffff               callq  0x100038c10 <IDLE>
+000000010003BE44 e8b7f7ffff               callq  0x10003b600 <HANDLEMESSAGE>
+000000010017FF09 ff10                     callq  *(%rax)
+000000010003BDF2 ff93f8000000             callq  *0xf8(%rbx)
+0000000100003059 e8028d0300               callq  0x10003bd60 <RUN>
+
+32 bit
+
+77D2DCA4 e86770fcff               call   0x77cf4d10 <ntdll!DbgBreakPoint>
+7711FA21 ff15 2c20 1877             call   *0x7718202c
+7711FA27 ffd6                     call   *%esi
+7792A394 ff1538389977             call   *0x77993838
+00430277 ff9380000000             call   *0x80(%ebx)
+004322D9 e8c2deffff               call   0x4301a0 <IDLE>
+00531A10 ff12                     call   *(%edx)
+00432898 ff53 7c                   call   *0x7c(%ebx)
+
+
+
+
+
+
+
+
+
+
+
+
+00007FFBF0202DC2 e899da0400               callq  0x7ffbf0250860 <ntdll!ZwWaitForWorkViaWorkerFactory>
+
+000000010017FF09 ff10                     callq  *(%rax)
+
+00007FFBEF5E702E ff15ecc10600             callq  *0x6c1ec(%rip)        # 0x7ffbef653220
+00007FFBF020264B ff15af091300             callq  *0x1309af(%rip)        # 0x7ffbf0333000
+
+0000000100038D0A ff9300010000             callq  *0x100(%rbx)
+000000010003BDF2 ff93f8000000             callq  *0xf8(%rbx)
+
+00007FFBEE4E0787 48ff15f2240700           rex.W callq *0x724f2(%rip)        # 0x7ffbee552c80 <gapfnScSendMessage+4848>
+
+32 bit
+
+77D2DCA4 e86770fcff               call   0x77cf4d10 <ntdll!DbgBreakPoint>
+7711FA21 ff152c201877             call   *0x7718202c
+7711FA27 ffd6                     call   *%esi
+7792A394 ff1538389977             call   *0x77993838
+00430277 ff9380000000             call   *0x80(%ebx)
+004322D9 e8c2deffff               call   0x4301a0 <IDLE>
+00531A10 ff12                     call   *(%edx)
+00432898 ff537c                   call   *0x7c(%ebx)
+
+  *)
+
+  Is64 := FProcess.Mode = dm64;
+
+  if (FCodeBin[ADataLen-5] = $E8) then begin // call with 32 bit relative offset
+    {$PUSH}{$R-}{$Q-}
+    ACalledAddress := AnAddress + PLongint(@FCodeBin[ADataLen-4])^;
+debugln(['################## ', dbghex(ACalledAddress)]);
+    {$POP}
+    if (ACalledAddress and $0003) = 0 then begin
+      if FProcess.ReadData(ACalledAddress, 1, Dummy) then begin
+        Result := csCallFound;
+        exit;
+      end;
+    end;
+  end;
+
+  if (FCodeBin[ADataLen-3] = $E8) and
+     (FCodeBin[ADataLen-4] = $66)               // preOpr
+  then begin // call with 16 bit relative offset
+    {$PUSH}{$R-}{$Q-}
+    ACalledAddress := AnAddress + PSmallInt(@FCodeBin[ADataLen-2])^;
+debugln(['################## ', dbghex(ACalledAddress)]);
+    {$POP}
+    if (ACalledAddress and $0003) = 0 then begin
+      if FProcess.ReadData(ACalledAddress, 1, Dummy) then begin
+        Result := csCallFound;
+        exit;
+      end;
+    end;
+  end;
+
+  CheckOpFF(6);
+  if Result = csCallFound then
+    exit;
+
+  CheckOpFF(2);
+  if Result = csCallFound then
+    exit;
+
+  CheckOpFF(3);
+  if Result = csCallFound then
+    exit;
+
+
+  if (not Is64) then begin
+
+    if (ADataLen >= 10) and
+       (FCodeBin[ADataLen-5] = $9A) and
+       (FCodeBin[ADataLen-6] = $66)               // preOpr
+    then begin // call with 32 (16/16) bit pointer
+debugln(['############# 9a ']);
+      Result := csCallFound;
+      exit;
+    end;
+
+    if (ADataLen >= 7) and
+       (FCodeBin[ADataLen-7] = $9A) then begin // call with 48 bit pointer
+debugln(['############# 9a ']);
+      Result := csCallFound;
+      exit;
+    end;
+
+  end;
+
+
+  Result := csNoCallFound;
+debugln(['!!!!!!!!!!!! ##### NO FUNC ############# ', dbghex(AnAddress)]);
 end;
 
 function TX86AsmDecoder.GetFunctionFrameInfo(AnAddress: TDBGPtr; out
