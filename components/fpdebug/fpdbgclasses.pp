@@ -52,6 +52,15 @@ type
     deInternalContinue);
   TFPDCompareStepInfo = (dcsiNewLine, dcsiSameLine, dcsiNoLineInfo, dcsiZeroLine);
 
+  { TFpDebuggerOptions }
+
+  TFpDebuggerOptions = class
+  private
+    FExperimentalStackUnRoll: boolean;
+  public
+    property ExperimentalStackUnRoll: boolean read FExperimentalStackUnRoll write FExperimentalStackUnRoll;
+  end;
+
   { TDbgRegisterValue }
 
   TDbgRegisterValue = class
@@ -541,6 +550,7 @@ type
     FExceptionClass: string;
     FExceptionMessage: string;
     FExitCode: DWord;
+    FGlobalOptions: TFpDebuggerOptions;
     FGotExitProcess: Boolean;
     FLastLibraryUnloaded: TDbgLibrary;
     FOnDebugOutputEvent: TDebugOutputEvent;
@@ -656,6 +666,7 @@ public
     procedure ThreadsBeforeContinue;
     procedure ThreadsClearCallStack;
     procedure LoadInfo; override;
+    procedure SetGlobalOptions(AValue: TFpDebuggerOptions);
 
     function WriteData(const AAdress: TDbgPtr; const ASize: Cardinal; const AData): Boolean; virtual;
     // Modify the debugee's code.
@@ -686,6 +697,7 @@ public
     property GotExitProcess: Boolean read FGotExitProcess write FGotExitProcess;
     property Disassembler: TDbgAsmDecoder read GetDisassembler;
     property ThreadMap: TThreadMap read FThreadMap;
+    property GlobalOptions: TFpDebuggerOptions read FGlobalOptions write SetGlobalOptions;
   end;
   TDbgProcessClass = class of TDbgProcess;
 
@@ -2187,6 +2199,12 @@ end;
 function TDbgProcess.GetPauseRequested: boolean;
 begin
   Result := Boolean(InterLockedExchangeAdd(FPauseRequested, 0));
+end;
+
+procedure TDbgProcess.SetGlobalOptions(AValue: TFpDebuggerOptions);
+begin
+  if FGlobalOptions = AValue then Exit;
+  FGlobalOptions := AValue;
 end;
 
 function TDbgProcess.GetRequiresExecutionInDebuggerThread: boolean;

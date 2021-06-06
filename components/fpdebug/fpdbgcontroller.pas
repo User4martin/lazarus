@@ -253,6 +253,7 @@ type
 
   TDbgController = class
   private
+    FGlobalOptions: TFpDebuggerOptions;
     FLastError: TFpError;
     FMemManager: TFpDbgMemManager;
     FDefaultContext: TFpDbgLocationContext;
@@ -405,6 +406,7 @@ type
     property OnThreadBeforeProcessLoop: TNotifyEvent read FOnThreadBeforeProcessLoop write FOnThreadBeforeProcessLoop;
     property OnThreadProcessLoopCycleEvent: TOnProcessLoopCycleEvent read FOnThreadProcessLoopCycleEvent write FOnThreadProcessLoopCycleEvent;
     property OnThreadDebugOutputEvent: TDebugOutputEvent read FOnThreadDebugOutputEvent write SetOnThreadDebugOutputEvent;
+    property GlobalOptions: TFpDebuggerOptions read FGlobalOptions;
   end;
 
 implementation
@@ -1425,6 +1427,7 @@ begin
 
   FParams.Free;
   FEnvironment.Free;
+  FGlobalOptions.Free;
   inherited Destroy;
 end;
 
@@ -1488,6 +1491,7 @@ begin
   if assigned(FCurrentProcess) then
     begin
     FProcessMap.Add(FCurrentProcess.ProcessID, FCurrentProcess);
+    FCurrentProcess.SetGlobalOptions(GlobalOptions);
     DebugLn(DBG_VERBOSE, 'Got PID: %d, TID: %d', [FCurrentProcess.ProcessID, FCurrentProcess.ThreadID]);
     result := true;
     end;
@@ -1888,6 +1892,7 @@ end;
 
 constructor TDbgController.Create(AMemManager: TFpDbgMemManager);
 begin
+  FGlobalOptions := TFpDebuggerOptions.Create;
   FMemManager := AMemManager;
   FParams := TStringList.Create;
   FEnvironment := TStringList.Create;
