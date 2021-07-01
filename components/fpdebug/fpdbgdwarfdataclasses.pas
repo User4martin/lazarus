@@ -820,6 +820,9 @@ property DwarfSymbolClassMapList: TFpSymbolDwarfClassMapList read GetDwarfSymbol
 
 implementation
 
+uses
+  FpDbgCommon;
+
 var
   FPDBG_DWARF_ERRORS, FPDBG_DWARF_WARNINGS, FPDBG_DWARF_SEARCH, FPDBG_DWARF_VERBOSE,
   // FPDBG_DWARF_DATA_WARNINGS,
@@ -2168,6 +2171,23 @@ var
     inc(CurInstr, ASize);
   end;
 
+  function ReadAddressFromRegister(ARegNum: Cardinal; out AValue: TDbgPtr): boolean;
+  const
+    AvrRamOffset = $800000;
+  var
+    tmp: TDBGPtr;
+  begin
+    result := FContext.ReadRegister(ARegNum, AValue);
+    // If target is an AVR, read the next 8 bit register to form a 16 bit address
+    if result and (FCU.FOwner.TargetInfo.machineType = mtAVR8) then begin
+      result := FContext.ReadRegister(ARegNum + 1, tmp);
+      // AVR use different address spaces
+      // Assume that an address in a dwarf location refers to RAM
+      // ToDo: try to establish whether the address is expected to be in RAM or flash (or EEPROM)
+      AValue := AvrRamOffset or (AValue + (tmp shl 8));
+    end;
+  end;
+
 var
   NewLoc, Loc: TFpDbgMemLocation;
   NewValue: TDbgPtr;
@@ -2248,7 +2268,7 @@ begin
         end;
 
       DW_OP_breg0..DW_OP_breg31: begin
-          if not FContext.ReadRegister(CurInstr^-DW_OP_breg0, NewValue) then begin
+          if not ReadAddressFromRegister(CurInstr^-DW_OP_breg0, NewValue) then begin
             SetError;
             exit;
           end;
@@ -2257,7 +2277,7 @@ begin
           {$POP}
         end;
       DW_OP_bregx: begin
-          if not FContext.ReadRegister(ULEB128toOrdinal(CurData), NewValue) then begin
+          if not ReadAddressFromRegister(ULEB128toOrdinal(CurData), NewValue) then begin
             SetError;
             exit;
           end;
