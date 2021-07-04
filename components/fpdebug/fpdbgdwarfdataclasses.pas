@@ -2185,9 +2185,9 @@ var
     // If target is an AVR, read the next 8 bit register to form a 16 bit address
     if result and (FCU.FOwner.TargetInfo.machineType = mtAVR8) then begin
       result := FContext.ReadRegister(ARegNum + 1, tmp);
-      // AVR use different address spaces
-      // Assume that an address in a dwarf location refers to RAM
-      // ToDo: try to establish whether the address is expected to be in RAM or flash (or EEPROM)
+      { AVR use different address spaces
+        Assume that an address in a dwarf location refers to RAM
+        ToDo: try to establish whether the address is expected to be in RAM or flash (or EEPROM) }
       AValue := AvrRamOffset or (AValue + (tmp shl 8));
     end;
   end;
@@ -4838,11 +4838,11 @@ begin
 
     // iter is at the closest defined address before AAddress
     Info := Iter.DataPtr;
-    if (AAddress >= Info^.StartPC) or (AAddress <= Info^.EndPC) then
+    result := (AAddress >= Info^.StartPC) and (AAddress <= Info^.EndPC);
+    if Result then
     begin
       AStartPC := Info^.StartPC;
       AEndPC := Info^.EndPC;
-      Result := true;
     end;
 
   finally
