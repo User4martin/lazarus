@@ -177,6 +177,7 @@ type
     FLaunchWarnings: String;
     procedure CollectDwarfLoadErrors(Sender: TObject);
     procedure ExceptBreakInstructionFinished(Sender: TObject);
+    procedure LaunchInstructionFailed(Sender: TObject);
     procedure LaunchInstructionSucceeded(Sender: TObject);
     procedure TargetCreated(Sender: TObject);
   protected
@@ -2462,9 +2463,40 @@ begin
 
   FRunInstr := TLldbInstructionProcessLaunch.Create(TLldbDebuggerProperties(Debugger.GetProperties).LaunchNewTerminal);
   FRunInstr.OnSuccess := @LaunchInstructionSucceeded;
-  FRunInstr.OnFailure := @InstructionFailed;
+  FRunInstr.OnFailure  := @LaunchInstructionFailed;
   QueueInstruction(FRunInstr);
   FRunInstr.ReleaseReference;
+end;
+
+procedure TLldbDebuggerCommandRunLaunch.LaunchInstructionFailed(Sender: TObject
+  );
+var
+  i: TLldbInstruction;
+begin
+  if Sender is TLldbInstructionProcessLaunch then begin
+    i := nil;
+    case TLldbInstructionProcessLaunch(Sender).LaunchOpt of
+      //iloTty:         i := TLldbInstructionProcessLaunch.Create(iloNone);  // ignore terminal
+      iloFullNoStdin:
+        i := TLldbInstructionProcessLaunch.Create(iloNoStdin);
+      iloNoStdin: begin
+        i := TLldbInstructionSettingSet.Create('target.process', 'disable-stdio true');
+        QueueInstruction(i);  // ignore error / TODO: pop up warning
+        i.ReleaseReference;
+        i := TLldbInstructionProcessLaunch.Create(iloNone);
+      end;
+    end;
+    if i <> nil then begin
+      FRunInstr := i;  // ignore terminal
+      FRunInstr.OnSuccess := @LaunchInstructionSucceeded;
+      FRunInstr.OnFailure := @InstructionFailed;
+      QueueInstruction(FRunInstr);
+      FRunInstr.ReleaseReference;
+      exit;
+    end;
+  end;
+
+  InstructionFailed(Sender);
 end;
 
 procedure TLldbDebuggerCommandRunLaunch.LaunchInstructionSucceeded(Sender: TObject);

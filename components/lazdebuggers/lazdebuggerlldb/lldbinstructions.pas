@@ -126,13 +126,20 @@ type
     constructor Create(const ACmd: String);
   end;
 
+  TLldbInstructionProcessLaunchOption = (iloNone, iloTty, iloFullNoStdin, iloNoStdin);
+
   { TLldbInstructionProcessLaunch }
 
   TLldbInstructionProcessLaunch = class(TLldbInstruction)
+  private
+    FLaunchOpt: TLldbInstructionProcessLaunchOption;
   protected
     function ProcessInputFromDbg(const AData: String): Boolean; override;
   public
-    constructor Create(AOpenTerminal: Boolean);
+    constructor Create(AOpenTerminal: Boolean); overload;
+    constructor Create(ALaunchOpt: TLldbInstructionProcessLaunchOption); overload;
+
+    property LaunchOpt: TLldbInstructionProcessLaunchOption read FLaunchOpt;
   end;
 
   { TLldbInstructionProcessStep }
@@ -743,9 +750,21 @@ end;
 constructor TLldbInstructionProcessLaunch.Create(AOpenTerminal: Boolean);
 begin
   if AOpenTerminal then
-    inherited Create('process launch --tty')
+    Create(iloTty)
   else
-    inherited Create('process launch -n');
+    Create(iloFullNoStdin);
+end;
+
+constructor TLldbInstructionProcessLaunch.Create(
+  ALaunchOpt: TLldbInstructionProcessLaunchOption);
+begin
+  FLaunchOpt := ALaunchOpt;
+  case ALaunchOpt of
+    iloNone:        inherited Create('process launch');
+    iloTty:         inherited Create('process launch --tty');
+    iloFullNoStdin: inherited Create('process launch --no-stdin');
+    iloNoStdin:     inherited Create('process launch -n');
+  end;
 end;
 
 { TLldbInstructionProcessStep }
