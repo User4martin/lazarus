@@ -141,7 +141,7 @@ type
 
     function DoRunExe: Boolean;
 
-    function Init: boolean;
+    function Init(ASkipPackageGraph: boolean = False): boolean;
     procedure LoadEnvironmentOptions;
     procedure LoadMiscellaneousOptions;
     procedure SetupMacros;
@@ -919,7 +919,7 @@ begin
   Result:=false;
   CloseProject(Project1);
 
-  if not Init then exit;
+  if not Init(True) then exit;
 
   Project1:=LoadProject(AFilename);
   
@@ -1154,7 +1154,7 @@ begin
   Result:=true;
 end;
 
-function TLazBuildApplication.Init: boolean;
+function TLazBuildApplication.Init(ASkipPackageGraph: boolean): boolean;
 begin
   if fInitialized then exit(fInitResult);
   fInitResult:=false;
@@ -1180,7 +1180,8 @@ begin
   StoreBaseSettings;
 
   // load static base packages
-  PackageGraph.LoadStaticBasePackages;
+  if not ASkipPackageGraph then
+    PackageGraph.LoadStaticBasePackages;
 
   MainBuildBoss.SetBuildTarget(OSOverride,CPUOverride,WidgetSetOverride,smsfsSkip,true);
 
