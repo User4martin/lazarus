@@ -32,7 +32,7 @@ uses
   Interfaces, // this includes the NoGUI widgetset
   // LazUtils
   Masks, LConvEncoding, FileUtil, LazFileUtils, LazLoggerBase, LazUtilities,
-  LazUTF8, Laz2_XMLCfg, UITypes, LazStringUtils,
+  LazUTF8, Laz2_XMLCfg, UITypes, LazStringUtils, UTF8Process,
   // LCL
   LCLPlatformDef, Forms,
   // Codetools
@@ -45,7 +45,7 @@ uses
   ApplicationBundle, TransferMacros, EnvironmentOpts, IDETranslations,
   LazarusIDEStrConsts, IDECmdLine, MiscOptions, Project, LazConf, PackageDefs,
   PackageLinks, PackageSystem, InterPkgConflictFiles, BuildLazDialog,
-  BuildProfileManager, BuildManager, BaseBuildManager, ModeMatrixOpts;
+  BuildProfileManager, BuildManager, BaseBuildManager, ModeMatrixOpts, process;
 
 type
   TPkgAction = (
@@ -76,6 +76,8 @@ type
     fOSOverride: String;
     FPackageAction: TPkgAction;
     FPkgGraphVerbosity: TPkgVerbosityFlags;
+    FRunArgs: string;
+    FRunExe: boolean;
     FSkipDependencies: boolean;
     fWidgetsetOverride: String;
 
@@ -137,6 +139,8 @@ type
     function BuildLazarusIDE: boolean;
     function CompileAutoInstallPackages(Clean: boolean): boolean;
 
+    function DoRunExe: Boolean;
+
     function Init: boolean;
     procedure LoadEnvironmentOptions;
     procedure LoadMiscellaneousOptions;
@@ -177,6 +181,9 @@ type
     property MaxProcessCount: integer read FMaxProcessCount write FMaxProcessCount;
     property NoWriteProject: boolean read FNoWriteProject write FNoWriteProject;
     property PkgGraphVerbosity: TPkgVerbosityFlags read FPkgGraphVerbosity write FPkgGraphVerbosity;
+
+    property RunExe: boolean read FRunExe write FRunExe;// run the resulting exe
+    property RunArgs: string read FRunArgs write FRunArgs;
   end;
 
 var
@@ -184,10 +191,12 @@ var
 
 const
   ErrorFileNotFound = 1;
+  ErrorRunning = 1;
   ErrorBuildFailed = 2;
   ErrorLoadPackageFailed = 3;
   ErrorPackageNameInvalid = 4;
   ErrorLoadProjectFailed = 5;
+  ErrorBisectSkip = 125;
   VersionStr = {$I version.inc};
 
 procedure FilterConfigFileContent;
@@ -1461,6 +1470,32 @@ begin
   inherited Destroy;
 end;
 
+function TLazBuildApplication.DoRunExe: Boolean;
+var
+  proc: TProcessUTF8;
+  ExeFileName: String;
+begin
+  Result := False;
+  ExeFileName := MainBuildBoss.GetProjectTargetFilename(Project1);
+  if not FileExistsUTF8(ExeFileName) then begin
+    ExitCode := ErrorRunning;
+    exit
+  end;
+
+  proc := TProcessUTF8.Create(nil);
+  proc.Executable := ExeFileName;
+  proc.CommandLine := RunArgs;
+  proc.Options := [poWaitOnExit];
+  proc.Execute;
+
+  if proc.ExitCode <> 0 then begin
+    ExitCode := ErrorRunning;
+    exit;
+  end;
+
+  Result := True;
+end;
+
 procedure TLazBuildApplication.Run;
 var
   i: Integer;
@@ -1470,11 +1505,19 @@ begin
   // Build all projects/packages specified by the user...
   // except packages to be added the IDE install list.
   for i:=0 to Files.Count-1 do begin
+    CloseProject(Project1);
     if not BuildFile(Files[i]) then begin
       if ConsoleVerbosity>=-1 then
         debugln('Error: (lazarus) Building failed: ',Files[i]);
       ExitCode := ErrorBuildFailed;
+      if RunExe then
+        ExitCode := ErrorBisectSkip;
       exit;
+    end;
+
+    if RunExe and (Project1 <> nil) then begin
+      if not DoRunExe then
+        exit;
     end;
   end;
 
@@ -1573,6 +1616,7 @@ begin
     LongOptions.Add('create-makefile');
     LongOptions.Add('max-process-count:');
     LongOptions.Add('no-write-project');
+    LongOptions.Add('run::');
     ErrorMsg:=RepairedCheckOptions('lBrdq',LongOptions,Options,NonOptions);
     if ErrorMsg<>'' then begin
       writeln(ErrorMsg);
@@ -1733,6 +1777,12 @@ begin
       MaxProcessCount:=StrToInt(GetOptionValue('max-process-count'));
       if ConsoleVerbosity>=0 then
         writeln('Parameter: max-process-count=',MaxProcessCount);
+    end;
+
+    // run arguments
+    if HasOption('run') then begin
+      RunExe := True;
+      RunArgs:=GetOptionValue('run');
     end;
 
     if HasOption('no-write-project') then
