@@ -356,7 +356,7 @@ begin
     New(p);
     P^.Offs := fs.FileOfs;
     p^.Sect.Size := fs.Size;
-    p^.Sect.VirtualAddress := fs.Address; //0; // Todo? fs.Address - ImageBase
+    p^.Sect.VirtualAddress := 0; // Todo? fs.Address - ImageBase
     p^.Sect.IsLoadable := ((fs.SectionType and SHT_PROGBITS) > 0) and ((fs.Flags and SHF_ALLOC) > 0) and
                           ((fs.SectionType and SHT_NOBITS) = 0);
     p^.Loaded := False;
