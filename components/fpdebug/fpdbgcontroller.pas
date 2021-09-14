@@ -287,6 +287,7 @@ type
     procedure SetExecutableFilename(const AValue: string);
     procedure DoOnDebugInfoLoaded(Sender: TObject);
     procedure SetOnThreadDebugOutputEvent(AValue: TDebugOutputEvent);
+    procedure SetOsDbgClasses(AValue: TOSDbgClasses);
     procedure SetParams(AValue: TStringList);
 
     procedure CheckExecutableAndLoadClasses;
@@ -316,7 +317,7 @@ type
     procedure ProcessLoop;
     procedure SendEvents(out continue: boolean);
     property CurrentCommand: TDbgControllerCmd read FCommand;
-    property OsDbgClasses: TOSDbgClasses read FOsDbgClasses;
+    property OsDbgClasses: TOSDbgClasses read FOsDbgClasses write SetOsDbgClasses;
     property MemManager: TFpDbgMemManager read FMemManager;
     property DefaultContext: TFpDbgLocationContext read GetDefaultContext; // CurrentThread, TopStackFrame
     property LastError: TFpError read FLastError;
@@ -1314,6 +1315,14 @@ begin
     FMainProcess.OnDebugOutputEvent := AValue;
 end;
 
+procedure TDbgController.SetOsDbgClasses(AValue: TOSDbgClasses);
+begin
+  if assigned(FMainProcess) or assigned(FOsDbgClasses) then
+    raise Exception.Create('cannot change OsDbgClasses');
+
+  FOsDbgClasses := AValue;
+end;
+
 procedure TDbgController.SetParams(AValue: TStringList);
 begin
   if FParams=AValue then Exit;
@@ -1470,12 +1479,14 @@ begin
     end;
 
   // Get exe info, load classes
-  CheckExecutableAndLoadClasses;
-  if not Assigned(OsDbgClasses) then
-  begin
-    result := false;
-    DebugLn(DBG_WARNINGS, 'Error - No support registered for debug target');
-    exit;
+  if not Assigned(OsDbgClasses) then begin
+    CheckExecutableAndLoadClasses;
+    if not Assigned(OsDbgClasses) then
+    begin
+      result := false;
+      DebugLn(DBG_WARNINGS, 'Error - No support registered for debug target');
+      exit;
+    end;
   end;
 
   Flags := [];
@@ -1828,7 +1839,10 @@ begin
     deExitProcess:
       begin
       (* Only events for the main process get here / See ProcessLoop *)
-        if FCurrentProcess = FMainProcess then FMainProcess := nil;
+        if FCurrentProcess = FMainProcess then begin
+          FMainProcess := nil;
+          FOsDbgClasses := nil;
+        end;
         FCurrentProcess.GotExitProcess := True;
 
         if assigned(OnProcessExitEvent) then
