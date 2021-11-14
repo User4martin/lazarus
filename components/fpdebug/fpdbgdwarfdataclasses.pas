@@ -794,6 +794,8 @@ type
     FCU: TDwarfCompilationUnit;
     FData: PByte;
     FMaxData: PByte;
+    FPiece: TDBGPtr; // TODO: eventually allow bigger pieces
+    FPiecePointer: PByte;
   public
   //TODO: caller keeps data, and determines livetime of data
     constructor Create(AExpressionData: Pointer; AMaxCount: Integer; ACU: TDwarfCompilationUnit;
@@ -2539,13 +2541,31 @@ begin
         end;
 
       DW_OP_piece: begin
+          if FPiecePointer = nil then
+            FPiecePointer := @FPiece;  // also indicates that the result is a piece
+
           if not AssertMinCount(1) then exit; // no piece avail
           x := ReadUnsignedFromExpression(CurData, 0);
-          Entry :=  FStack.Pop;
-// TODO: assemble data // Not implemented
-// If entry is an address (not a register) then it points to the value
-          SetError(fpErrLocationParser);
-          exit;
+          if (x > SizeOf(NewValue)) or
+             (FPiecePointer + x > @FPiece + SizeOf(FPiece))
+          then begin
+            debugln(['Failed DW_OP_piece len =', x]);
+            SetError(fpErrLocationParser);
+            exit;
+          end;
+          if x > 0 then begin
+            if FStack.Count = 0 then begin
+              NewValue := 0; // actually => unknown
+            end
+            else begin
+              Entry :=  FStack.Pop;
+              if not FContext.ReadUnsignedInt(Entry, SizeVal(x), NewValue) then exit;
+            end;
+            move(NewValue, FPiecePointer^, x);
+            inc(FPiecePointer, x);
+          end;
+          FStack.Clear;
+          // restore obj address, if it was pre-set....
         end;
 
       // dwarf 3
@@ -2590,9 +2610,14 @@ end;
 
 function TDwarfLocationExpression.ResultData: TFpDbgMemLocation;
 begin
-  if (FLastError <> nil) or (FStack.FError <> fpErrNoError) or (FStack.Count = 0) then
+  if (FLastError <> nil) or (FStack.FError <> fpErrNoError) or
+     ( (FStack.Count = 0) and (FPiecePointer = nil) )
+  then
     exit(InvalidLoc);
 
+  if FPiecePointer <> nil then
+    Result := ConstRefLoc(FPiece)
+  else
   if FStack.Count > 0 then
     Result := FStack.Peek^
   else
