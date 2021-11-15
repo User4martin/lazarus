@@ -3956,7 +3956,7 @@ begin
     //exit;
   end;
 
-  LocationParser := TDwarfLocationExpression.Create(@Val[0], Length(Val), CompilationUnit,
+  LocationParser := CompilationUnit.GetDwarfLocationExpressionClass.Create(@Val[0], Length(Val), CompilationUnit,
     AValueObj.Context);
   InitLocationParser(LocationParser, AnInitLocParserData);
   LocationParser.Evaluate;
@@ -5917,7 +5917,7 @@ begin
       exit;
     end;
 
-    FFrameBaseParser := TDwarfLocationExpression.Create(@Val[0], Length(Val), CompilationUnit,
+    FFrameBaseParser := CompilationUnit.GetDwarfLocationExpressionClass.Create(@Val[0], Length(Val), CompilationUnit,
       ASender.Context);
     FFrameBaseParser.IsDwAtFrameBase := True;
     FFrameBaseParser.Evaluate;

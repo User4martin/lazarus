@@ -495,6 +495,9 @@ type
   end;
   TDbgDwarfSymbolBaseClass = class of TDbgDwarfSymbolBase;
 
+  TDwarfLocationExpression = class;
+  TDwarfLocationExpressionClass = class of TDwarfLocationExpression;
+
   { TFpSymbolDwarfClassMap
     Provides Symbol and VAlue evaluation classes depending on the compiler
   }
@@ -515,6 +518,7 @@ type
   public
     constructor Create(ACU: TDwarfCompilationUnit; AHelperData: Pointer); virtual;
     function GetDwarfSymbolClass(ATag: Cardinal): TDbgDwarfSymbolBaseClass; virtual; abstract;
+    function GetDwarfLocationExpressionClass: TDwarfLocationExpressionClass; virtual;
     function CreateScopeForSymbol(ALocationContext: TFpDbgLocationContext; ASymbol: TFpSymbol;
                                  ADwarf: TFpDwarfInfo): TFpDbgSymbolScope; virtual; abstract;
     function CreateProcSymbol(ACompilationUnit: TDwarfCompilationUnit;
@@ -591,6 +595,7 @@ type
     FOwner: TFpDwarfInfo;
     FDebugFile: PDwarfDebugFile;
     FDwarfSymbolClassMap: TFpSymbolDwarfClassMap;
+    FDwarfLocationExpressionClass: TDwarfLocationExpressionClass;
     FValid: Boolean; // set if the compilationunit has compile unit tag.
   
     // --- Header ---
@@ -685,6 +690,7 @@ type
     function MapAddressToNewValue(AValue: QWord): QWord;
     // Get start/end addresses of proc
     function GetProcStartEnd(const AAddress: TDBGPtr; out AStartPC, AEndPC: TDBGPtr): boolean;
+    function GetDwarfLocationExpressionClass: TDwarfLocationExpressionClass;
 
     property Valid: Boolean read FValid;
     property FileName: String read FFileName;
@@ -752,8 +758,6 @@ type
     property WorkQueue: TFpGlobalThreadWorkerQueue read FWorkQueue;
   end;
 
-  TDwarfLocationExpression = class;
-
   { TDwarfLocationStack }
 
   TDwarfLocationStack = object
@@ -809,7 +813,7 @@ type
     // for DW_OP_push_object_address
     property CurrentObjectAddress: TFpDbgMemLocation read FCurrentObjectAddress write FCurrentObjectAddress;
     property IsDwAtFrameBase: Boolean read FIsDwAtFrameBase write FIsDwAtFrameBase;
-    end;
+  end;
 
 function ULEB128toOrdinal(var p: PByte): QWord;
 function SLEB128toOrdinal(var p: PByte): Int64;
@@ -1032,6 +1036,11 @@ constructor TFpSymbolDwarfClassMap.Create(ACU: TDwarfCompilationUnit;
   AHelperData: Pointer);
 begin
   inherited Create;
+end;
+
+function TFpSymbolDwarfClassMap.GetDwarfLocationExpressionClass: TDwarfLocationExpressionClass;
+begin
+  Result := TDwarfLocationExpression;
 end;
 
 function TFpSymbolDwarfClassMap.CanHandleCompUnit(ACU: TDwarfCompilationUnit;
@@ -4861,6 +4870,17 @@ begin
 
   finally
     Iter.Free;
+  end;
+end;
+
+function TDwarfCompilationUnit.GetDwarfLocationExpressionClass: TDwarfLocationExpressionClass;
+begin
+  if Self = nil then
+    exit(TDwarfLocationExpression);
+  Result := FDwarfLocationExpressionClass;
+  if Result <> nil then begin
+    FDwarfLocationExpressionClass := FDwarfSymbolClassMap.GetDwarfLocationExpressionClass;
+    Result := FDwarfLocationExpressionClass;
   end;
 end;
 
