@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry, RegExpr,
   DbgIntfBaseTypes, DbgIntfDebuggerBase, TestBase, GDBMIDebugger, TestDbgConfig,
   TestDbgControl, TTestDbgExecuteables, TestDbgTestSuites, LCLProc,
-  TestWatchUtils;
+  TestWatchUtils, DbgGuiBaseDebugger;
 
 const
   BREAK_LINE_FOOFUNC_NEST  = 206;
