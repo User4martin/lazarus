@@ -9,7 +9,8 @@ interface
 uses
   Classes, SysUtils, math, DbgIntfBaseTypes, DbgIntfDebuggerBase,
   FpPascalBuilder, LazLoggerBase, Forms, RegExpr, TestDbgTestSuites,
-  TTestDebuggerClasses, TTestDbgExecuteables, TestDbgConfig, TestOutputLogger;
+  TTestDebuggerClasses, TTestDbgExecuteables, TestDbgConfig, TestOutputLogger,
+  LazDebuggerIntf;
 
 type
   TWatchExpectationResultKind = (

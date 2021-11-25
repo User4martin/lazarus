@@ -7,8 +7,9 @@ interface
 uses
   Classes, SysUtils, strutils, fpcunit, testutils, testregistry, RegExpr,
   DbgIntfBaseTypes, DbgIntfDebuggerBase, TestBase, FpGdbmiDebugger, LCLProc,
-  TestWatchUtils, GDBMIDebugger, FpErrorMessages, TestDbgControl, TestDbgConfig,
-  TTestDbgExecuteables, TestDbgTestSuites;
+  DbgGuiBaseDebugger, TestWatchUtils, GDBMIDebugger, FpErrorMessages,
+  TestDbgControl, TestDbgConfig, TTestDbgExecuteables, TestDbgTestSuites,
+  LazDebuggerIntf;
 
 const
   BREAK_COUNT_TestWatchesUnitSimple = 17;

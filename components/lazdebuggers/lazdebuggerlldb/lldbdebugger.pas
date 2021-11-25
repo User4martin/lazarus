@@ -30,7 +30,7 @@ uses
   // CmdLineDebuggerBase
   DebugProcess,
   // LazDebuggerLldb
-  LldbInstructions, LldbHelper;
+  LldbInstructions, LldbHelper, LazDebuggerIntf;
 
 type
 
@@ -213,7 +213,7 @@ type
   TLldbDebuggerCommandEvaluate = class(TLldbDebuggerCommand)
   private
     FInstr: TLldbInstructionExpression;
-    FWatchValue: TWatchValue;
+    FWatchValue: TWatchValueIntf;
     FExpr: String;
     FFlags: TWatcheEvaluateFlags;
     FCallback: TDBGEvaluateResultCallback;
@@ -224,7 +224,7 @@ type
     procedure DoExecute; override;
   public
     // TODO: Pass FCurrentStackFrame to create
-    constructor Create(AOwner: TLldbDebugger; AWatchValue: TWatchValue);
+    constructor Create(AOwner: TLldbDebugger; AWatchValue: TWatchValueIntf);
     constructor Create(AOwner: TLldbDebugger; AnExpr: String; AFlags: TWatcheEvaluateFlags;
                        ACallback: TDBGEvaluateResultCallback);
     destructor Destroy; override;
@@ -490,7 +490,7 @@ type
   TLldbWatches = class(TWatchesSupplier)
   private
   protected
-    procedure InternalRequestData(AWatchValue: TWatchValue); override;
+    procedure InternalRequestData(AWatchValue: TWatchValueIntf); override;
   public
   end;
 
@@ -1684,7 +1684,7 @@ end;
 
 { TLldbWatches }
 
-procedure TLldbWatches.InternalRequestData(AWatchValue: TWatchValue);
+procedure TLldbWatches.InternalRequestData(AWatchValue: TWatchValueIntf);
 var
   Cmd: TLldbDebuggerCommandEvaluate;
 begin
@@ -2586,7 +2586,7 @@ begin
 end;
 
 constructor TLldbDebuggerCommandEvaluate.Create(AOwner: TLldbDebugger;
-  AWatchValue: TWatchValue);
+  AWatchValue: TWatchValueIntf);
 begin
   FWatchValue := AWatchValue;
   FWatchValue.AddFreeNotification(@DoWatchFreed);
