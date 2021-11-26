@@ -2921,6 +2921,7 @@ var
   DisabledList: TList;
   SavedFocusState: TFocusState;
   ActiveWindow: HWnd;
+  OldCursors: TCursorArray;
 begin
   if Self = nil then
     raise EInvalidOperation.Create('TCustomForm.ShowModal Self = nil');
@@ -2948,7 +2949,7 @@ begin
     Screen.FSaveFocusedList.Insert(0, Screen.FFocusedForm);
     Screen.FFocusedForm := Self;
     Screen.MoveFormToFocusFront(Self);
-    Screen.BeginTempCursor(crDefault);
+    OldCursors := Screen.BackupAndClearTempCursor;
     ModalResult := 0;
 
     try
@@ -3006,7 +3007,8 @@ begin
       end;
     finally
       RestoreFocusState(SavedFocusState);
-      Screen.EndTempCursor(crDefault);
+      Screen.BackupAndClearTempCursor;
+      Screen.RestoreTempCursors(OldCursors);
       if LCLIntf.IsWindow(ActiveWindow) then
         SetActiveWindow(ActiveWindow);
       Exclude(FFormState, fsModal);

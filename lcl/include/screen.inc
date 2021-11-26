@@ -875,6 +875,29 @@ begin
   Result := FSystemFont;
 end;
 
+function TScreen.BackupAndClearTempCursor: TCursorArray;
+var
+  OldCursor: TCursor;
+begin
+  OldCursor := RealCursor;
+  Result := FTempCursors;
+  FTempCursors := nil;
+
+  if OldCursor<>RealCursor then
+    WidgetSet.SetCursor(Cursors[RealCursor]);
+end;
+
+procedure TScreen.RestoreTempCursors(ATempCursors: TCursorArray);
+var
+  OldCursor: TCursor;
+begin
+  OldCursor := RealCursor;
+  FTempCursors := ATempCursors;
+
+  if OldCursor<>RealCursor then
+    WidgetSet.SetCursor(Cursors[RealCursor]);
+end;
+
 function TScreen.GetHintFont: TFont;
 begin
   if (FHintFont = nil) then

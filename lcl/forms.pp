@@ -1052,6 +1052,8 @@ type
 
   TMonitorDefaultTo = (mdNearest, mdNull, mdPrimary);
 
+  TCursorArray = array of TCursor;
+
   { TScreen }
 
   TScreen = class(TLCLComponent)
@@ -1060,7 +1062,7 @@ type
     FActiveCustomForm: TCustomForm;
     FActiveForm: TForm;
     FCursor: TCursor;
-    FTempCursors: array of TCursor;
+    FTempCursors: TCursorArray;
     FCursorMap: TMap;
     FCustomForms: TFPList;
     FCustomFormsZOrdered: TFPList;
@@ -1136,6 +1138,8 @@ type
     function GetIconFont: TFont; virtual;
     function GetMenuFont: TFont; virtual;
     function GetSystemFont: TFont; virtual;
+    function BackupAndClearTempCursor: TCursorArray;
+    procedure RestoreTempCursors(ATempCursors: TCursorArray);
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
