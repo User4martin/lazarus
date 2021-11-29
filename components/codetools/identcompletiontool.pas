@@ -419,7 +419,7 @@ type
     procedure GatherUnitnames(const NameSpacePath: string = '');
     procedure GatherSourceNames(const Context: TFindContext);
     procedure GatherContextKeywords(const Context: TFindContext;
-      CleanPos: integer; BeautifyCodeOptions: TBeautifyCodeOptions);
+      CleanPos: integer; BeautifyCodeOptions: TBeautifyCodeOptions; GatherContext: TFindContext);
     procedure GatherUserIdentifiers(const ContextFlags: TIdentifierListContextFlags);
     procedure InitCollectIdentifiers(const CursorPos: TCodeXYPosition;
       var IdentifierList: TIdentifierList);
@@ -467,6 +467,9 @@ var
   CUnitNameSpaceIdentifierListItem: TUnitNameSpaceIdentifierListItemClass = TUnitNameSpaceIdentifierListItem;
 
 implementation
+
+uses
+ CodeToolManager;
 
 const
   CompilerFuncHistoryIndex = 10;
@@ -1779,7 +1782,7 @@ end;
 
 procedure TIdentCompletionTool.GatherContextKeywords(
   const Context: TFindContext; CleanPos: integer;
-  BeautifyCodeOptions: TBeautifyCodeOptions);
+  BeautifyCodeOptions: TBeautifyCodeOptions; GatherContext: TFindContext);
 type
   TPropertySpecifier = (
     psIndex,psRead,psWrite,psStored,psImplements,psDefault,psNoDefault
@@ -2074,6 +2077,53 @@ begin
           Add('initialization');
           Add('finalization');
           Add('begin');
+        end;
+      end;
+
+    ctnBeginBlock,ctnWithStatement,ctnWithVariable,  ctnOnBlock,ctnOnIdentifier,ctnOnStatement:
+    //ctnInitialization,ctnFinalization: //AllPascalStatements
+      begin
+        if CodeToolBoss.IdentComplAutoInvokeOnType then
+        if not (GatherContext.Node.Desc in AllClassObjects) then
+        begin
+          if not (ilcfDontAllowProcedures in CurrentIdentifierList.ContextFlags) then
+          begin
+            Add('and');
+            Add('asm');
+            Add('begin');
+            Add('case');
+            Add('do');
+            Add('downto');
+            Add('else');
+            Add('end');
+            Add('except');
+            Add('finally');
+            Add('for');
+            Add('goto');
+            Add('if');
+            Add('inherited');
+            Add('label');
+            Add('not');
+            Add('of');
+            Add('on');
+            Add('or');
+            Add('raise');
+            Add('repeat');
+            Add('then');
+            Add('to');
+            Add('try');
+            Add('until');
+            Add('while');
+            Add('with');
+            Add('xor');
+          end;
+          Add('div');
+          Add('in');
+          Add('as');
+          Add('is');
+          Add('mod');
+          Add('shl');
+          Add('shr');
         end;
       end;
 
@@ -2980,9 +3030,6 @@ begin
             FindContextClassAndAncestorsAndExtendedClassOfHelper(IdentStartXY, FICTClassAndAncestorsAndExtClassOfHelper);
           end;
 
-          CursorContext:=CreateFindContext(Self,CursorNode);
-          GatherContextKeywords(CursorContext,IdentStartPos,Beautifier);
-
           // check for incomplete context
 
           // context bracket level
@@ -3111,6 +3158,9 @@ begin
             CurrentIdentifierList.ContextFlags:=
               CurrentIdentifierList.ContextFlags+[ilcfEndOfLine];
           end;
+
+          CursorContext:=CreateFindContext(Self,CursorNode);
+          GatherContextKeywords(CursorContext, IdentStartPos, Beautifier, GatherContext); //note: coth:
 
           // search and gather identifiers in context
           if (GatherContext.Tool<>nil) and (GatherContext.Node<>nil) then begin
