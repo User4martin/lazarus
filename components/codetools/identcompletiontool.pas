@@ -419,7 +419,7 @@ type
     procedure GatherUnitnames(const NameSpacePath: string = '');
     procedure GatherSourceNames(const Context: TFindContext);
     procedure GatherContextKeywords(const Context: TFindContext;
-      CleanPos: integer; BeautifyCodeOptions: TBeautifyCodeOptions; GatherContext: TFindContext);
+      CleanPos: integer; BeautifyCodeOptions: TBeautifyCodeOptions; const GatherContext: TFindContext);
     procedure GatherUserIdentifiers(const ContextFlags: TIdentifierListContextFlags);
     procedure InitCollectIdentifiers(const CursorPos: TCodeXYPosition;
       var IdentifierList: TIdentifierList);
@@ -1782,7 +1782,7 @@ end;
 
 procedure TIdentCompletionTool.GatherContextKeywords(
   const Context: TFindContext; CleanPos: integer;
-  BeautifyCodeOptions: TBeautifyCodeOptions; GatherContext: TFindContext);
+  BeautifyCodeOptions: TBeautifyCodeOptions; const GatherContext: TFindContext);
 type
   TPropertySpecifier = (
     psIndex,psRead,psWrite,psStored,psImplements,psDefault,psNoDefault
@@ -1995,6 +1995,7 @@ begin
         Add('type');
         Add('var');
         Add('const');
+        Add('label');
         Add('procedure');
         Add('function');
         Add('resourcestring');
@@ -2025,8 +2026,15 @@ begin
         Add('type');
         Add('var');
         Add('const');
+        Add('label');
         Add('procedure');
         Add('function');
+        if CodeToolBoss.IdentComplIncludeKeywords  then
+        if not (ilcfDontAllowProcedures in CurrentIdentifierList.ContextFlags)
+        and (ilcfStartOfOperand in CurrentIdentifierList.ContextFlags)
+        then begin
+          Add('asm');
+        end;
       end;
 
     ctnProcedureHead:
@@ -2070,6 +2078,7 @@ begin
         Add('const');
         Add('var');
         Add('resourcestring');
+        Add('label');
         Add('procedure');
         Add('function');
         Add('property');
@@ -2083,47 +2092,62 @@ begin
     ctnBeginBlock,ctnWithStatement,ctnWithVariable,  ctnOnBlock,ctnOnIdentifier,ctnOnStatement:
     //ctnInitialization,ctnFinalization: //AllPascalStatements
       begin
-        if CodeToolBoss.IdentComplIncludeKeywords then
+        if CodeToolBoss.IdentComplIncludeKeywords  then
         if not (GatherContext.Node.Desc in AllClassObjects) then
         begin
-          if not (ilcfDontAllowProcedures in CurrentIdentifierList.ContextFlags) then
-          begin
-            Add('and');
+          if not (ilcfDontAllowProcedures in CurrentIdentifierList.ContextFlags)
+          and (ilcfStartOfStatement in CurrentIdentifierList.ContextFlags)
+          then begin
             Add('asm');
             Add('begin');
             Add('case');
-            Add('do');
-            Add('downto');
-            Add('else');
-            Add('end');
             Add('except');
             Add('finally');
             Add('for');
             Add('goto');
             Add('if');
-            Add('inherited');
-            Add('label');
-            Add('not');
-            Add('of');
-            Add('on');
-            Add('or');
             Add('raise');
             Add('repeat');
-            Add('then');
-            Add('to');
             Add('try');
             Add('until');
             Add('while');
             Add('with');
-            Add('xor');
           end;
-          Add('div');
-          Add('in');
-          Add('as');
-          Add('is');
-          Add('mod');
-          Add('shl');
-          Add('shr');
+          if (ilcfStartInStatement in CurrentIdentifierList.ContextFlags)
+          and not (ilcfStartOfOperand in CurrentIdentifierList.ContextFlags)
+          then begin
+            Add('else');
+            Add('end');
+            Add('then');
+            Add('do');
+            Add('downto');
+            Add('of');
+            Add('on');
+            Add('to');
+          end;
+          if (ilcfStartOfStatement in CurrentIdentifierList.ContextFlags)
+          or (CurrentIdentifierList.ContextFlags * [ilcfStartInStatement, ilcfStartOfOperand] = [ilcfStartInStatement, ilcfStartOfOperand])
+          then
+          begin
+            Add('inherited');
+          end;
+          if (CurrentIdentifierList.ContextFlags * [ilcfIsExpression, ilcfStartInStatement] <> []) then
+          begin
+            if not (ilcfStartOfOperand in CurrentIdentifierList.ContextFlags) then
+            begin
+              Add('and');
+              Add('or');
+              Add('xor');
+              Add('div');
+              Add('in');
+              Add('as');
+              Add('is');
+              Add('mod');
+              Add('shl');
+              Add('shr');
+            end;
+            Add('not');
+          end;
         end;
       end;
 
