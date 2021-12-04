@@ -1362,6 +1362,7 @@ var
   PrimaryEnvs: TStringList;
   SecondaryEnvs: TStringList;
 begin
+debugln(['== SETUP DLG INIT >> ', DbgSTime]);
   IsFirstStart:=not FileExistsCached(EnvironmentOptions.Filename);
   if not IsFirstStart then begin
     IsFirstStart:= False;
@@ -1393,6 +1394,7 @@ begin
     IsFirstStart := True;
   //debugln(['TInitialSetupDialog.Init IsFirstStart=',IsFirstStart,' ',EnvironmentOptions.Filename]);
 
+debugln(['== SETUP DLG INIT >> laz dir cand', DbgSTime]);
   // Lazarus directory
   UpdateLazarusDirCandidates;
   if IsFirstStart
@@ -1411,6 +1413,7 @@ begin
   FLastParsedLazDir:='. .';
   UpdateLazDirNote;
 
+debugln(['== SETUP DLG INIT >> compiler', DbgSTime]);
   // compiler filename
   UpdateCompilerFilenameCandidates;
   if IsFirstStart
@@ -1426,6 +1429,7 @@ begin
   fLastParsedCompiler:='. .';
   UpdateCompilerNote;
 
+debugln(['== SETUP DLG INIT >> comp src', DbgSTime]);
   // FPC source directory
   UpdateFPCSrcDirCandidates;
   {$IFDEF DebugSearchFPCSrcThread}
@@ -1457,6 +1461,7 @@ begin
   fLastParsedFPCSrcDir:='. .';
   UpdateFPCSrcDirNote;
 
+debugln(['== SETUP DLG INIT >> make', DbgSTime]);
   // Make executable
   UpdateMakeExeCandidates({aStopIfFits} True);
   if IsFirstStart
@@ -1477,6 +1482,7 @@ begin
   fLastParsedMakeExe:='. .';
   UpdateMakeExeNote;
 
+debugln(['== SETUP DLG INIT >> dbg', DbgSTime]);
   RegisterDebugger(TGDBMIDebugger); // make sure we can read the config
   FSkipDebugger := EnvironmentOptions.HasActiveDebuggerEntry // There is a configured entry. Assume it is right, unless we can prove it is incorrect
     and not (
@@ -1505,6 +1511,7 @@ begin
     EnvironmentOptions.SaveDebuggerPropertiesList; // Update XML
   end;
 
+debugln(['== SETUP DLG INIT >> ...', DbgSTime]);
   DebuggerComboBox.Text:=EnvironmentOptions.DebuggerFilename;
   fLastParsedDebugger:='. .';
   UpdateDebuggerNote;
@@ -1520,6 +1527,7 @@ begin
   if Node=nil then
     Node:=TVNodeLazarus;
   PropertiesTreeView.Selected:=Node;
+debugln(['<< SETUP DLG INIT >> ', DbgSTime]);
 end;
 
 procedure TInitialSetupDialog.UpdateFppkgNote;

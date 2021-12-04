@@ -57,7 +57,7 @@ uses
   Interfaces,
   IDEInstances,//keep IDEInstances up so that it will be initialized soon
   Forms, LCLProc,
-  IDEOptionsIntf,
+  IDEOptionsIntf, LazLoggerBase,
   LazConf, IDEGuiCmdLine,
   Splash,
   Main,
@@ -86,6 +86,7 @@ uses
 
 begin
   Max_Frame_Dump:=32; // the default 8 is not enough
+debugln(['Start ', DbgSTime]);
 
   HasGUI:=true;
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('lazarus.pp: begin');{$ENDIF}
@@ -138,11 +139,15 @@ begin
     Application.ProcessMessages; // process splash paint message
   end;
 
+debugln(['App.Create ', DbgSTime]);
   TMainIDE.Create(Application);
   if not Application.Terminated then
   begin
+debugln(['Forms ', DbgSTime]);
     MainIDE.CreateOftenUsedForms;
     try
+debugln(['StartIDE ', DbgSTime]);
+
       MainIDE.StartIDE;
     except
       Application.HandleException(MainIDE);
@@ -150,6 +155,7 @@ begin
     {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('lazarus.pp: TMainIDE created');{$ENDIF}
 
     try
+debugln(['App RUN ', DbgSTime]);
       Application.Run;
     except
       debugln('lazarus.pp - unhandled exception');

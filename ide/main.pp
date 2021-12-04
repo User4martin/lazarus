@@ -1390,6 +1390,7 @@ var
   OI: TSimpleWindowLayout;
   ConfigFile: string;
 begin
+debugln(['== SETUP INTERACTIVE >> ', DbgSTime]);
   {$IFDEF DebugSearchFPCSrcThread}
   ShowSetupDialog:=true;
   {$ENDIF}
@@ -1401,6 +1402,7 @@ begin
     ShowSetupDialog:=true;
   end;
 
+debugln(['== SETUP INTERACTIVE >> go compile ', DbgSTime]);
   // check compiler
   if (not ShowSetupDialog)
   and (CheckFPCExeQuality(EnvironmentOptions.GetParsedCompilerFilename,Note,
@@ -1410,6 +1412,7 @@ begin
     ShowSetupDialog:=true;
   end;
 
+debugln(['== SETUP INTERACTIVE >> codetool fpc src', DbgSTime]);
   // check FPC source directory
   if (not ShowSetupDialog) then
   begin
@@ -1424,12 +1427,14 @@ begin
   end;
 
   // check 'make' utility
+debugln(['== SETUP INTERACTIVE >> dialog', DbgSTime]);
   if (not ShowSetupDialog)
   and not (CheckMakeExeQuality(EnvironmentOptions.GetParsedMakeFilename,Note) in [sddqCompatible, sddqMakeNotWithFpc])
   then begin
     debugln(['Warning: (lazarus) incompatible make utility: ',EnvironmentOptions.GetParsedMakeFilename]);
     ShowSetupDialog:=true;
   end;
+debugln(['== SETUP INTERACTIVE >> dialog dbg', DbgSTime]);
 
   // check debugger
   if (not ShowSetupDialog) then begin
@@ -1450,8 +1455,10 @@ begin
     end;
   end;
 
+debugln(['== SETUP INTERACTIVE >> dialog fppkg', DbgSTime]);
   ConfigFile:=EnvironmentOptions.GetParsedFppkgConfig;
   // check fppkg configuration
+debugln(['== SETUP INTERACTIVE >> fpkg 2', DbgSTime]);
   if (not ShowSetupDialog)
   and (CheckFppkgConfiguration(ConfigFile, Note)<>sddqCompatible)
   then begin
@@ -1459,6 +1466,7 @@ begin
     ShowSetupDialog:=true;
   end;
 
+debugln(['== SETUP INTERACTIVE >> show setup', DbgSTime]);
   // show setup dialog
   if ShowSetupDialog then begin
     OldLazDir:=EnvironmentOptions.LazarusDirectory;
@@ -1467,10 +1475,12 @@ begin
       exit;
     end;
     // show OI with empty configuration
+debugln(['== SETUP INTERACTIVE >> win creator', DbgSTime]);
     OI := IDEWindowIntf.IDEWindowCreators.SimpleLayoutStorage.ItemByFormID(DefaultObjectInspectorName);
     if OI<>nil then
       OI.Visible := True;
     EnvironmentOptions.Save(true);
+debugln(['== SETUP INTERACTIVE >> translate', DbgSTime]);
     if OldLazDir<>EnvironmentOptions.LazarusDirectory then begin
       // fetch new translations
       CollectTranslations(EnvironmentOptions.GetParsedLazarusDirectory);
@@ -1488,6 +1498,7 @@ begin
     ExternalMacroStart+'LCLWidgetType',GetLCLWidgetTypeName);
   CodeToolBoss.SetGlobalValue(
     ExternalMacroStart+'FPCSrcDir',EnvironmentOptions.GetParsedFPCSourceDirectory);
+debugln(['== SETUP INTERACTIVE << ', DbgSTime]);
 end;
 
 constructor TMainIDE.Create(TheOwner: TComponent);
@@ -1497,19 +1508,23 @@ var
   PkgMngr: TPkgManager;
   CompPalette: TComponentPalette;
 begin
+debugln(['++ TMainIDE create >> >>>>', DbgSTime]);
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.Create START');{$ENDIF}
   inherited Create(TheOwner);
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.Create INHERITED');{$ENDIF}
 
   FWaitForClose := False;
 
+debugln(['++ TMainIDE create >> setup dlg', DbgSTime]);
   SetupDialogs;
 
+debugln(['++ TMainIDE create >> buildmgr create', DbgSTime]);
   MainBuildBoss:=TBuildManager.Create(nil);
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.Create BUILD MANAGER');{$ENDIF}
   // setup macros before loading options
   MainBuildBoss.SetupTransferMacros;
 
+debugln(['++ TMainIDE create >> load glob opt', DbgSTime]);
   // load options
   CreatePrimaryConfigPath;
   StartProtocol;
@@ -1519,27 +1534,34 @@ begin
   if EnvironmentOptions.Desktop.SingleTaskBarButton then
     Application.TaskBarBehavior := tbSingleButton;
 
+debugln(['++ TMainIDE create >> set macro', DbgSTime]);
   // setup code templates
   SetupCodeMacros;
 
+debugln(['++ TMainIDE create >> init codetool bass', DbgSTime]);
   // setup the code tools
   if not InitCodeToolBoss then begin
     Application.Terminate;
     exit;
   end;
 
+debugln(['++ TMainIDE create >> interact', DbgSTime]);
   // setup interactive if neccessary
   SetupInteractive;
   if Application.Terminated then exit;
 
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.Create CODETOOLS');{$ENDIF}
 
+debugln(['++ TMainIDE create >> ext tool', DbgSTime]);
   MainBuildBoss.SetupExternalTools(TExternalToolsIDE);
+debugln(['++ TMainIDE create >> env chg', DbgSTime]);
   MainBuildBoss.EnvOptsChanged;
 
+debugln(['++ TMainIDE create >> main farm', DbgSTime]);
   // build and position the MainIDE form
   Application.CreateForm(TMainIDEBar,MainIDEBar);
   MainIDEBar.Name := NonModalIDEWindowNames[nmiwMainIDE];
+debugln(['++ TMainIDE create >> win creator', DbgSTime]);
   FormCreator:=IDEWindowCreators.Add(MainIDEBar.Name);
   FormCreator.Right:='100%';
   FormCreator.Bottom:='+90';
@@ -1552,6 +1574,7 @@ begin
   HiddenWindowsOnRun:=TFPList.Create;
   FLastActivatedWindows:=TFPList.Create;
 
+debugln(['++ TMainIDE create >> menu', DbgSTime]);
   // menu
   MainIDEBar.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDE.Create'){$ENDIF};
   try
@@ -1565,26 +1588,35 @@ begin
   end;
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.Create MENU');{$ENDIF}
 
+debugln(['++ TMainIDE create >> ide categ', DbgSTime]);
   // create main IDE register items
   NewIDEItems:=TNewLazIDEItemCategories.Create;
 
+debugln(['++ TMainIDE create >> project types', DbgSTime]);
   SetupStandardProjectTypes;
 
+debugln(['++ TMainIDE create >> dbg mgr create', DbgSTime]);
   // initialize the other IDE managers
   DebugBoss:=TDebugManager.Create(nil);
   DebugBossManager:=DebugBoss;
   DebugBoss.ConnectMainBarEvents;
   DebuggerDlg.OnProcessCommand := @ProcessIDECommand;
 
+debugln(['++ TMainIDE create >> pkg mgr create', DbgSTime]);
   PkgMngr:=TPkgManager.Create(nil);
   PkgBoss:=PkgMngr;
   PkgBoss.ConnectMainBarEvents;
+
+debugln(['++ TMainIDE create >> info cache create', DbgSTime]);
   LPKInfoCache:=TLPKInfoCache.Create;
   HelpBoss:=TIDEHelpManager.Create(nil);
+debugln(['++ TMainIDE create >> connect main bar', DbgSTime]);
   HelpBoss.ConnectMainBarEvents;
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.Create MANAGERS');{$ENDIF}
   // setup the IDE components
+debugln(['++ TMainIDE create >> build boss compile intf', DbgSTime]);
   MainBuildBoss.SetupCompilerInterface;
+debugln(['++ TMainIDE create >> setup OI + form ...', DbgSTime]);
   SetupObjectInspector;
   SetupFormEditor;
   SetupSourceNotebook;
@@ -1594,6 +1626,7 @@ begin
   LoadMenuShortCuts;
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.Create IDE COMPONENTS');{$ENDIF}
 
+debugln(['++ TMainIDE create >> comp pal create', DbgSTime]);
   // componentpalette
   CompPalette:=TComponentPalette.Create;
   IDEComponentPalette:=CompPalette;
@@ -1602,7 +1635,9 @@ begin
   CompPalette.PageControl:=MainIDEBar.ComponentPageControl;
   CompPalette.OnChangeActivePage:=@MainIDEBar.SetMainIDEHeightEvent;
   // load installed packages
+debugln(['++ TMainIDE create >> load inst package', DbgSTime]);
   PkgBoss.LoadInstalledPackages;
+debugln(['++ TMainIDE create >> load inst package END', DbgSTime]);
 
   EditorMacroListViewer.LoadGlobalInfo; // Must be after packages are loaded/registered.
 
@@ -1611,10 +1646,12 @@ begin
 
   // load package configs
   HelpBoss.LoadHelpOptions;
+debugln(['++ TMainIDE create <<<<<', DbgSTime]);
 end;
 
 procedure TMainIDE.StartIDE;
 begin
+debugln(['StartIDE ', DbgSTime]);
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.StartIDE START');{$ENDIF}
   // set Application handlers
   Application.AddOnUserInputHandler(@HandleApplicationUserInput);
@@ -1631,21 +1668,27 @@ begin
   IDEWindowCreators.AddLayoutChangedHandler(@LayoutChangeHandler);
   SetupIDEWindowsLayout;
   RestoreIDEWindows;
+debugln(['StartIDE after restore win ', DbgSTime]);
+
   MainIDEBar.SetupHints;
   MainIDEBar.InitPaletteAndCoolBar;
   // make sure the main IDE bar is always shown
   IDEWindowCreators.ShowForm(MainIDEBar,false);
   DebugBoss.UpdateButtonsAndMenuItems; // Disable Stop-button (and some others).
+debugln(['StartIDE before setup project ', DbgSTime]);
   SetupStartProject;                   // Now load a project
   if Project1=nil then begin
     Application.Terminate;
     exit;
   end;
+debugln(['StartIDE after setup project ', DbgSTime]);
   // Idle work gets done initially before user action.
   FIdleIdeActions := [iiaUserInputSinceLastIdle, iiaUpdateDefineTemplates];
   MainIDEBar.ApplicationIsActivate:=true;
   IDECommandList.AddCustomUpdateEvent(@UpdateMainIDECommands);
+debugln(['StartIDE before instarnce ', DbgSTime]);
   LazIDEInstances.StartListening(@LazInstancesStartNewInstance, @LazInstancesGetOpenedProjectFileName);
+debugln(['StartIDE after instarnce ', DbgSTime]);
   IDECommandList.StartUpdateEvents;
   FIDEStarted:=true;
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.StartIDE END');{$ENDIF}
