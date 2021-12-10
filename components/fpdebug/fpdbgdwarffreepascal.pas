@@ -248,6 +248,12 @@ type
   { TFpSymbolDwarfFreePascalDataProc }
 
   TFpSymbolDwarfFreePascalDataProc = class(TFpSymbolDwarfDataProc)
+  private
+    FOrigSymbol: TFpSymbolDwarfFreePascalDataProc;
+  protected
+    function GetLine: Cardinal; override;
+    function GetColumn: Cardinal; override;
+    // Todo: LineStartAddress, ...
   public
     function ResolveInternalFinallySymbol(Process: Pointer): TFpSymbol; override;
   end;
@@ -1530,6 +1536,22 @@ end;
 
 { TFpSymbolDwarfFreePascalDataProc }
 
+function TFpSymbolDwarfFreePascalDataProc.GetLine: Cardinal;
+begin
+  if FOrigSymbol <> nil then
+    Result := FOrigSymbol.GetLine
+  else
+    Result := inherited GetLine;
+end;
+
+function TFpSymbolDwarfFreePascalDataProc.GetColumn: Cardinal;
+begin
+  if FOrigSymbol <> nil then
+    Result := FOrigSymbol.GetColumn
+  else
+    Result := inherited GetColumn;
+end;
+
 function TFpSymbolDwarfFreePascalDataProc.ResolveInternalFinallySymbol(
   Process: Pointer): TFpSymbol;
 {$IfDef WINDOWS}
@@ -1542,6 +1564,7 @@ var
 {$EndIf}
 begin
   Result := Self;
+  // TODO: FindProcSymbol - ideally we could go to the CU for finding the procsym => but that needs some code from TFpDwarfInfo.FindProcSymbol to be moved there
 
   {$IfDef WINDOWS}
   // On Windows: If in an SEH finally block, try to get the real procedure
@@ -1560,9 +1583,11 @@ begin
         HelpSymbol.AddReference;
       end
       else
-        TFpSymbol(HelpSymbol) := TDbgProcess(Process).FindProcSymbol(StartPC);
+        TFpSymbol(HelpSymbol) := DbgInfo.FindProcSymbol(StartPC);
 
-      if not ( (HelpSymbol <> nil) and  HelpSymbol.InheritsFrom(TFpSymbolDwarf) ) then begin
+      if (HelpSymbol = nil) or (HelpSymbol.CompilationUnit <> CompilationUnit) or
+         (not HelpSymbol.InheritsFrom(TFpSymbolDwarfFreePascalDataProc))
+      then begin
         HelpSymbol.ReleaseReference;
         exit;
       end;
@@ -1574,8 +1599,10 @@ begin
           if Length(AnAddresses) > 1 then begin // may be an internal finally on the begin/end line, sharing a line number
             for i := 0 to Length(AnAddresses) - 1 do
               if (AnAddresses[i] > StartPC) or (AnAddresses[i] < StartPC - 9) then begin
-                TFpSymbol(HelpSymbol2) := TDbgProcess(Process).FindProcSymbol(AnAddresses[i]);
-                if not HelpSymbol2.InheritsFrom(TFpSymbolDwarf) then begin
+                TFpSymbol(HelpSymbol2) := DbgInfo.FindProcSymbol(AnAddresses[i]);
+                if (HelpSymbol2 = nil) or (HelpSymbol2.CompilationUnit <> CompilationUnit) or
+                   (not HelpSymbol2.InheritsFrom(TFpSymbolDwarfFreePascalDataProc))
+                then begin
                   HelpSymbol2.ReleaseReference;
                   HelpSymbol2 := nil;
                 end;
@@ -1611,8 +1638,10 @@ begin
          (AnAddresses <> nil)
       then begin
         HelpSymbol.ReleaseReference;
-        TFpSymbol(HelpSymbol) := TDbgProcess(Process).FindProcSymbol(AnAddresses[0]);
-        if (HelpSymbol <> nil) and  HelpSymbol.InheritsFrom(TFpSymbolDwarf) then begin
+        TFpSymbol(HelpSymbol) := DbgInfo.FindProcSymbol(AnAddresses[0]);
+        if (HelpSymbol = nil) or (HelpSymbol.CompilationUnit <> CompilationUnit) or
+           (not HelpSymbol.InheritsFrom(TFpSymbolDwarfFreePascalDataProc))
+        then begin
           Result.ReleaseReference;
           Result := HelpSymbol;
           HelpSymbol := nil;
@@ -1621,6 +1650,10 @@ begin
       HelpSymbol.ReleaseReference;
     end;
   end;
+
+  if Result <> self then
+    TFpSymbolDwarfFreePascalDataProc(Result).FOrigSymbol := Self
+
   {$EndIf}
 end;
 
