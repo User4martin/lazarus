@@ -862,6 +862,8 @@ type
       TermCleanPos: integer;
       AliasType: PFindContext = nil): string;
   protected
+    function FindClassFromGenericParamType(GenParamNode: TCodeTreeNode;
+      ResultParams: TFindDeclarationParams): boolean;
     function CheckSrcIdentifier(Params: TFindDeclarationParams;
       const FoundContext: TFindContext): TIdentifierFoundResult;
     function FindDeclarationOfIdentAtParam(
@@ -5250,7 +5252,7 @@ var
       debugln(['TFindDeclarationTool.FindBaseTypeOfNode.SearchIdentifier Identifier=',GetIdentifier(@Src[IdentStart])]);
       {$ENDIF}
       SubParams.Flags:=[fdfSearchInParentNodes,fdfExceptionOnNotFound]
-                      +(fdfGlobals*SubParams.Flags);
+                      +(fdfGlobalsSameIdent*Params.Flags);
       SubParams.ContextNode:=StartNode.Parent;
       if (SubParams.ContextNode.Desc in (AllIdentifierDefinitions))
       then begin
@@ -7571,6 +7573,51 @@ begin
   and (InheritanceNode.FirstChild<>nil) then begin
     Result:=FindAncestorOfClassInheritance(InheritanceNode.FirstChild,
                                            Params,FindClassContext);
+
+      if (Params.NewNode.Desc in [ctnGenericParameter]) and
+      (Params.NewNode.LastChild <> nil)
+      then
+      begin
+//MFR
+        //Params:=TFindDeclarationParams.Create(ResultParams);
+        if FindClassFromGenericParamType(Params.NewNode, Params) then begin
+          //AncestorContext.Tool:=Params.NewCodeTool;
+          //AncestorContext.Node:=Params.NewNode;
+        end;
+        //Params.Free;
+
+
+        //  Params:=TFindDeclarationParams.Create(ResultParams);
+        //  try
+        //    Params.Flags:=fdfDefaultForExpressions;
+        //    Params.ContextNode:=AncestorContext.Node.Parent.parent; // .parent ??
+        //      // simple identifier
+        //      {$IFDEF ShowTriedContexts}
+        //      DebugLn('[TFindDeclarationTool.FindAncestorOfClass] ',
+        //      ' search ancestor class="',GetIdentifier(@Src[AncestorStartPos]),'" for class "',ExtractClassName(ClassNode,false),'"');
+        //      {$ENDIF}
+        //      Params.SetIdentifier(Self,@Src[AncestorContext.Node.LastChild.StartPos],nil);
+        //      if not FindIdentifierInContext(Params) then
+        //        RaiseExpected('class');
+        //      AncestorContext.Tool:=Params.NewCodeTool;
+        //      AncestorContext.Node:=Params.NewNode;
+        //Include(ResultParams.Flags,fdfDoNotCache);
+        //  finally
+        //    Params.Free;
+        //  end;
+        //  if AncestorContext.Node.Desc in [ctnTypeDefinition] then begin
+        //
+        //      SpecializeNode:=AncestorContext.Tool.FindTypeNodeOfDefinition(AncestorContext.Node);
+        //      if (SpecializeNode<>nil)
+        //       then
+        //         AncestorContext.Node := SpecializeNode;
+        //
+        //      Include(ResultParams.Flags,fdfDoNotCache);
+        //
+        //  end;
+
+      end;
+
   end else begin
     Result:=FindDefaultAncestorOfClass(ClassNode,Params,FindClassContext);
   end;
@@ -7677,12 +7724,14 @@ begin
         Params.Flags:=fdfDefaultForExpressions+[fdfFindChildren];
         AncestorContext:=AncestorContext.Tool.FindBaseTypeOfNode(Params,AncestorContext.Node);
         ResultParams.GenParams:=Params.GenParams;
+////
       finally
         Params.Free;
       end;
-    end;
+      end;
+
     // check result
-    if not (AncestorContext.Node.Desc in AllClasses) then
+    if not (AncestorContext.Node.Desc in AllClasses + [ctnGenericParameter]) then
       RaiseExpected('class');
     if AncestorContext.Node=ClassNode then begin
       MoveCursorToCleanPos(AncestorStartPos);
@@ -13676,6 +13725,44 @@ begin
   end;
 end;
 
+function TFindDeclarationTool.FindClassFromGenericParamType(
+  GenParamNode: TCodeTreeNode; ResultParams: TFindDeclarationParams): boolean;
+var
+  Params: TFindDeclarationParams;
+  TmpNode: TCodeTreeNode;
+begin
+  Result := False;
+  if (ResultParams = nil) or (GenParamNode.Desc <> ctnGenericParameter)
+  or (GenParamNode.Parent = nil) // or (GenParamNode.Parent.Parent = nil)
+  or (GenParamNode.LastChild = nil)
+  then
+    exit;
+//MFR
+
+  Result := True;
+  Params:=TFindDeclarationParams.Create(Self, GenParamNode.Parent); //.Parent);
+  try
+    Params.Flags:=fdfDefaultForExpressions;
+    Params.SetIdentifier(Self,@Src[GenParamNode.LastChild.StartPos],nil);
+    if not FindIdentifierInContext(Params) then
+      RaiseUnexpectedKeyWord(0);
+    ResultParams.NewCodeTool:=Params.NewCodeTool;
+    ResultParams.NewNode:=Params.NewNode;
+    Include(ResultParams.Flags,fdfDoNotCache);
+  finally
+    Params.Free;
+  end;
+
+  if ResultParams.NewNode.Desc in [ctnTypeDefinition] then begin
+    TmpNode:=ResultParams.NewCodeTool.FindTypeNodeOfDefinition(ResultParams.NewNode);
+    if (TmpNode<>nil)
+     then
+       ResultParams.NewNode := TmpNode;
+
+    Include(ResultParams.Flags,fdfDoNotCache);
+  end;
+end;
+
 function TFindDeclarationTool.FindExtendedExprOfHelper(HelperNode: TCodeTreeNode
   ): TExpressionType;
 // returns the expression type of the extended class/type of a "helper for"
@@ -14186,7 +14273,7 @@ end;
 procedure TFindDeclarationParams.AddOperandPart(aPart: string);
 begin
   // Prevent identifier being added many times. See issue #37384.
-  if not LazEndsStr(aPart, FExtractedOperand) then
+  //if not LazEndsStr(aPart, FExtractedOperand) then
     FExtractedOperand:=FExtractedOperand+aPart;
 end;
 

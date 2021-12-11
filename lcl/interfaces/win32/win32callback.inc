@@ -1851,9 +1851,10 @@ begin
     else
     if WParam <> 0 then
     begin
-      lWinControl := TWinControl(WParam);
+debugln(['The BAD measure item <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<']);
+//      lWinControl := TWinControl(WParam);
       //if Assigned(lWinControl) then   <- already tested
-      SetLMessageAndParams(LM_MEASUREITEM, True);
+//      SetLMessageAndParams(LM_MEASUREITEM, True);
     end;
   end;
 end;

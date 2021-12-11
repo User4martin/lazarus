@@ -277,9 +277,9 @@ type
     function GetCurrentProcess: TDbgProcess; inline;
     function GetCurrentThread: TDbgThread; inline;
     function GetDbgController: TDbgController; inline;
-    function dbgs(st: TExceptStepState): string;
-    function dbgs(loc: TBreakPointLoc): string;
-    function dbgs(locs: TBreakPointLocs): string;
+    function dbgs(st: TExceptStepState): string;overload;
+    function dbgs(loc: TBreakPointLoc): string;overload;
+    function dbgs(locs: TBreakPointLocs): string; overload;
   protected
     property DbgController: TDbgController read GetDbgController;
     property CurrentProcess: TDbgProcess read GetCurrentProcess;
@@ -423,6 +423,7 @@ type
     procedure StopAllWorkers;
     function IsPausedAndValid: boolean; // ready for eval watches/stack....
 
+    procedure DoProcessMessages; inline;
     property DebugInfo: TDbgInfo read GetDebugInfo;
   public
     constructor Create(const AExternalDebugger: String); override;
@@ -683,7 +684,7 @@ var
   c: LongInt;
 begin
   FpDebugger.FWorkQueue.Lock;
-  Application.ProcessMessages;
+  FpDebugger.DoProcessMessages;
   FpDebugger.CheckAndRunIdle;
   (* IdleThreadCount could (race condition) be to high.
      Then DebugHistory may loose ONE item. (only one working thread.
@@ -694,7 +695,7 @@ begin
   FpDebugger.FWorkQueue.Unlock;
 
   if c = 0 then begin
-    Application.ProcessMessages;
+    FPDebugger.DoProcessMessages;
     FpDebugger.StartDebugLoop;
   end
   else begin
@@ -2553,6 +2554,12 @@ procedure TFpDebugExceptionStepping.ThreadProcessLoopCycle(
     if (FState <> esNone) or (not(ACurCommand is TDbgControllerLineStepBaseCmd)) then
       exit;
 
+sym := CurrentProcess.FindProcSymbol(CurrentThread.GetInstructionPointerRegisterValue);
+debugln('CheckSteppedOutFromW64SehFinally CHECK pos-fin %s %s // stepout %s // name %s', [
+ TDbgControllerLineStepBaseCmd(ACurCommand).StartedInFuncName, LazLoggerBase.dbgs(pos('fin$', TDbgControllerLineStepBaseCmd(ACurCommand).StartedInFuncName) < 1)
+, LazLoggerBase.dbgs(TDbgControllerLineStepBaseCmd(ACurCommand).IsSteppedOut)
+,sym.Name
+]);
     if (pos('fin$', TDbgControllerLineStepBaseCmd(ACurCommand).StartedInFuncName) < 1) then
       exit;
 
@@ -2619,9 +2626,6 @@ begin
       exit;
     end;
   end;
-
-  if (CurrentThread <> nil) then
-    FDebugger.FDbgController.DefaultContext; // Make sure it is avail and cached / so it can be called outside the thread
 
   // Needs to be correct thread, do not interfer with other threads
   if (CurrentThread = nil) or
@@ -2751,6 +2755,7 @@ begin
   if assigned(FBreakPoints[bplSehW32Except]) and FBreakPoints[bplSehW32Except].HasLocation(PC) then begin
     debugln(FPDBG_COMMANDS, ['@ bplSehW32Except ', DbgSName(CurrentCommand)]);
     AFinishLoopAndSendEvents := False;
+debugln(['***** HIT EXCEPT ', dbghex(pc), ' sp ',dbghex(sp), ' bp ', dbghex(CurrentThread.GetStackBasePointerRegisterValue)]);
 
     //if (not (FState in [esStepToFinally])) and
     //   not(CurrentCommand is TDbgControllerHiddenBreakStepBaseCmd)
@@ -2773,6 +2778,7 @@ begin
   if assigned(FBreakPoints[bplSehW32Finally]) and FBreakPoints[bplSehW32Finally].HasLocation(PC) then begin
     debugln(FPDBG_COMMANDS, ['@ bplSehW32Finally ', DbgSName(CurrentCommand)]);
     AFinishLoopAndSendEvents := False;
+debugln(['***** HIT FINALLY ', dbghex(pc), ' sp ',dbghex(sp), ' bp ', dbghex(CurrentThread.GetStackBasePointerRegisterValue)]);
 
     // At the start of a finally the BasePointer is in EAX // reg 0
     Eax  := CurrentThread.RegisterValueList.FindRegisterByDwarfIndex(0).NumValue;
@@ -2808,6 +2814,7 @@ begin
       exit;
     CurrentProcess.ReadAddress(Addr + 8, Base);
     {$POP}
+DebugLn(['Except   ADDR  ', dbghex(Addr), ' base ',dbghex(Base)]);
 
     if Base <> 0 then
     FAddressFrameListSehW32Except.Add(Addr, Base);
@@ -2828,6 +2835,7 @@ begin
       exit;
     CurrentProcess.ReadAddress(Addr + 8, Base);
     {$POP}
+DebugLn(['FINALLY   ADDR  ', dbghex(Addr), ' base ',dbghex(Base)]);
 
     if Base <> 0 then
       FAddressFrameListSehW32Finally.Add(Addr, Base);
@@ -3388,7 +3396,7 @@ procedure TFpDebugDebugger.FreeDebugThread;
 begin
   FWorkQueue.TerminateAllThreads(True);
   {$IFDEF FPDEBUG_THREAD_CHECK} CurrentFpDebugThreadIdForAssert := MainThreadID;{$ENDIF}
-  Application.ProcessMessages; // run the AsyncMethods
+  DoProcessMessages // run the AsyncMethods
 end;
 
 procedure TFpDebugDebugger.FDbgControllerHitBreakpointEvent(
@@ -3814,7 +3822,7 @@ begin
         c := FWorkQueue.Count + FWorkQueue.ThreadCount - FWorkQueue.IdleThreadCount;
         FWorkQueue.Unlock;
         if c = 0 then
-          Application.ProcessMessages;
+          DoProcessMessages;
       end
       else
         c := 0;
@@ -4117,9 +4125,18 @@ begin
             (FDbgController.CurrentProcess <> nil);
 end;
 
+procedure TFpDebugDebugger.DoProcessMessages;
+begin
+  try
+    Application.ProcessMessages;
+  except
+    on E: Exception do debugln(['Application.ProcessMessages crashed with ', E.Message]);
+  end;
+end;
+
 constructor TFpDebugDebugger.Create(const AExternalDebugger: String);
 begin
-  ProcessMessagesProc := @Application.ProcessMessages;
+  ProcessMessagesProc := @DoProcessMessages;
   inherited Create(AExternalDebugger);
   FLockList := TFpDbgLockList.Create;
   FWorkQueue := TFpThreadPriorityWorkerQueue.Create(100);
@@ -4162,7 +4179,7 @@ begin
     except
     end;
   FWorkQueue.TerminateAllThreads(True);
-  Application.ProcessMessages; // run the AsyncMethods
+  DoProcessMessages; // run the AsyncMethods
   {$IFDEF FPDEBUG_THREAD_CHECK} CurrentFpDebugThreadIdForAssert := MainThreadID;{$ENDIF}
 
   Application.RemoveAsyncCalls(Self);

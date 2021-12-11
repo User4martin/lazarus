@@ -490,6 +490,8 @@ end;
 procedure TFpThreadWorkerRunLoop.DoExecute;
 begin
   FDebugger.FDbgController.ProcessLoop;
+  if (FDebugger.FDbgController.CurrentThread <> nil) then
+    FDebugger.FDbgController.DefaultContext; // Make sure it is avail and cached / so it can be called outside the thread
   Queue(@LoopFinished_DecRef);
 end;
 

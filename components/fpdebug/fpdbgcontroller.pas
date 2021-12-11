@@ -1488,16 +1488,23 @@ begin
     DebugLn(DBG_WARNINGS, 'Error - could not create TDbgProcess');
     Exit;
     end;
+  if FCurrentProcess <> nil then
+    FCurrentProcess.OnDebugOutputEvent := FOnThreadDebugOutputEvent;
 
   if AttachToPid <> 0 then
     Result := FCurrentProcess.AttachToInstance(AttachToPid, FLastError)
   else
     Result := FCurrentProcess.StartInstance(Params, Environment, WorkingDirectory, FConsoleTty, Flags, FLastError);
+// The comment in ProcessLoop says FRunning is not needed?
+//  InterLockedExchange(FRunning, 1);
 
   if Result then
     begin
     FProcessMap.Add(FCurrentProcess.ProcessID, FCurrentProcess);
     DebugLn(DBG_VERBOSE, 'Got PID: %d, TID: %d', [FCurrentProcess.ProcessID, FCurrentProcess.ThreadID]);
+
+    if FCurrentProcess.ThreadID <> 0 then
+      FCurrentThread := FCurrentProcess.AddThread(FCurrentProcess.ThreadID);
     end
   else
     begin
@@ -1510,6 +1517,9 @@ procedure TDbgController.Stop;
 begin
   if assigned(FMainProcess) then
     FMainProcess.TerminateProcess
+  else
+  if assigned(FCurrentProcess) then
+    FCurrentProcess.TerminateProcess
   else
     raise Exception.Create('Failed to stop debugging. No main process.');
 end;
@@ -1605,11 +1615,14 @@ begin
   repeat
     ReleaseRefAndNil(FDefaultContext);
     if assigned(FCurrentProcess) and not assigned(FMainProcess) then begin
+      (* The process is currently running. Either just created/started or just attached.
+         - Go straight to WaitForDebugEvent.
+         - FCurrentThread will be nil. It will be set when we get the deCreateProcess event.
+           (any other event should also contain the thread id, but deCreateProcess is expected first)
+      *)
       // IF there is a pause-request, we will hit a deCreateProcess.
       // No need to indicate FRunning
       FMainProcess:=FCurrentProcess;
-      if FMainProcess <> nil then
-        FMainProcess.OnDebugOutputEvent := FOnThreadDebugOutputEvent;
     end
     else
     begin

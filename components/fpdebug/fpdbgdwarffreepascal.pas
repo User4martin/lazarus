@@ -255,6 +255,7 @@ type
     function GetColumn: Cardinal; override;
     // Todo: LineStartAddress, ...
   public
+    destructor Destroy; override;
     function ResolveInternalFinallySymbol(Process: Pointer): TFpSymbol; override;
   end;
   {%EndRegion }
@@ -1552,6 +1553,12 @@ begin
     Result := inherited GetColumn;
 end;
 
+destructor TFpSymbolDwarfFreePascalDataProc.Destroy;
+begin
+  inherited Destroy;
+  FOrigSymbol.ReleaseReference;
+end;
+
 function TFpSymbolDwarfFreePascalDataProc.ResolveInternalFinallySymbol(
   Process: Pointer): TFpSymbol;
 {$IfDef WINDOWS}
@@ -1651,8 +1658,10 @@ begin
     end;
   end;
 
-  if Result <> self then
-    TFpSymbolDwarfFreePascalDataProc(Result).FOrigSymbol := Self
+  if Result <> self then begin
+    TFpSymbolDwarfFreePascalDataProc(Result).FOrigSymbol := Self;
+    Self.AddReference;
+  end;
 
   {$EndIf}
 end;
