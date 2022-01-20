@@ -61,6 +61,9 @@ type
     FItem: TIDEButtonCommand;
   protected
     procedure DoOnShowHint(HintInfo: PHintInfo); override;
+    procedure AddMenuItem(ACommand: TIDEMenuCommand); virtual;
+    procedure AddMenuItems(ACommands: array of TIDEMenuCommand);
+    procedure DoOnMenuItemClick(Sender: TObject);
   public
     procedure DoOnAdded; virtual;
 
@@ -656,6 +659,36 @@ begin
   inherited DoOnShowHint(HintInfo);
   if Assigned(FItem) and FItem.DoOnRequestCaption(Self) then
     HintInfo^.HintStr := FItem.GetHintOrCaptionWithShortCut;
+end;
+
+procedure TIDEToolButton.AddMenuItem(ACommand: TIDEMenuCommand);
+var
+  Itm: TMenuItem;
+begin
+  Itm := TMenuItem.Create(DropdownMenu);
+  Itm.Caption := ACommand.Caption;
+  Itm.ShortCut := ACommand.Command.AsShortCut;
+  Itm.ImageIndex := ACommand.ImageIndex;
+  Itm.Enabled := ACommand.Enabled;
+  Itm.OnClick := @DoOnMenuItemClick;
+  Itm.Tag := PtrInt(ACommand);
+  DropdownMenu.Items.Add(Itm);
+end;
+
+procedure TIDEToolButton.AddMenuItems(ACommands: array of TIDEMenuCommand);
+var
+  Cmd: TIDEMenuCommand;
+begin
+  for Cmd in ACommands do
+    AddMenuItem(Cmd);
+end;
+
+procedure TIDEToolButton.DoOnMenuItemClick(Sender: TObject);
+var
+  Cmd: TIDEMenuCommand;
+begin
+  Cmd:=TIDEMenuCommand((Sender as TMenuItem).Tag);
+  Cmd.DoOnClick;  // Sender in handler should be a command but not a menu item
 end;
 
 end.
