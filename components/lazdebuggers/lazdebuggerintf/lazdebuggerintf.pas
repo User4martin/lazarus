@@ -128,6 +128,12 @@ type
 //    // CreateSetValue: "ASetVal" only has "length(ANames)" entries. Any higher value will be ignored / should be zero
 //    procedure CreateSetValue(const ASetVal: TLzDbgSetData; const ANames: TStringDynArray); //; const AOrdValues: array of Integer);
 
+    // Returns Intf for setting element-type => for empty array
+    function CreateArrayValue(ATotalCount: Integer = 0): TLzDbgWatchDataIntf;
+    //procedure CreateDynArrayValue(ATotalCount: Integer = 0);
+    //procedure CreateStatArrayValue(ATotalCount: Integer = 0);
+    // low/high
+
     procedure CreateError(AVal: String);
 
     // For all Values (except error)
@@ -136,6 +142,14 @@ type
 
     // For Pointers:
     function  SetDerefData: TLzDbgWatchDataIntf;
+
+    // For Arrays
+    (* - The returned TLzDbgWatchDataIntf is only valid until the next call of SetNextItemData.
+         For nested arrays, this includes calls to any outer arrays SetNextItemData.
+       - Type related (ASigned, AByteSize, APrecission, ...) are taken from the
+         proto-type or the  first Item only. They are ignored on subsequent items
+    *)
+    function  SetNextArrayData: TLzDbgWatchDataIntf;
   end;
 
   { TWatchValueIntf }

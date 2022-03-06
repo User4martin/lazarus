@@ -16,10 +16,13 @@ type
     rdkError, rdkPrePrinted,
     rdkString, rdkWideString,
     rdkSignedNumVal, rdkUnsignedNumVal, rdkPointerVal, rdkFloatVal,
-    rdkEnum, rdkSet
+    rdkEnum, rdkSet,
+    rdkArray
   );
 
   TWatchResultData = class;
+  TWatchResultDataArrayStorageHelper = class;
+  TWatchResultDataArrayStorageHelperClass = class of TWatchResultDataArrayStorageHelper;
 
   { TWatchResultValue }
 
@@ -33,8 +36,10 @@ type
     function GetByteSize: Integer; inline;                         // Int, Enum
     function GetFloatPrecission: TLzDbgFloatPrecission; inline;
     function GetCount: Integer; inline;                            // Set (Active Elements)
-    function GetElementName(AnIndex: integer): String; inline;     // Set
+    function GetElementName(AnIndex: integer): String; inline;     // Set/Array
     function GetDerefData: TWatchResultData; inline;               // Ptr
+
+    function GetSelectedEntry: TWatchResultData; inline;
 
     procedure AfterAssign;
     procedure DoFree;
@@ -198,6 +203,62 @@ type
     VKind = rdkError;
   end;
 
+  { TWatchResultValueArray }
+
+  TWatchResultValueArray = object(TWatchResultValue)
+  protected const
+    VKind = rdkArray;
+  private
+    // FLength // DynArray
+    FEntries: TWatchResultDataArrayStorageHelper;
+  protected
+    function GetCount: Integer;
+    procedure AfterAssign;
+    procedure DoFree;
+  end;
+
+  { TWatchResultTypeArray }
+
+  TWatchResultTypeArray = object(TWatchResultValue)
+  private
+    FEntryWithType: TWatchResultData;
+    //FBoundType // static array
+    //FLow, FHigh // static array
+  protected
+    property GetSelectedEntry: TWatchResultData read FEntryWithType;
+    procedure AfterAssign;
+    procedure DoFree;
+  end;
+
+
+  { TWatchResultDataArrayStorageHelper }
+
+  TWatchResultDataArrayStorageHelper = class
+  protected
+    function GetCount: integer; virtual; abstract;
+    procedure SetCount(AValue: integer); virtual; abstract;
+    procedure Assign(ASource: TWatchResultDataArrayStorageHelper); virtual; abstract;
+  public
+    function CreateCopy: TWatchResultDataArrayStorageHelper;
+    procedure ClearData(AData: TWatchResultData); virtual; abstract;
+    procedure WriteDataToIndex(AnIndex: Integer; AData: TWatchResultData); virtual; abstract;
+    procedure WriteIndexToData(AnIndex: Integer; AData: TWatchResultData); virtual; abstract;
+    property Count: integer read GetCount write SetCount;
+  end;
+
+  { TGenericWatchResultDataArrayStorageHelper }
+
+  generic TGenericWatchResultDataArrayStorageHelper<_DATA> = class(TWatchResultDataArrayStorageHelper)
+  private
+    FDataArray: Array of _DATA;
+  protected
+    function GetCount: integer; override;
+    procedure SetCount(AValue: integer); override;
+    procedure Assign(ASource: TWatchResultDataArrayStorageHelper); override;
+  public
+    destructor Destroy; override; // DoFree() for items
+  end;
+
   TWatchResultDataClassID = (
     wdPrePrint,  // TWatchResultDataPrePrinted
     wdString,    // TWatchResultDataString
@@ -221,17 +282,22 @@ type
   // MemDump
     function GetClassID: TWatchResultDataClassID; virtual; //abstract;
   protected
+    function GetArrayStorageHelperClass: TWatchResultDataArrayStorageHelperClass; virtual; abstract;
+  protected
     function GetValueKind: TWatchResultDataKind; virtual; //abstract;
     function GetAsString: String; virtual; abstract;
     function GetAsWideString: WideString; virtual; abstract;
     function GetAsQWord: QWord; virtual; abstract;
     function GetAsInt64: Int64; virtual; abstract;
     function GetAsFloat: Extended; virtual; abstract;
+
     function GetByteSize: Integer; virtual; abstract;
     function GetFloatPrecission: TLzDbgFloatPrecission; virtual; abstract;
     function GetCount: Integer; virtual; abstract;
     function GetElementName(AnIndex: integer): String; virtual; abstract;
     function GetDerefData: TWatchResultData; virtual; abstract;
+
+    function GetSelectedEntry: TWatchResultData;  virtual; abstract;
   public
     class function CreateFromXMLConfig(const AConfig: TXMLConfig; const APath: string): TWatchResultData;
     procedure LoadDataFromXMLConfig(const AConfig: TXMLConfig; const APath: string); virtual;
@@ -253,6 +319,11 @@ type
     property ByteSize: Integer read GetByteSize;
     property FloatPrecission: TLzDbgFloatPrecission read GetFloatPrecission;
     property DerefData: TWatchResultData read GetDerefData;
+
+    // Array
+    property Count: Integer read GetCount;
+    procedure SetSelectedIndex(AnIndex: Integer); virtual;
+    property SelectedEntry: TWatchResultData read GetSelectedEntry;
   end;
 
   TWatchResultDataClass = class of TWatchResultData;
@@ -262,6 +333,18 @@ type
   generic TGenericWatchResultData<_DATA> = class(TWatchResultData)
   private
     FData: _DATA;
+  protected type
+
+    { TDataArrayStorageHelper }
+
+    TDataArrayStorageHelper = class(specialize TGenericWatchResultDataArrayStorageHelper<_DATA>)
+    public
+      procedure ClearData(AData: TWatchResultData); override;
+      procedure WriteDataToIndex(AnIndex: Integer; AData: TWatchResultData); override;
+      procedure WriteIndexToData(AnIndex: Integer; AData: TWatchResultData); override;
+    end;
+  protected
+    function GetArrayStorageHelperClass: TWatchResultDataArrayStorageHelperClass; override;
   protected
     function GetValueKind: TWatchResultDataKind; override;
     function GetAsString: String; override;
@@ -275,6 +358,7 @@ type
 
     function GetByteSize: Integer; override;
     function GetFloatPrecission: TLzDbgFloatPrecission; override;
+    function GetSelectedEntry: TWatchResultData; override;
   public
     destructor Destroy; override;
     procedure LoadDataFromXMLConfig(const AConfig: TXMLConfig; const APath: string); override;
@@ -290,6 +374,7 @@ type
   protected
     function GetByteSize: Integer; override;
     function GetFloatPrecission: TLzDbgFloatPrecission; override;
+    function GetSelectedEntry: TWatchResultData; override;
   public
     destructor Destroy; override;
     procedure LoadDataFromXMLConfig(const AConfig: TXMLConfig; const APath: string); override;
@@ -380,6 +465,34 @@ type
     constructor Create(const ANames: TStringDynArray);
   end;
 
+  { TWatchResultDataArrayBase }
+
+  TWatchResultDataArrayBase = class(specialize TGenericWatchResultDataWithType<TWatchResultValueArray, TWatchResultTypeArray>)
+  public
+    procedure SetEntryPrototype(AnEntry: TWatchResultData);
+    procedure WriteEntryToIndex(AnIndex: Integer);
+    procedure SetEntryCount(ACount: Integer);
+  public
+    destructor Destroy; override;
+    procedure Assign(ASource: TWatchResultData); override;
+    procedure SetSelectedIndex(AnIndex: Integer); override;
+  end;
+
+
+(*
+// DynArray
+    //////property Length: Integere read FLength;
+    //property High: Integere read FHigh;
+    //FirstIdx
+    //CountIdx
+
+// Stat array
+    //property Low: Integere read FLow;  // constant 0
+    //property High: Integere read FHigh;
+    //FirstIdx
+    //CountIdx
+*)
+
   { TWatchResultDataError }
 
   TWatchResultDataError = class(specialize TGenericWatchResultData<TWatchResultValueError>)
@@ -388,7 +501,6 @@ type
   public
     constructor Create(APrintedVal: String);
   end;
-
 
 function PrintWatchValue(AResValue: TWatchResultData; ADispFormat: TWatchDisplayFormat): String;
 
@@ -481,6 +593,7 @@ var
   PointerValue: TWatchResultDataPointer absolute AResValue;
   ResTypeName: String;
   PtrDeref: TWatchResultData;
+  i: Integer;
 begin
   inc(ANestLvl);
   Result := '';
@@ -554,6 +667,16 @@ begin
     rdkWideString: Result := QuoteWideText(AResValue.AsWideString);
     rdkEnum:       Result := PrintEnum;
     rdkSet:        Result := PrintSet;
+    rdkArray: begin
+      Result := '';
+      for i := 0 to AResValue.Count - 1 do begin
+        if Result <> '' then
+          Result := Result +', ';
+        AResValue.SetSelectedIndex(i);
+        Result := Result + PrintWatchValue(AResValue.SelectedEntry, ADispFormat);
+  end;
+      Result := '(' + Result +')';
+    end;
   end;
 end;
 
@@ -575,6 +698,25 @@ const
     TWatchResultDataSet,           // wdSet
     TWatchResultDataError          // wdErr
   );
+
+{ TWatchResultValueArray }
+
+function TWatchResultValueArray.GetCount: Integer;
+begin
+  if FEntries = nil then
+    exit(0);
+  Result := FEntries.Count;
+end;
+
+procedure TWatchResultValueArray.AfterAssign;
+begin
+  FEntries := FEntries.CreateCopy;
+end;
+
+procedure TWatchResultValueArray.DoFree;
+begin
+  FEntries.Free;
+end;
 
 { TWatchResultValue }
 
@@ -624,6 +766,11 @@ begin
 end;
 
 function TWatchResultValue.GetDerefData: TWatchResultData;
+begin
+  Result := nil;
+end;
+
+function TWatchResultValue.GetSelectedEntry: TWatchResultData;
 begin
   Result := nil;
 end;
@@ -859,6 +1006,68 @@ begin
   AConfig.SetDeleteValue(APath + 'Set', ''.Join(',', FNames), '');
 end;
 
+{ TWatchResultTypeArray }
+
+procedure TWatchResultTypeArray.AfterAssign;
+begin
+  FEntryWithType := FEntryWithType.CreateCopy;
+end;
+
+procedure TWatchResultTypeArray.DoFree;
+begin
+  FEntryWithType.Free;
+end;
+
+{ TWatchResultDataArrayStorageHelper }
+
+function TWatchResultDataArrayStorageHelper.CreateCopy: TWatchResultDataArrayStorageHelper;
+begin
+  if Self = nil then
+    exit(nil);
+  Result := TWatchResultDataArrayStorageHelper(ClassType.Create);
+  Result.Assign(Self);
+end;
+
+{ TGenericWatchResultDataArrayStorageHelper }
+
+function TGenericWatchResultDataArrayStorageHelper.GetCount: integer;
+begin
+  Result := Length(FDataArray);
+end;
+
+procedure TGenericWatchResultDataArrayStorageHelper.SetCount(AValue: integer);
+var
+  i: SizeInt;
+begin
+  for i := AValue to Length(FDataArray) - 1 do
+    FDataArray[i].DoFree;
+  SetLength(FDataArray, AValue);
+end;
+
+procedure TGenericWatchResultDataArrayStorageHelper.Assign(
+  ASource: TWatchResultDataArrayStorageHelper);
+var
+  Src: TGenericWatchResultDataArrayStorageHelper absolute ASource;
+  i: Integer;
+begin
+  if not (ASource is TGenericWatchResultDataArrayStorageHelper) then
+    exit;
+
+  FDataArray := Src.FDataArray;
+  // TODO: refcounted
+  if @_DATA.AfterAssign <> @TWatchResultValue.AfterAssign then begin
+    SetLength(FDataArray, Length(FDataArray));
+    for i := 0 to Length(FDataArray) - 1 do
+      FDataArray[i].AfterAssign;
+  end;
+end;
+
+destructor TGenericWatchResultDataArrayStorageHelper.Destroy;
+begin
+  Count := 0;
+  inherited Destroy;
+end;
+
 { TWatchResultData }
 
 function TWatchResultData.GetValueKind: TWatchResultDataKind;
@@ -917,7 +1126,38 @@ begin
   FTypeName := ATypeName;
 end;
 
+procedure TWatchResultData.SetSelectedIndex(AnIndex: Integer);
+begin
+  //
+end;
+
+{ TGenericWatchResultData.TDataArrayStorageHelper }
+
+procedure TGenericWatchResultData.TDataArrayStorageHelper.ClearData(
+  AData: TWatchResultData);
+begin
+  if AData <> nil then
+    TGenericWatchResultData(AData).FData := Default(_DATA);
+end;
+
+procedure TGenericWatchResultData.TDataArrayStorageHelper.WriteDataToIndex(
+  AnIndex: Integer; AData: TWatchResultData);
+begin
+  FDataArray[AnIndex] := TGenericWatchResultData(AData).FData
+end;
+
+procedure TGenericWatchResultData.TDataArrayStorageHelper.WriteIndexToData(
+  AnIndex: Integer; AData: TWatchResultData);
+begin
+  TGenericWatchResultData(AData).FData := FDataArray[AnIndex];
+end;
+
 { TGenericWatchResultData }
+
+function TGenericWatchResultData.GetArrayStorageHelperClass: TWatchResultDataArrayStorageHelperClass;
+begin
+  Result := TDataArrayStorageHelper;
+end;
 
 function TGenericWatchResultData.GetValueKind: TWatchResultDataKind;
 begin
@@ -974,6 +1214,11 @@ begin
   Result := FData.GetFloatPrecission;
 end;
 
+function TGenericWatchResultData.GetSelectedEntry: TWatchResultData;
+begin
+  Result := FData.GetSelectedEntry;
+end;
+
 destructor TGenericWatchResultData.Destroy;
 begin
   FData.DoFree;
@@ -1015,6 +1260,11 @@ end;
 function TGenericWatchResultDataWithType.GetFloatPrecission: TLzDbgFloatPrecission;
 begin
   Result := FType.GetFloatPrecission;
+end;
+
+function TGenericWatchResultDataWithType.GetSelectedEntry: TWatchResultData;
+begin
+  Result := FType.GetSelectedEntry;
 end;
 
 destructor TGenericWatchResultDataWithType.Destroy;
@@ -1178,6 +1428,59 @@ constructor TWatchResultDataSet.Create(const ANames: TStringDynArray);
 begin
   inherited Create;
   FData.FNames := ANames;
+end;
+
+{ TWatchResultDataArrayBase }
+
+procedure TWatchResultDataArrayBase.SetEntryPrototype(AnEntry: TWatchResultData
+  );
+begin
+  assert((FType.FEntryWithType=nil) and (FData.FEntries= nil), 'TWatchResultDataArrayBase.SetEntryPrototype: (FType.FEntryWithType=nil) and (FData.FEntries= nil)');
+  FType.FEntryWithType := AnEntry;
+end;
+
+procedure TWatchResultDataArrayBase.WriteEntryToIndex(AnIndex: Integer);
+begin
+  if FData.FEntries = nil then begin
+    assert((AnIndex=0) and (FType.FEntryWithType<>nil), 'TWatchResultDataArrayBase.WriteEntryToIndex: (AnIndex=0) and (FType.FEntryWithType<>nil)');
+    FData.FEntries := FType.FEntryWithType.GetArrayStorageHelperClass.Create;
+  end;
+  assert(AnIndex<FData.FEntries.Count, 'TWatchResultDataArrayBase.WriteEntryToIndex: AnIndex<FData.FEntries.Count');
+  FData.FEntries.WriteDataToIndex(AnIndex, FType.FEntryWithType);
+  FData.FEntries.ClearData(FType.FEntryWithType);
+end;
+
+procedure TWatchResultDataArrayBase.SetEntryCount(ACount: Integer);
+begin
+  assert(FType.FEntryWithType<>nil, 'TWatchResultDataArrayBase.SetEntryCount: FType.FEntryWithType<>nil');
+  if FData.FEntries = nil then
+    FData.FEntries := FType.FEntryWithType.GetArrayStorageHelperClass.Create;
+  FData.FEntries.Count := ACount;
+end;
+
+destructor TWatchResultDataArrayBase.Destroy;
+begin
+  if (FData.FEntries <> nil) and (FData.FEntries.Count > 0) then
+    FData.FEntries.ClearData(FType.FEntryWithType);
+  inherited Destroy;
+end;
+
+procedure TWatchResultDataArrayBase.Assign(ASource: TWatchResultData);
+var
+  Src: TWatchResultDataArrayBase absolute ASource;
+begin
+  if ASource is TWatchResultDataArrayBase then begin
+    // Do not copy >> FType.FEntryWithType.FData <<, if the FData is stored in >> FData.FEntries
+    if (Src.FData.FEntries <> nil) and (Src.FData.FEntries.Count > 0) then
+      Src.FData.FEntries.ClearData(Src.FType.FEntryWithType);
+  end;
+
+  inherited Assign(ASource);
+end;
+
+procedure TWatchResultDataArrayBase.SetSelectedIndex(AnIndex: Integer);
+begin
+  FData.FEntries.WriteIndexToData(AnIndex, FType.GetSelectedEntry);
 end;
 
 { TWatchResultDataError }

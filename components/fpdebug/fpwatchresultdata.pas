@@ -34,6 +34,8 @@ type
     function SetToResData(AnFpValue: TFpValue; AnResData: TLzDbgWatchDataIntf): Boolean;
 
     function FloatToResData(AnFpValue: TFpValue; AnResData: TLzDbgWatchDataIntf): Boolean;
+
+    function ArrayToResData(AnFpValue: TFpValue; AnResData: TLzDbgWatchDataIntf): Boolean;
   public
     constructor Create(AContext: TFpDbgLocationContext);
 
@@ -257,6 +259,43 @@ begin
   AddTypeNameToResData(AnFpValue, AnResData);
 end;
 
+function TFpWatchResultConvertor.ArrayToResData(AnFpValue: TFpValue;
+  AnResData: TLzDbgWatchDataIntf): Boolean;
+var
+  Cnt, i: Integer;
+  d: Int64;
+  EntryRes: TLzDbgWatchDataIntf;
+  MemberValue: TFpValue;
+begin
+  Result := (AnFpValue.TypeInfo <> nil) and (AnFpValue.TypeInfo.TypeInfo <> nil) and
+    (AnFpValue.TypeInfo.TypeInfo.Kind in [skPointer, skInstance, skCardinal, skFloat, skString, skAnsiString, skWideString, skArray]);
+  Result := Result and (AnFpValue.MemberCount > 0);
+  if not Result then
+    exit;
+
+  // check context memlimits
+  // add mem read cache ??
+  // check repeat count
+  // Bound types
+
+  Cnt := AnFpValue.MemberCount;
+  EntryRes := AnResData.CreateArrayValue(Cnt);
+  AddTypeNameToResData(AnFpValue, AnResData);
+
+  if (AnFpValue.IndexTypeCount = 0) or (not AnFpValue.IndexType[0].GetValueLowBound(AnFpValue, d)) then
+    d := 0;
+
+  for i := 0 to Cnt - 1 do begin
+    MemberValue := AnFpValue.Member[i+d];
+    EntryRes := AnResData.SetNextArrayData;
+    if MemberValue = nil then
+      EntryRes.CreateError('Error: Could not get member')
+    else
+      WriteWatchResultData(MemberValue, EntryRes);
+    MemberValue.ReleaseReference;
+  end;
+end;
+
 constructor TFpWatchResultConvertor.Create(AContext: TFpDbgLocationContext);
 begin
   inherited Create;
@@ -304,7 +343,7 @@ begin
       skEnum,
       skEnumValue: Result := EnumToResData(AnFpValue, AnResData);
       skSet:       Result := SetToResData(AnFpValue, AnResData);
-      skArray: ;
+    skArray: Result := ArrayToResData(AnFpValue, AnResData);
       skRegister: ;
       skAddress: ;
     end;
