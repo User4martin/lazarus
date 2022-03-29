@@ -669,6 +669,7 @@ type
 
     procedure CreateError(AVal: String);
 
+//    function  SetPCharShouldBeStringValue: TLzDbgWatchDataIntf;
     procedure SetTypeName(ATypeName: String);
 
     function  SetDerefData: TLzDbgWatchDataIntf;

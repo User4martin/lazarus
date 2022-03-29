@@ -131,6 +131,7 @@ type
     procedure CreateError(AVal: String);
 
     // For all Values (except error)
+//    function  SetPCharShouldBeStringValue: TLzDbgWatchDataIntf;
     procedure SetTypeName(ATypeName: String);
 
     // For Pointers:
