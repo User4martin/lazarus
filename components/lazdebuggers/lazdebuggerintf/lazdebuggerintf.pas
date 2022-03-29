@@ -104,6 +104,7 @@ type
 
 
   TLzDbgFloatPrecission = (dfpSingle, dfpDouble, dfpExtended);
+//  TLzDbgSetData = bitpacked array [0..255] of boolean;
 
   { TLzDbgWatchDataIntf:
     - Interface for providing result-data.
@@ -122,7 +123,10 @@ type
     procedure CreatePointerValue(AnAddrValue: TDbgPtr);
     procedure CreateFloatValue(AFloatValue: Extended; APrecission: TLzDbgFloatPrecission);
     procedure CreateEnumValue(ANumValue: QWord; AName: String; AByteSize: Integer = 0);
+//    //procedure CreateEnumValue(ANumValue: QWord; const ANames: TStringDynArray; const AOrdValues: TIntegerDynArray);
     procedure CreateSetValue(const ANames: TStringDynArray); //; const AOrdValues: array of Integer);
+//    // CreateSetValue: "ASetVal" only has "length(ANames)" entries. Any higher value will be ignored / should be zero
+//    procedure CreateSetValue(const ASetVal: TLzDbgSetData; const ANames: TStringDynArray); //; const AOrdValues: array of Integer);
 
     procedure CreateError(AVal: String);
 

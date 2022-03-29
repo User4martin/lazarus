@@ -663,7 +663,9 @@ type
     procedure CreatePointerValue(AnAddrValue: TDbgPtr);
     procedure CreateFloatValue(AFloatValue: Extended; APrecission: TLzDbgFloatPrecission);
     procedure CreateEnumValue(ANumValue: QWord; AName: String; AByteSize: Integer = 0);
+//    //procedure CreateEnumValue(ANumValue: QWord; const ANames: TStringDynArray; const AOrdValues: TIntegerDynArray);
     procedure CreateSetValue(const ANames: TStringDynArray);
+    //procedure CreateSetValue(const ASetVal: TLzDbgSetData; const ANames: TStringDynArray); //; const AOrdValues: array of Integer);
 
     procedure CreateError(AVal: String);
 
