@@ -36,6 +36,10 @@ type
     function FloatToResData(AnFpValue: TFpValue; AnResData: TLzDbgWatchDataIntf): Boolean;
 
     function ArrayToResData(AnFpValue: TFpValue; AnResData: TLzDbgWatchDataIntf): Boolean;
+
+    function DoWriteWatchResultData(AnFpValue: TFpValue;
+                                  AnResData: TLzDbgWatchDataIntf
+                                 ): Boolean;
   public
     constructor Create(AContext: TFpDbgLocationContext);
 
@@ -134,7 +138,7 @@ begin
         if DerefRes <> nil then begin
           // In case of nested pointer MAX_RECURSE_LVL may already be reached. Make an exception here, to allow one more.
           dec(FRecurseCnt);
-          WriteWatchResultData(DerefVal, DerefRes);
+          DoWriteWatchResultData(DerefVal, DerefRes);
           inc(FRecurseCnt);
         end;
       end
@@ -161,7 +165,7 @@ begin
         // Nested Pointer
         DerefRes := AnResData.SetDerefData;
         if DerefRes <> nil then begin
-          WriteWatchResultData(DerefVal, DerefRes);
+          DoWriteWatchResultData(DerefVal, DerefRes);
         end;
       end;
       // Currently do NOT deref for struct, array, ...
@@ -267,6 +271,7 @@ var
   EntryRes: TLzDbgWatchDataIntf;
   MemberValue: TFpValue;
 begin
+exit(false);
   Result := (AnFpValue.TypeInfo <> nil) and (AnFpValue.TypeInfo.TypeInfo <> nil) and
     (AnFpValue.TypeInfo.TypeInfo.Kind in [skPointer, skInstance, skCardinal, skFloat, skString, skAnsiString, skWideString, skArray]);
   Result := Result and (AnFpValue.MemberCount > 0);
@@ -291,24 +296,27 @@ begin
     if MemberValue = nil then
       EntryRes.CreateError('Error: Could not get member')
     else
-      WriteWatchResultData(MemberValue, EntryRes);
+      DoWriteWatchResultData(MemberValue, EntryRes);
     MemberValue.ReleaseReference;
   end;
 end;
 
-constructor TFpWatchResultConvertor.Create(AContext: TFpDbgLocationContext);
-begin
-  inherited Create;
-  FContext := AContext;
-end;
-
-function TFpWatchResultConvertor.WriteWatchResultData(AnFpValue: TFpValue;
+function TFpWatchResultConvertor.DoWriteWatchResultData(AnFpValue: TFpValue;
   AnResData: TLzDbgWatchDataIntf): Boolean;
 begin
   // FRecurseCnt should be handled by the caller
   Result := FRecurseCnt > MAX_RECURSE_LVL;
   if Result then
     exit;
+
+  Result := True;
+  if AnResData = nil then
+    exit;
+
+  if AnFpValue = nil then begin
+    AnResData.CreateError('No Data');
+    exit;
+  end;
 
   Result := False;
   inc(FRecurseCnt);
@@ -343,7 +351,7 @@ begin
       skEnum,
       skEnumValue: Result := EnumToResData(AnFpValue, AnResData);
       skSet:       Result := SetToResData(AnFpValue, AnResData);
-    skArray: Result := ArrayToResData(AnFpValue, AnResData);
+      skArray:     Result := ArrayToResData(AnFpValue, AnResData);
       skRegister: ;
       skAddress: ;
     end;
@@ -352,6 +360,19 @@ begin
   finally
     dec(FRecurseCnt);
   end;
+end;
+
+constructor TFpWatchResultConvertor.Create(AContext: TFpDbgLocationContext);
+begin
+  inherited Create;
+  FContext := AContext;
+end;
+
+function TFpWatchResultConvertor.WriteWatchResultData(AnFpValue: TFpValue;
+  AnResData: TLzDbgWatchDataIntf): Boolean;
+begin
+  FRecurseCnt := 0;
+  Result := DoWriteWatchResultData(AnFpValue, AnResData);
 end;
 
 end.
