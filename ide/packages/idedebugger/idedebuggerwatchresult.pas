@@ -7,7 +7,7 @@ interface
 
 uses
   Classes, SysUtils, Types, IdeDebuggerUtils, LazDebuggerIntf,
-  LazDebuggerIntfBaseTypes, LazUTF8, Laz2_XMLCfg, StrUtils;
+  LazDebuggerIntfBaseTypes, LazUTF8, Laz2_XMLCfg, LazLoggerBase, StrUtils;
 
 type
 
@@ -22,7 +22,7 @@ type
   );
 
   TWatchResultData = class;
-  TWatchResultDataArrayStorageHelper = class;
+  TDataArrayStorageHelperBase = class;
 
   { TWatchResultValue }
 
@@ -214,7 +214,7 @@ type
 
   TWatchResultValueArrayBase = object(TWatchResultValue)
   private
-    FEntries: TWatchResultDataArrayStorageHelper;
+    FEntries: TDataArrayStorageHelperBase;
   protected
     function GetCount: Integer;
     procedure AfterAssign;
@@ -257,37 +257,24 @@ type
   end;
 
 
-  { TWatchResultDataArrayStorageHelper }
+  { TDataArrayStorageHelperBase }
 
-  TWatchResultDataArrayStorageHelper = class
+  TDataArrayStorageHelperBase = class
   protected
     function  GetCount: integer; virtual; abstract;
     procedure SetCount(AValue: integer); virtual; abstract;
-    procedure SetNestedStorage(AValue: TWatchResultDataArrayStorageHelper); virtual;
-    function  GetNestedStorage: TWatchResultDataArrayStorageHelper; virtual;
-    procedure Assign(ASource: TWatchResultDataArrayStorageHelper); virtual; abstract;
+    procedure SetNestedStorage(AValue: TDataArrayStorageHelperBase); virtual;
+    function  GetNestedStorage: TDataArrayStorageHelperBase; virtual;
+    procedure Assign(ASource: TDataArrayStorageHelperBase); virtual; abstract;
   public
-    function CreateCopy: TWatchResultDataArrayStorageHelper; virtual;
+    function CreateCopy: TDataArrayStorageHelperBase; virtual;
     procedure ClearData(AData: TWatchResultData); virtual; abstract;
     procedure SaveToIndex(AnIndex: Integer; AData: TWatchResultData); virtual; abstract;
     procedure LoadFromIndex(AnIndex: Integer; AData: TWatchResultData); virtual; abstract;
     property Count: integer read GetCount write SetCount;
-    property NestedStorage: TWatchResultDataArrayStorageHelper read GetNestedStorage write SetNestedStorage;
+    property NestedStorage: TDataArrayStorageHelperBase read GetNestedStorage write SetNestedStorage;
   end;
-  TWatchResultDataArrayStorageHelperClass = class of TWatchResultDataArrayStorageHelper;
-
-  { TGenericWatchResultDataArrayStorageHelper }
-
-  generic TGenericWatchResultDataArrayStorageHelper<_DATA> = class(TWatchResultDataArrayStorageHelper)
-  private
-    FDataArray: packed array of _DATA;
-  protected
-    function GetCount: integer; override;
-    procedure SetCount(AValue: integer); override;
-    procedure Assign(ASource: TWatchResultDataArrayStorageHelper); override;
-  public
-    destructor Destroy; override; // DoFree() for items
-  end;
+  TDataArrayStorageHelperBaseClass = class of TDataArrayStorageHelperBase;
 
   TWatchResultDataClassID = (
     wdPrePrint,  // TWatchResultDataPrePrinted
@@ -303,21 +290,24 @@ type
     wdErr        // TWatchResultDataError
   );
 
+  TWatchResultDataFlag = (wdfNoData, wdfInternalError);
+  TWatchResultDataFlags = set of TWatchResultDataFlag;
+
   { TWatchResultData }
 
   TWatchResultData = class // (TRefCountedObject)
   private
     FTypeName: String;
-  //  ValidData: TWatchValueDataFlags;
+    FDataFlags: TWatchResultDataFlags;
   //  Addr: TDbgPtr;
   // MemDump
     function GetClassID: TWatchResultDataClassID; virtual; //abstract;
   protected
-    function GetArrayStorageHelperClass: TWatchResultDataArrayStorageHelperClass; virtual; abstract;
-    function CreateArrayStorageHelper: TWatchResultDataArrayStorageHelper; virtual; abstract;
-    procedure WriteDataToStorage (AStorage: TWatchResultDataArrayStorageHelper; AnIndex: Integer); virtual;
-    procedure ReadDataFromStorage(AStorage: TWatchResultDataArrayStorageHelper; AnIndex: Integer); virtual;
-    procedure ClearData(AStorage: TWatchResultDataArrayStorageHelper); virtual;
+    function GetArrayStorageHelperClass: TDataArrayStorageHelperBaseClass; virtual; abstract;
+    function CreateArrayStorageHelper: TDataArrayStorageHelperBase; virtual; abstract;
+    procedure WriteDataToStorage (AStorage: TDataArrayStorageHelperBase; AnIndex: Integer); virtual;
+    procedure ReadDataFromStorage(AStorage: TDataArrayStorageHelperBase; AnIndex: Integer); virtual;
+    procedure ClearData(AStorage: TDataArrayStorageHelperBase); virtual;
   protected
     function GetValueKind: TWatchResultDataKind; virtual; //abstract;
     function GetAsString: String; virtual; abstract;
@@ -366,14 +356,29 @@ type
   { TGenericWatchResultData }
 
   generic TGenericWatchResultData<_DATA> = class(TWatchResultData)
-  private
-    FData: _DATA;
   protected type
-
     { TDataArrayStorageHelper }
 
-    TDataArrayStorageHelper = class(specialize TGenericWatchResultDataArrayStorageHelper<_DATA>)
+    TDataArrayStorageHelper = class(TDataArrayStorageHelperBase)
+    private type
+      TDataArrayStorageFlag = (dsfData, dsfNoData, dsfError);
+      TDataArrayStorageFlagArray = packed array of TDataArrayStorageFlag;
+//    private type
+//      TDataArrayStorageErrorEntry = record
+//        FIndex: integer;
+//        FErrData: TWatchResultDataError;
+//      end;
+//      TDataArrayStorageErrEntries = array of TDataArrayStorageErrorEntry;
+    private
+      FDataArray: packed array of _DATA;
+      FFlagArray: TDataArrayStorageFlagArray;
+    protected
+      function GetCount: integer; override;
+      procedure SetCount(AValue: integer); override;
+      procedure Assign(ASource: TDataArrayStorageHelperBase); override;
     public
+      destructor Destroy; override; // DoFree() for items
+
       procedure ClearData(AData: TWatchResultData); override;
       procedure SaveToIndex(AnIndex: Integer; AData: TWatchResultData); override;
       procedure LoadFromIndex(AnIndex: Integer; AData: TWatchResultData); override;
@@ -383,19 +388,21 @@ type
 
     TDataArrayNestedStorageHelper = class(TDataArrayStorageHelper)
     private
-      FNestedStorage: TWatchResultDataArrayStorageHelper;
+      FNestedStorage: TDataArrayStorageHelperBase;
     protected
       procedure SetCount(AValue: integer); override;
-      function  GetNestedStorage: TWatchResultDataArrayStorageHelper; override;
-      procedure SetNestedStorage(AValue: TWatchResultDataArrayStorageHelper); override;
-      procedure Assign(ASource: TWatchResultDataArrayStorageHelper); override;
+      function  GetNestedStorage: TDataArrayStorageHelperBase; override;
+      procedure SetNestedStorage(AValue: TDataArrayStorageHelperBase); override;
+      procedure Assign(ASource: TDataArrayStorageHelperBase); override;
     public
       destructor Destroy; override;
     end;
 
+  private
+    FData: _DATA;
   protected
-    function GetArrayStorageHelperClass: TWatchResultDataArrayStorageHelperClass; override;
-    function CreateArrayStorageHelper: TWatchResultDataArrayStorageHelper; override;
+    function GetArrayStorageHelperClass: TDataArrayStorageHelperBaseClass; override;
+    function CreateArrayStorageHelper: TDataArrayStorageHelperBase; override;
   protected
     function GetValueKind: TWatchResultDataKind; override;
     function GetAsString: String; override;
@@ -486,11 +493,11 @@ type
   protected
     function GetAsString: String; override;
     function GetDerefData: TWatchResultData; override;
-    function GetArrayStorageHelperClass: TWatchResultDataArrayStorageHelperClass; override;
-    function CreateArrayStorageHelper: TWatchResultDataArrayStorageHelper; override;
-    procedure WriteDataToStorage(AStorage: TWatchResultDataArrayStorageHelper; AnIndex: Integer); override;
-    procedure ReadDataFromStorage(AStorage: TWatchResultDataArrayStorageHelper; AnIndex: Integer); override;
-    procedure ClearData(AStorage: TWatchResultDataArrayStorageHelper); override;
+    function GetArrayStorageHelperClass: TDataArrayStorageHelperBaseClass; override;
+    function CreateArrayStorageHelper: TDataArrayStorageHelperBase; override;
+    procedure WriteDataToStorage(AStorage: TDataArrayStorageHelperBase; AnIndex: Integer); override;
+    procedure ReadDataFromStorage(AStorage: TDataArrayStorageHelperBase; AnIndex: Integer); override;
+    procedure ClearData(AStorage: TDataArrayStorageHelperBase); override;
   public
     procedure SetDerefData(ADerefData: TWatchResultData);
   public
@@ -1105,66 +1112,25 @@ begin
   FEntryWithType.Free;
 end;
 
-{ TWatchResultDataArrayStorageHelper }
+{ TDataArrayStorageHelperBase }
 
-procedure TWatchResultDataArrayStorageHelper.SetNestedStorage(
-  AValue: TWatchResultDataArrayStorageHelper);
+procedure TDataArrayStorageHelperBase.SetNestedStorage(
+  AValue: TDataArrayStorageHelperBase);
 begin
-  assert(False, 'TWatchResultDataArrayStorageHelper.SetNestedStorage: False');
+  assert(False, 'TDataArrayStorageHelperBase.SetNestedStorage: False');
 end;
 
-function TWatchResultDataArrayStorageHelper.GetNestedStorage: TWatchResultDataArrayStorageHelper;
+function TDataArrayStorageHelperBase.GetNestedStorage: TDataArrayStorageHelperBase;
 begin
   Result := nil;
 end;
 
-function TWatchResultDataArrayStorageHelper.CreateCopy: TWatchResultDataArrayStorageHelper;
+function TDataArrayStorageHelperBase.CreateCopy: TDataArrayStorageHelperBase;
 begin
   if Self = nil then
     exit(nil);
-  Result := TWatchResultDataArrayStorageHelper(ClassType.Create);
+  Result := TDataArrayStorageHelperBase(ClassType.Create);
   Result.Assign(Self);
-end;
-
-{ TGenericWatchResultDataArrayStorageHelper }
-
-function TGenericWatchResultDataArrayStorageHelper.GetCount: integer;
-begin
-  Result := Length(FDataArray);
-end;
-
-procedure TGenericWatchResultDataArrayStorageHelper.SetCount(AValue: integer);
-var
-  i: SizeInt;
-begin
-  for i := AValue to Length(FDataArray) - 1 do
-    FDataArray[i].DoFree;
-  SetLength(FDataArray, AValue);
-end;
-
-procedure TGenericWatchResultDataArrayStorageHelper.Assign(
-  ASource: TWatchResultDataArrayStorageHelper);
-var
-  Src: TGenericWatchResultDataArrayStorageHelper absolute ASource;
-  i: Integer;
-begin
-  assert(ASource.ClassType = ClassType, 'TGenericWatchResultDataArrayStorageHelper.Assign: ASource.ClassType = ClassType');
-  if not (ASource is TGenericWatchResultDataArrayStorageHelper) then
-    exit;
-
-  FDataArray := Src.FDataArray;
-  // TODO: refcounted
-  if @_DATA.AfterAssign <> @TWatchResultValue.AfterAssign then begin
-    SetLength(FDataArray, Length(FDataArray));
-    for i := 0 to Length(FDataArray) - 1 do
-      FDataArray[i].AfterAssign;
-  end;
-end;
-
-destructor TGenericWatchResultDataArrayStorageHelper.Destroy;
-begin
-  Count := 0;
-  inherited Destroy;
 end;
 
 { TWatchResultData }
@@ -1180,22 +1146,20 @@ begin
 end;
 
 procedure TWatchResultData.WriteDataToStorage(
-  AStorage: TWatchResultDataArrayStorageHelper; AnIndex: Integer);
+  AStorage: TDataArrayStorageHelperBase; AnIndex: Integer);
 begin
-  assert(AStorage.ClassType = GetArrayStorageHelperClass, 'TWatchResultData.WriteDataToStorage: AStorage.ClassType = GetArrayStorageHelperClass');
   AStorage.SaveToIndex(AnIndex, Self);
   AStorage.ClearData(Self);
 end;
 
 procedure TWatchResultData.ReadDataFromStorage(
-  AStorage: TWatchResultDataArrayStorageHelper; AnIndex: Integer);
+  AStorage: TDataArrayStorageHelperBase; AnIndex: Integer);
 begin
-  assert(AStorage.ClassType = GetArrayStorageHelperClass, 'TWatchResultData.ReadDataFromStorage: AStorage.ClassType = GetArrayStorageHelperClass');
   AStorage.LoadFromIndex(AnIndex, Self);
 end;
 
 procedure TWatchResultData.ClearData(
-  AStorage: TWatchResultDataArrayStorageHelper);
+  AStorage: TDataArrayStorageHelperBase);
 begin
   if (AStorage <> nil) and (AStorage.Count > 0) then
     AStorage.ClearData(Self);
@@ -1227,6 +1191,7 @@ procedure TWatchResultData.SaveDataToXMLConfig(const AConfig: TXMLConfig;
 begin
   AConfig.SetDeleteValue(APath + 'CID', GetClassID, int64(ord(wdPrePrint)), TypeInfo(TWatchResultDataClassID));
   AConfig.SetDeleteValue(APath + 'TypeName', FTypeName, '');
+  //FDataFlags: TWatchResultDataFlags;
 end;
 
 procedure TWatchResultData.Assign(ASource: TWatchResultData);
@@ -1254,9 +1219,49 @@ end;
 
 { TGenericWatchResultData.TDataArrayStorageHelper }
 
+function TGenericWatchResultData.TDataArrayStorageHelper.GetCount: integer;
+begin
+  Result := Length(FDataArray);
+end;
+
+procedure TGenericWatchResultData.TDataArrayStorageHelper.SetCount( AValue: integer);
+var
+  i: SizeInt;
+begin
+  for i := AValue to Length(FDataArray) - 1 do
+    FDataArray[i].DoFree;
+  SetLength(FDataArray, AValue);
+end;
+
+procedure TGenericWatchResultData.TDataArrayStorageHelper.Assign(
+  ASource: TDataArrayStorageHelperBase);
+var
+  Src: TDataArrayStorageHelper absolute ASource;
+  i: Integer;
+begin
+  assert(ASource.ClassType = ClassType, 'TGenericWatchResultDataArrayStorageHelper.Assign: ASource.ClassType = ClassType');
+  if not (ASource is TDataArrayStorageHelper) then
+    exit;
+
+  FDataArray := Src.FDataArray;
+  // TODO: refcounted
+  if @_DATA.AfterAssign <> @TWatchResultValue.AfterAssign then begin
+    SetLength(FDataArray, Length(FDataArray));
+    for i := 0 to Length(FDataArray) - 1 do
+      FDataArray[i].AfterAssign;
+  end;
+end;
+
+destructor TGenericWatchResultData.TDataArrayStorageHelper.Destroy;
+begin
+  Count := 0;
+  inherited Destroy;
+end;
+
 procedure TGenericWatchResultData.TDataArrayStorageHelper.ClearData(
   AData: TWatchResultData);
 begin
+  assert(AData.GetArrayStorageHelperClass = ClassType, 'TGenericWatchResultData.TDataArrayStorageHelper.ClearData: AData.GetArrayStorageHelperClass = ClassType');
   if AData <> nil then
     TGenericWatchResultData(AData).FData := Default(_DATA);
 end;
@@ -1264,13 +1269,37 @@ end;
 procedure TGenericWatchResultData.TDataArrayStorageHelper.SaveToIndex(
   AnIndex: Integer; AData: TWatchResultData);
 begin
+  if AData.ValueKind = rdkError then begin
+    if Length(FFlagArray) <= AnIndex then
+      SetLength(FFlagArray, AnIndex + 1);
+    FFlagArray[AnIndex]:= dsfError;
+    FDataArray[AnIndex] := Default(_DATA);
+    exit;
+  end;
+
+  assert(AData.GetArrayStorageHelperClass = ClassType, 'TGenericWatchResultData.TDataArrayStorageHelper.SaveToIndex: AData.GetArrayStorageHelperClass = ClassType');
   FDataArray[AnIndex] := TGenericWatchResultData(AData).FData
+
+  if wdfNoData in AData.FDataFlags then begin
+    if Length(FFlagArray) <= AnIndex then
+      SetLength(FFlagArray, AnIndex + 1);
+    FFlagArray[AnIndex]:= dsfNoData;
+  end;
 end;
 
 procedure TGenericWatchResultData.TDataArrayStorageHelper.LoadFromIndex(
   AnIndex: Integer; AData: TWatchResultData);
 begin
+  assert(AData.GetArrayStorageHelperClass = ClassType, 'TGenericWatchResultData.TDataArrayStorageHelper.LoadFromIndex: AData.GetArrayStorageHelperClass = ClassType');
   TGenericWatchResultData(AData).FData := FDataArray[AnIndex];
+
+  if Length(FFlagArray) > AnIndex then begin
+    case FFlagArray[AnIndex] of
+      dsfNoData: AData.FDataFlags := [wdfNoData];
+      dsfError:  AData.FDataFlags := [wdfInternalError];
+      else       AData.FDataFlags := [];
+    end;
+  end;
 end;
 
 { TGenericWatchResultData.TDataArrayNestedStorageHelper }
@@ -1283,13 +1312,13 @@ begin
     FNestedStorage.Count := AValue;
 end;
 
-function TGenericWatchResultData.TDataArrayNestedStorageHelper.GetNestedStorage: TWatchResultDataArrayStorageHelper;
+function TGenericWatchResultData.TDataArrayNestedStorageHelper.GetNestedStorage: TDataArrayStorageHelperBase;
 begin
   Result := FNestedStorage;
 end;
 
 procedure TGenericWatchResultData.TDataArrayNestedStorageHelper.SetNestedStorage
-  (AValue: TWatchResultDataArrayStorageHelper);
+  (AValue: TDataArrayStorageHelperBase);
 begin
   FNestedStorage := AValue;
   if FNestedStorage <> nil then
@@ -1297,7 +1326,7 @@ begin
 end;
 
 procedure TGenericWatchResultData.TDataArrayNestedStorageHelper.Assign(
-  ASource: TWatchResultDataArrayStorageHelper);
+  ASource: TDataArrayStorageHelperBase);
 begin
   inherited Assign(ASource);
   FNestedStorage := ASource.NestedStorage.CreateCopy;
@@ -1313,23 +1342,27 @@ end;
 
 { TGenericWatchResultData }
 
-function TGenericWatchResultData.GetArrayStorageHelperClass: TWatchResultDataArrayStorageHelperClass;
+function TGenericWatchResultData.GetArrayStorageHelperClass: TDataArrayStorageHelperBaseClass;
 begin
   Result := TDataArrayStorageHelper;
 end;
 
-function TGenericWatchResultData.CreateArrayStorageHelper: TWatchResultDataArrayStorageHelper;
+function TGenericWatchResultData.CreateArrayStorageHelper: TDataArrayStorageHelperBase;
 begin
   Result := GetArrayStorageHelperClass.Create;
 end;
 
 function TGenericWatchResultData.GetValueKind: TWatchResultDataKind;
 begin
+  if wdfInternalError in FDataFlags then
+    exit(rdkError);
   Result := FData.VKind;
 end;
 
 function TGenericWatchResultData.GetAsString: String;
 begin
+  if wdfInternalError in FDataFlags then
+    exit('');
   Result := FData.GetAsString;
 end;
 
@@ -1548,12 +1581,12 @@ begin
   Result := FType.GetDerefData;
 end;
 
-function TWatchResultDataPointer.GetArrayStorageHelperClass: TWatchResultDataArrayStorageHelperClass;
+function TWatchResultDataPointer.GetArrayStorageHelperClass: TDataArrayStorageHelperBaseClass;
 begin
   Result := TDataArrayNestedStorageHelper;
 end;
 
-function TWatchResultDataPointer.CreateArrayStorageHelper: TWatchResultDataArrayStorageHelper;
+function TWatchResultDataPointer.CreateArrayStorageHelper: TDataArrayStorageHelperBase;
 begin
   Result := inherited CreateArrayStorageHelper;
   if FType.FDerefData <> nil then
@@ -1561,7 +1594,7 @@ begin
 end;
 
 procedure TWatchResultDataPointer.WriteDataToStorage(
-  AStorage: TWatchResultDataArrayStorageHelper; AnIndex: Integer);
+  AStorage: TDataArrayStorageHelperBase; AnIndex: Integer);
 begin
   assert(AStorage is TDataArrayNestedStorageHelper, 'TWatchResultDataPointer.WriteDataToStorage: AStorage is TDataArrayNestedStorageHelper');
   inherited WriteDataToStorage(AStorage, AnIndex);
@@ -1575,7 +1608,7 @@ begin
 end;
 
 procedure TWatchResultDataPointer.ReadDataFromStorage(
-  AStorage: TWatchResultDataArrayStorageHelper; AnIndex: Integer);
+  AStorage: TDataArrayStorageHelperBase; AnIndex: Integer);
 begin
   assert(AStorage is TDataArrayNestedStorageHelper, 'TWatchResultDataPointer.ReadDataFromStorage: AStorage is TDataArrayNestedStorageHelper');
   inherited ReadDataFromStorage(AStorage, AnIndex);
@@ -1588,7 +1621,7 @@ begin
 end;
 
 procedure TWatchResultDataPointer.ClearData(
-  AStorage: TWatchResultDataArrayStorageHelper);
+  AStorage: TDataArrayStorageHelperBase);
 begin
   if AStorage = nil then
     exit;
