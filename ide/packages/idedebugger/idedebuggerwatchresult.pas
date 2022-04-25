@@ -1278,7 +1278,7 @@ begin
   end;
 
   assert(AData.GetArrayStorageHelperClass = ClassType, 'TGenericWatchResultData.TDataArrayStorageHelper.SaveToIndex: AData.GetArrayStorageHelperClass = ClassType');
-  FDataArray[AnIndex] := TGenericWatchResultData(AData).FData
+  FDataArray[AnIndex] := TGenericWatchResultData(AData).FData;
 
   if wdfNoData in AData.FDataFlags then begin
     if Length(FFlagArray) <= AnIndex then
