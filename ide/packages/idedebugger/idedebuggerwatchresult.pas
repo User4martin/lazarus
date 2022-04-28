@@ -256,6 +256,23 @@ type
   protected
   end;
 
+  { TDataStorageOverrides }
+
+  generic TDataStorageOverrides<_DATA> = object
+    private type
+      TDataStorageOverrideEntry = packed record
+        FIndex: integer;
+        FData: _DATA;
+      end;
+      TDataStorageOverrideEntries = packed array of TDataStorageOverrideEntry;
+    private
+      FEntries: TDataStorageOverrideEntries;
+      FCount: Integer;
+    public
+      procedure Add(AIndex: Integer; AData: _DATA);
+      function  Get(AIndex: Integer; out AData: _DATA): Boolean;
+      procedure AfterLastAdd;
+  end;
 
   { TDataArrayStorageHelperBase }
 
@@ -270,7 +287,7 @@ type
     function CreateCopy: TDataArrayStorageHelperBase; virtual;
     procedure ClearData(AData: TWatchResultData); virtual; abstract;
     procedure SaveToIndex(AnIndex: Integer; AData: TWatchResultData); virtual; abstract;
-    procedure LoadFromIndex(AnIndex: Integer; AData: TWatchResultData); virtual; abstract;
+    procedure LoadFromIndex(AnIndex: Integer; out AData: TWatchResultData); virtual; abstract;
     property Count: integer read GetCount write SetCount;
     property NestedStorage: TDataArrayStorageHelperBase read GetNestedStorage write SetNestedStorage;
   end;
@@ -363,13 +380,8 @@ type
     private type
       TDataArrayStorageFlag = (dsfData, dsfNoData, dsfError);
       TDataArrayStorageFlagArray = packed array of TDataArrayStorageFlag;
-//    private type
-//      TDataArrayStorageErrorEntry = record
-//        FIndex: integer;
-//        FErrData: TWatchResultDataError;
-//      end;
-//      TDataArrayStorageErrEntries = array of TDataArrayStorageErrorEntry;
     private
+      FEntryTemplate: TWatchResultData;
       FDataArray: packed array of _DATA;
       FFlagArray: TDataArrayStorageFlagArray;
     protected
@@ -381,7 +393,7 @@ type
 
       procedure ClearData(AData: TWatchResultData); override;
       procedure SaveToIndex(AnIndex: Integer; AData: TWatchResultData); override;
-      procedure LoadFromIndex(AnIndex: Integer; AData: TWatchResultData); override;
+      procedure LoadFromIndex(AnIndex: Integer; out AData: TWatchResultData); override;
     end;
 
     { TDataArrayNestedStorageHelper }
@@ -488,6 +500,16 @@ type
   { TWatchResultDataPointer }
 
   TWatchResultDataPointer = class(specialize TGenericWatchResultDataWithType<TWatchResultValuePointer, TWatchResultTypePointer>)
+  protected type
+
+    { TDataPointerStorageHelper }
+
+    TDataPointerStorageHelper = class(TDataArrayNestedStorageHelper)
+    public
+      procedure SaveToIndex(AnIndex: Integer; AData: TWatchResultData); override;
+      procedure LoadFromIndex(AnIndex: Integer; out AData: TWatchResultData); override;
+//      procedure ClearData(AData: TWatchResultData); override; // recursive
+    end;
   private
     function GetClassID: TWatchResultDataClassID; override;
   protected
@@ -1112,6 +1134,42 @@ begin
   FEntryWithType.Free;
 end;
 
+{ TDataStorageOverrides }
+
+procedure TDataStorageOverrides.Add(AIndex: Integer; AData: _DATA);
+begin
+  if FCount >= Length(FEntries) then
+    SetLength(FEntries, FCount + 16);
+  assert((FCount = 0) or (FEntries[FCount-1].FIndex < AIndex), 'TDataStorageOverrides.Add: (FCount = 0) or (FEntries[FCount-1].FIndex < AIndex)');
+
+  FEntries[FCount].FIndex := AIndex;
+  FEntries[FCount].FData  := AData;
+  inc(FCount);
+end;
+
+function TDataStorageOverrides.Get(AIndex: Integer; out AData: _DATA): Boolean;
+var
+  l, h, m: Integer;
+begin
+  l := 0;
+  h := FCount-1;
+  while h > l do begin
+    m := (h+l) div 2;
+    if FEntries[m].FIndex < AIndex then
+      l := m + 1
+    else
+      h := m;
+  end;
+
+  AData := FEntries[l].FData;
+  Result := FEntries[l].FIndex = AIndex;
+end;
+
+procedure TDataStorageOverrides.AfterLastAdd;
+begin
+  SetLength(FEntries, FCount);
+end;
+
 { TDataArrayStorageHelperBase }
 
 procedure TDataArrayStorageHelperBase.SetNestedStorage(
@@ -1278,7 +1336,16 @@ begin
   end;
 
   assert(AData.GetArrayStorageHelperClass = ClassType, 'TGenericWatchResultData.TDataArrayStorageHelper.SaveToIndex: AData.GetArrayStorageHelperClass = ClassType');
+
+  if FEntryTemplate = nil then
+    FEntryTemplate := AData;
+//  else begin
+//    assert(FEntryTemplate.ClassType = AData.ClassType);
+//    assert(FEntryTemplate.FType = AData.FType);  // if there is a FType
+//  end;
+
   FDataArray[AnIndex] := TGenericWatchResultData(AData).FData;
+//ClearData(AData);
 
   if wdfNoData in AData.FDataFlags then begin
     if Length(FFlagArray) <= AnIndex then
@@ -1288,7 +1355,7 @@ begin
 end;
 
 procedure TGenericWatchResultData.TDataArrayStorageHelper.LoadFromIndex(
-  AnIndex: Integer; AData: TWatchResultData);
+  AnIndex: Integer; out AData: TWatchResultData);
 begin
   assert(AData.GetArrayStorageHelperClass = ClassType, 'TGenericWatchResultData.TDataArrayStorageHelper.LoadFromIndex: AData.GetArrayStorageHelperClass = ClassType');
   TGenericWatchResultData(AData).FData := FDataArray[AnIndex];
@@ -1562,6 +1629,48 @@ begin
   inherited Create();
   FData.FNumValue := QWord(ANumValue);
   FType.FNumByteSize := AByteSize;
+end;
+
+{ TWatchResultDataPointer.TDataPointerStorageHelper }
+
+procedure TWatchResultDataPointer.TDataPointerStorageHelper.SaveToIndex(
+  AnIndex: Integer; AData: TWatchResultData);
+var
+  PtrData: TWatchResultDataPointer absolute AData;
+begin
+  assert(AData is TWatchResultDataPointer, 'TWatchResultDataPointer.TDataPointerStorageHelper.SaveToIndex: AData is TWatchResultDataPointer');
+  inherited SaveToIndex(AnIndex, AData);
+exit;//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+// What if it is NIL ???
+  if (PtrData.FType.FDerefData <> nil) then begin
+    if (NestedStorage = nil) then
+      NestedStorage := PtrData.FType.FDerefData.CreateArrayStorageHelper;
+
+    NestedStorage.SaveToIndex(AnIndex, PtrData.FType.FDerefData);
+//    PtrData.FType.FDerefData.WriteDataToStorage(AStorage.NestedStorage, AnIndex);
+  end;
+
+end;
+
+procedure TWatchResultDataPointer.TDataPointerStorageHelper.LoadFromIndex(
+  AnIndex: Integer; out AData: TWatchResultData);
+var
+  PtrData: TWatchResultDataPointer absolute AData;
+begin
+  assert(AData is TWatchResultDataPointer, 'TWatchResultDataPointer.TDataPointerStorageHelper.LoadFromIndex: AData is TWatchResultDataPointer');
+  inherited LoadFromIndex(AnIndex, AData);
+exit;//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+ if AData is TWatchResultDataPointer then begin
+
+    if (PtrData.FType.FDerefData <> nil) then begin
+      if (NestedStorage <> nil) then
+        NestedStorage.LoadFromIndex(AnIndex, PtrData.FType.FDerefData);
+        //PtrData.FType.FDerefData.ReadDataFromStorage(NestedStorage, AnIndex);
+  // else ?? mark as "has no deref data"
+    end;
+  end;
 end;
 
 { TWatchResultDataPointer }
