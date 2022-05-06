@@ -258,22 +258,40 @@ type
 
   { TWatchResultStorageOverrides }
 
-  generic TWatchResultStorageOverrides<_DATA> = object
-    private type
-      TWatchResultStorageOverrideEntry = packed record
-        FIndex: integer;
-        FData: _DATA;
-      end;
-      TWatchResultStorageEntries = packed array of TWatchResultStorageOverrideEntry;
-    private
-      FEntries: TWatchResultStorageEntries;
-      FCount: Integer;
-    public
-      procedure Add(AIndex: Integer; const AData: _DATA);
-      function  Get(AIndex: Integer; out AData: _DATA): Boolean;
-      procedure Clear; // doesnt yet call afterFree for nested data
-      procedure AfterLastAdd;
+  generic TWatchResultStorageOverrides<_OVERRIDE_DATA> = object
+  private type
+    TWatchResultStorageOverrideEntry = packed record
+      FIndex: integer;
+      FData: _OVERRIDE_DATA;
+    end;
+    TWatchResultStorageOverrideEntries = packed array of TWatchResultStorageOverrideEntry;
+  private
+    FOverrideEntries: TWatchResultStorageOverrideEntries;
+    FOverrideCount: Integer;
+  public
+    procedure Assign(ASource: TWatchResultStorageOverrides);
+    procedure Add(AnIndex: Integer; const AnOverrideData: _OVERRIDE_DATA); inline;
+    function  Get(AnIndex: Integer; out AnOverrideData: _OVERRIDE_DATA): Boolean;
+    procedure Clear; // doesnt yet call afterFree for nested data
+    procedure AfterLastAdd;
   end;
+
+  { TWatchResultStorageOverridesWithData }
+
+  generic TWatchResultStorageOverridesWithData<_OVERRIDE_DATA, _ENTRY_DATA> = object(specialize TWatchResultStorageOverrides<_OVERRIDE_DATA>)
+  private type
+    TEntryDataArray = packed array of _ENTRY_DATA;
+  private const
+    DATA_OVERRIDE_MARK_B = $D2;
+    DATA_OVERRIDE_MARK_W = $D24B;
+    DATA_OVERRIDE_MARK_L = $D24B4BD2;
+  public
+    procedure Add(AnIndex: Integer; var AStoredData: _ENTRY_DATA; const AData: _OVERRIDE_DATA); reintroduce; inline;
+    function  Get(AnIndex: Integer; const AStoredData: _ENTRY_DATA; out AData: _OVERRIDE_DATA): Boolean; reintroduce; inline;
+    procedure Clear(var AStoredData: TEntryDataArray); inline;
+    procedure Clear(AnIndex: Integer; var AStoredData: _ENTRY_DATA); inline; // TODO: required ??
+  end;
+
 
   { TWatchResultStorage }
 
@@ -313,7 +331,7 @@ type
 
   { TWatchResultData }
 
-  TWatchResultData = class // (TRefCountedObject)
+  TWatchResultData = class abstract // (TRefCountedObject)
   private
     FTypeName: String;
 //    FDataFlags: TWatchResultDataFlags;
@@ -380,17 +398,14 @@ type
     { TGenericWatchResultStorage }
 
     TGenericWatchResultStorage = class(TWatchResultStorage)
-    private const
-      DATA_OVERRIDE_MARK_B = $D2;
-      DATA_OVERRIDE_MARK_W = $D24B;
-      DATA_OVERRIDE_MARK_L = $D24B4BD2;
     private type
-      TErrorStorage = specialize TWatchResultStorageOverrides<TWatchResultValueError>;
+      TDataArray = packed array of _DATA;
+      TErrorStorage = specialize TWatchResultStorageOverridesWithData<TWatchResultValueError, _DATA>;
     private
+      FDataArray: TDataArray;
       FEntryTemplate: TGenericWatchResultData; //TWatchResultData;
       FErrorTemplate: TWatchResultDataError;
-      FDataArray: packed array of _DATA;
-      FErrors: TErrorStorage;
+      FErrorStore: TErrorStorage;
     protected
       function GetCount: integer; override;
       procedure SetCount(AValue: integer); override;
@@ -1143,51 +1158,149 @@ end;
 
 { TWatchResultStorageOverrides }
 
-procedure TWatchResultStorageOverrides.Add(AIndex: Integer; const AData: _DATA);
+procedure TWatchResultStorageOverrides.Assign(
+  ASource: TWatchResultStorageOverrides);
+var
+  i: Integer;
 begin
-  if FCount >= Length(FEntries) then
-    SetLength(FEntries, FCount + 16);
-  assert((FCount = 0) or (FEntries[FCount-1].FIndex < AIndex), 'TWatchResultStorageOverrides.Add: (FCount = 0) or (FEntries[FCount-1].FIndex < AIndex)');
-
-  FEntries[FCount].FIndex := AIndex;
-  FEntries[FCount].FData  := AData;
-  inc(FCount);
+  Self := ASource;
+  for i := 0 to FOverrideCount - 1 do begin
+    FOverrideEntries[i].FData.AfterAssign;
+  end;
 end;
 
-function TWatchResultStorageOverrides.Get(AIndex: Integer; out AData: _DATA): Boolean;
+procedure TWatchResultStorageOverrides.Add(AnIndex: Integer;
+  const AnOverrideData: _OVERRIDE_DATA);
+begin
+  if FOverrideCount >= Length(FOverrideEntries) then
+    SetLength(FOverrideEntries, FOverrideCount + 16);
+  assert((FOverrideCount = 0) or (FOverrideEntries[FOverrideCount-1].FIndex < AnIndex), 'TWatchResultStorageOverrides.Add: (FOverrideCount = 0) or (FOverrideEntries[FOverrideCount-1].FIndex < AnIndex)');
+
+  FOverrideEntries[FOverrideCount].FIndex := AnIndex;
+  FOverrideEntries[FOverrideCount].FData  := AnOverrideData;
+  inc(FOverrideCount);
+end;
+
+function TWatchResultStorageOverrides.Get(AnIndex: Integer; out
+  AnOverrideData: _OVERRIDE_DATA): Boolean;
 var
   l, h, m: Integer;
 begin
   l := 0;
-  h := FCount-1;
+  h := FOverrideCount-1;
   while h > l do begin
     m := (h+l) div 2;
-    if FEntries[m].FIndex < AIndex then
+    if FOverrideEntries[m].FIndex < AnIndex then
       l := m + 1
     else
       h := m;
   end;
 
-  AData := FEntries[l].FData;
-  Result := FEntries[l].FIndex = AIndex;
+  AnOverrideData := FOverrideEntries[l].FData;
+  Result := FOverrideEntries[l].FIndex = AnIndex;
 end;
 
 procedure TWatchResultStorageOverrides.Clear;
 var
   i: Integer;
 begin
-  {  $IF defined(xxx.DoFree)}
-  for i := 0 to FCount - 1 do begin
-    FEntries[i].FData.DoFree;
+  for i := 0 to FOverrideCount - 1 do begin
+    FOverrideEntries[i].FData.DoFree;
   end;
-  {  $ENDIF}
-  FEntries := nil;
-  FCount := 0;
+  FOverrideEntries := nil;
+  FOverrideCount := 0;
 end;
 
 procedure TWatchResultStorageOverrides.AfterLastAdd;
 begin
-  SetLength(FEntries, FCount);
+  SetLength(FOverrideEntries, FOverrideCount);
+end;
+
+{ TWatchResultStorageOverridesWithData }
+
+procedure TWatchResultStorageOverridesWithData.Add(AnIndex: Integer;
+  var AStoredData: _ENTRY_DATA; const AData: _OVERRIDE_DATA);
+var
+  AStoredDataByte:  Byte absolute AStoredData;
+  AStoredDataWord:  Word absolute AStoredData;
+  AStoredDataDWord: DWord absolute AStoredData;
+begin
+  inherited Add(AnIndex, AData);
+  AStoredData := Default(_ENTRY_DATA);
+  case SizeOf(_ENTRY_DATA) of
+    0:   ;
+    1:   AStoredDataByte  := DATA_OVERRIDE_MARK_B;
+    2,3: AStoredDataWord  := DATA_OVERRIDE_MARK_W;
+    else AStoredDataDWord := DATA_OVERRIDE_MARK_L;
+  end;
+end;
+
+function TWatchResultStorageOverridesWithData.Get(AnIndex: Integer;
+  const AStoredData: _ENTRY_DATA; out AData: _OVERRIDE_DATA): Boolean;
+var
+  AStoredDataByte:  Byte absolute AStoredData;
+  AStoredDataWord:  Word absolute AStoredData;
+  AStoredDataDWord: DWord absolute AStoredData;
+begin
+  Result := False;
+  case SizeOf(_ENTRY_DATA) of
+    0:   ;
+    1:   if AStoredDataByte  <> DATA_OVERRIDE_MARK_B then exit;
+    2,3: if AStoredDataWord  <> DATA_OVERRIDE_MARK_W then exit;
+    else if AStoredDataDWord <> DATA_OVERRIDE_MARK_L then exit;
+  end;
+
+  Result := inherited Get(AnIndex, AData);
+end;
+
+procedure TWatchResultStorageOverridesWithData.Clear(
+  var AStoredData: TEntryDataArray);
+var
+  i: Integer;
+begin
+  for i := 0 to FOverrideCount - 1 do begin
+    case SizeOf(_ENTRY_DATA) of
+      0:   ;
+      1:   assert(PByte (@AStoredData[FOverrideEntries[i].FIndex])^ = DATA_OVERRIDE_MARK_B, 'TWatchResultStorageOverridesWithData.Clear: Mark is set');
+      2,3: assert(PWord (@AStoredData[FOverrideEntries[i].FIndex])^ = DATA_OVERRIDE_MARK_W, 'TWatchResultStorageOverridesWithData.Clear: Mark is set');
+      else assert(PDWord(@AStoredData[FOverrideEntries[i].FIndex])^ = DATA_OVERRIDE_MARK_L, 'TWatchResultStorageOverridesWithData.Clear: Mark is set');
+    end;
+    case SizeOf(_ENTRY_DATA) of
+      0:   ;
+      1:   PByte (@AStoredData[FOverrideEntries[i].FIndex])^ := 0;
+      2,3: PWord (@AStoredData[FOverrideEntries[i].FIndex])^ := 0;
+      else PDWord(@AStoredData[FOverrideEntries[i].FIndex])^ := 0;
+    end;
+    FOverrideEntries[i].FData.DoFree;
+  end;
+  FOverrideEntries := nil;
+  FOverrideCount := 0;
+  //inherited Clear;
+end;
+
+procedure TWatchResultStorageOverridesWithData.Clear(AnIndex: Integer;
+  var AStoredData: _ENTRY_DATA);
+var
+  AStoredDataByte:  Byte absolute AStoredData;
+  AStoredDataWord:  Word absolute AStoredData;
+  AStoredDataDWord: DWord absolute AStoredData;
+  ADummy: _OVERRIDE_DATA;
+begin
+  case SizeOf(_ENTRY_DATA) of
+    0:   ;
+    1:   if AStoredDataByte  <> DATA_OVERRIDE_MARK_B then exit;
+    2,3: if AStoredDataWord  <> DATA_OVERRIDE_MARK_W then exit;
+    else if AStoredDataDWord <> DATA_OVERRIDE_MARK_L then exit;
+  end;
+
+  if inherited Get(AnIndex, ADummy) then begin
+    case SizeOf(_ENTRY_DATA) of
+      0:   ;
+      1:   AStoredDataByte  := 0;
+      2,3: AStoredDataWord  := 0;
+      else AStoredDataDWord := 0;
+    end;
+  end;
 end;
 
 { TWatchResultStorage }
@@ -1309,6 +1422,7 @@ begin
   for i := AValue to Length(FDataArray) - 1 do
     FDataArray[i].DoFree;
   SetLength(FDataArray, AValue);
+  FErrorStore.AfterLastAdd; // XXXXXXXXXXXXXXXXXX TODO maybe only explicit
 end;
 
 procedure TGenericWatchResultData.TGenericWatchResultStorage.Assign(
@@ -1328,18 +1442,20 @@ begin
     for i := 0 to Length(FDataArray) - 1 do
       FDataArray[i].AfterAssign;
   end;
+
+  FErrorStore.Assign(TGenericWatchResultStorage(ASource).FErrorStore);
 end;
 
 destructor TGenericWatchResultData.TGenericWatchResultStorage.Destroy;
 begin
+  FErrorStore.Clear(FDataArray);
   Count := 0;
+  //FEntryTemplate.Free; // do not double free FData.
+  //FErrorTemplate.Free; // do not double free FData.
   inherited Destroy;
-  FErrorTemplate.Free; // do not double free FData.
-  FErrors.Clear;
 end;
 
-procedure TGenericWatchResultData.TGenericWatchResultStorage.ClearData(
-  AData: TWatchResultData);
+procedure TGenericWatchResultData.TGenericWatchResultStorage.ClearData( AData: TWatchResultData);
 begin
   assert(AData.GetStorageClass = ClassType, 'TGenericWatchResultData.TGenericWatchResultStorage.ClearData: AData.GetStorageClass = ClassType');
   if AData <> nil then
@@ -1351,17 +1467,8 @@ procedure TGenericWatchResultData.TGenericWatchResultStorage.SaveToIndex(
 begin
   if AData.ValueKind = rdkError then begin
     assert(AData is TWatchResultDataError, '');
-
-    FErrors.Add(AnIndex, TWatchResultDataError(AData).FData);
-exit;
-
-    FDataArray[AnIndex] := Default(_DATA);
-    case SizeOf(_DATA) of
-      0: ;
-      1:   PByte (@FDataArray[AnIndex])^ := DATA_OVERRIDE_MARK_B;
-      2,3: PWord (@FDataArray[AnIndex])^ := DATA_OVERRIDE_MARK_W;
-      else PDWord(@FDataArray[AnIndex])^ := DATA_OVERRIDE_MARK_L;
-    end;
+    FErrorStore.Add(AnIndex, FDataArray[AnIndex], TWatchResultDataError(AData).FData);
+// TODO: clean the DATA ?????????
     exit;
   end;
 
@@ -1369,42 +1476,29 @@ exit;
   assert(AData is TGenericWatchResultData);
 
   if FEntryTemplate = nil then
-    FEntryTemplate := TGenericWatchResultData(AData);
-//  else begin
-//    assert(FEntryTemplate.ClassType = AData.ClassType);
-//    assert(FEntryTemplate.FType = AData.FType);  // if there is a FType
-//  end;
+    FEntryTemplate := TGenericWatchResultData(AData)
+  else begin
+    assert(FEntryTemplate.ClassType = AData.ClassType);
+    //assert(FEntryTemplate.FType = AData.FType);  // if there is a FType
+  end;
 
   FDataArray[AnIndex] := TGenericWatchResultData(AData).FData;
-//ClearData(AData);
-
+// ??????????????????????
+//  ClearData(AData);
 end;
 
 procedure TGenericWatchResultData.TGenericWatchResultStorage.LoadFromIndex(
   AnIndex: Integer; out AData: TWatchResultData);
-var
-  MaybeErr: Boolean;
 begin
-  case SizeOf(_DATA) of
-    0:   MaybeErr := False;
-    1:   MaybeErr := PByte (@FDataArray[AnIndex])^ = DATA_OVERRIDE_MARK_B;
-    2,3: MaybeErr := PWord (@FDataArray[AnIndex])^ = DATA_OVERRIDE_MARK_W;
-    else MaybeErr := PDWord(@FDataArray[AnIndex])^ = DATA_OVERRIDE_MARK_L;
+// TODO: can this be nil, if there are errors in the list
+// Copy in assign ????????????????
+  if FErrorTemplate = nil then
+    FErrorTemplate := TWatchResultDataError.Create('');
+  if FErrorStore.Get(AnIndex, FDataArray[AnIndex], FErrorTemplate.FData) then begin
+    AData := FErrorTemplate;
+    exit;
   end;
 
-  if MaybeErr then begin
-    if FErrorTemplate = nil then
-      FErrorTemplate := TWatchResultDataError.Create('');
-    MaybeErr := FErrors.Get(AnIndex, FErrorTemplate.FData);
-    if MaybeErr then begin
-      AData := FErrorTemplate;
-      exit;
-    end;;
-  end;
-
-
-
-//  assert(AData.GetStorageClass = ClassType, 'TGenericWatchResultData.TGenericWatchResultStorage.LoadFromIndex: AData.GetStorageClass = ClassType');
   assert(FEntryTemplate <> nil);
   FEntryTemplate.FData := FDataArray[AnIndex];
   AData := FEntryTemplate;
