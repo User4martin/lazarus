@@ -2,6 +2,7 @@ unit IdeDebuggerWatchResult;
 
 {$mode objfpc}{$H+}
 {$ModeSwitch typehelpers}
+{$Inline off}
 
 interface
 
@@ -1140,12 +1141,11 @@ end;
 
 procedure TWatchResultTypeArrayBase.AfterAssign;
 begin
-  FEntryWithType := FEntryWithType.CreateCopy;
+  FEntryWithType := nil;
 end;
 
 procedure TWatchResultTypeArrayBase.DoFree;
 begin
-  FEntryWithType.Free;
 end;
 
 { TWatchResultStorageOverrides }
