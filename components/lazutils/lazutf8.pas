@@ -3444,6 +3444,8 @@ var
   B1, B2: Byte;
   W1, W2: WideString;
   Org1, Org2: PChar;
+  FallbackResult: PtrInt;
+  E1, E2: Boolean;
 begin
   Result := 0;
   Org1 := S1;
@@ -3472,24 +3474,41 @@ begin
   if (i < Count) then
   begin
     //Fallback result
-    Result := B1 - B2;
-    if (Result < 0) then
-      Result := -2
-    else
-      Result := 2;
+    FallbackResult := 0;
+
     //writeln('UCS: FallBack Result = ',Result);
     //Try t find start of valid UTF8 codepoints
-    if (not Utf8TryFindCodepointStart(Org1, S1, CL1)) or
-        not Utf8TryFindCodepointStart(Org2, S2, CL2) then
-      Exit;
+    E1 := Utf8TryFindCodepointStart(Org1, S1, CL1);
+    E2 := Utf8TryFindCodepointStart(Org2, S2, CL2);
+    if not (E1 and E2) then
+    begin
+      FallbackResult := (B1 - B2);
+      if (FallbackResult < 0) then
+        FallbackResult := -2
+      else
+        FallbackResult := 2;
+      if not (E1 or E2) then  // both have invalide codepoints
+        exit(FallbackResult);
 
-    //writeln('UCS: CL1=',CL1,', CL2=',CL2);
-    //writeln('S1 = "',S1,'"');
-    //writeln('S2 = "',S2,'"');
-    W1 := Utf8ToUtf16(S1, CL1);
-    W2 := Utf8ToUtf16(S2, CL2);
-    //writeln('UCS: W1 = ',Word(W1[1]),' W2 = ',Word(W2[1]));
+      if not E1 then begin
+        W1 := '?';
+        W2 := Utf8ToUtf16(Org2, Count2);
+      end
+      else
+      begin
+        assert(not E2, 'UTF8CompareStr: not E2');
+        W1 := Utf8ToUtf16(Org1, Count1);
+        W2 := '?';
+      end;
+    end
+    else begin
+      W1 := Utf8ToUtf16(S1, CL1);
+      W2 := Utf8ToUtf16(S2, CL2);
+    end;
+
     Result := WideCompareStr(W1, W2);
+    if Result = 0 then
+      Exit(FallbackResult);
   end
   else
     //Strings are the same up and until size of smallest one
