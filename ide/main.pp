@@ -114,6 +114,7 @@ uses
   // converter
   ChgEncodingDlg, ConvertDelphi, MissingPropertiesDlg, LazXMLForms,
   // environment option frames
+  IdeConfig,
   editor_general_options, componentpalette_options, formed_options, OI_options,
   MsgWnd_Options, Files_Options, Desktop_Options, window_options, IdeStartup_Options,
   Backup_Options, naming_options, fpdoc_options, idecoolbar_options, editortoolbar_options,

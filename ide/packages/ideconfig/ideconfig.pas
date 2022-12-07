@@ -8,7 +8,7 @@ unit IdeConfig;
 interface
 
 uses
-  LazarusPackageIntf;
+  LazConf, LazarusPackageIntf;
 
 implementation
 

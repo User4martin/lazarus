@@ -9,7 +9,8 @@
       <Version Value="11"/>
       <PathDelim Value="\"/>
       <SearchPaths>
-        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
+        <IncludeFiles Value="include;include\$(TargetOS)"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
     </CompilerOptions>
     <Description Value="-- This package is part of the IDE --
@@ -18,7 +19,20 @@ This package does not guarantee any particular interface/API. Files are maintain
 Files in this package are for the main configuration of the IDE."/>
     <License Value="GPLv2"/>
     <Version Major="1"/>
+    <Files>
+      <Item>
+        <Filename Value="lazconf.pp"/>
+        <UnitName Value="LazConf"/>
+      </Item>
+      <Item>
+        <Filename Value="version.inc"/>
+        <Type Value="Include"/>
+      </Item>
+    </Files>
     <RequiredPkgs>
+      <Item>
+        <PackageName Value="CodeTools"/>
+      </Item>
       <Item>
         <PackageName Value="FCL"/>
       </Item>
