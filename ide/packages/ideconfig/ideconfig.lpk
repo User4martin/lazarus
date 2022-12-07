@@ -28,8 +28,26 @@ Files in this package are for the main configuration of the IDE."/>
         <Filename Value="version.inc"/>
         <Type Value="Include"/>
       </Item>
+      <Item>
+        <Filename Value="ideoptiondefs.pas"/>
+        <UnitName Value="IDEOptionDefs"/>
+      </Item>
+      <Item>
+        <Filename Value="ideconfigstrconsts.pas"/>
+        <UnitName Value="IdeConfigStrConsts"/>
+      </Item>
+      <Item>
+        <Filename Value="modematrixopts.pas"/>
+        <UnitName Value="ModeMatrixOpts"/>
+      </Item>
     </Files>
     <RequiredPkgs>
+      <Item>
+        <PackageName Value="BuildIntf"/>
+      </Item>
+      <Item>
+        <PackageName Value="LCLBase"/>
+      </Item>
       <Item>
         <PackageName Value="CodeTools"/>
       </Item>

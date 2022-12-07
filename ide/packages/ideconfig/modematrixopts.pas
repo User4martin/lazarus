@@ -32,7 +32,7 @@ uses
   // Codetools
   FileProcs, KeywordFuncLists, CodeToolsCfgScript,
   // IDE
-  LazarusIDEStrConsts;
+  IdeConfigStrConsts;
 
 const
   BuildMatrixProjectName = '#project';

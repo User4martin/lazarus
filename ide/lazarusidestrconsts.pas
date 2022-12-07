@@ -6435,10 +6435,6 @@ resourcestring
     +' e.g. -O1 -ghtl -dFlag';
   lisMMOverrideOutputDirectoryFUOfTarget = 'Override output directory -FU of target';
   lisMMSetAnIDEMacroEGLCLWidgetTypeWin32 = 'Set an IDE macro, e.g.: LCLWidgetType:=win32';
-  lisMMMissingMacroName = 'missing macro name';
-  lisMMExpectedMacroNameButFound = 'expected macro name but found "%s"';
-  lisMMInvalidCharacterInMacroValue = 'invalid character in macro value "%s"';
-  lisMMExpectedAfterMacroNameButFound = 'expected ":=" after macro name but found "%s"';
   lisMMApplyToAllPackages = 'Apply to all packages.';
   lisMMTargets = 'Targets: ';
   lisMMApplyToAllPackagesAndProjects = 'Apply to all packages and projects.';
@@ -6458,7 +6454,6 @@ resourcestring
   lisMMSetS = 'Set "%s"';
   lisMMValueS = 'Value "%s"';
   lisMMAdditionsAndOverrides = 'Additions and Overrides';
-  lisMMInvalidCharacterAt = 'invalid character "%s" at %s';
   lisMMCustomOption = 'Custom Option';
   lisMMIDEMacro = 'IDE Macro';
   lisMMOverrideOutputDirectory = 'Override output directory (-FU)';

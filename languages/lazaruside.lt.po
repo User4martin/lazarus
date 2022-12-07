@@ -14615,18 +14615,6 @@ msgstr "Nekeičia „OutDir“ (-FU)"
 msgid "Exclude all packages matching name \"%s\""
 msgstr "Išbraukti paketus, kurių pavadinimai sutampa su „%s“"
 
-#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
-#, object-pascal-format, fuzzy
-#| msgid "expected \":=\" after macro name, but found \"%s\""
-msgid "expected \":=\" after macro name but found \"%s\""
-msgstr "po makrokomandos pavadinimo tikėtasi „:=“, tačiau aptikta „%s“"
-
-#: lazarusidestrconsts.lismmexpectedmacronamebutfound
-#, object-pascal-format, fuzzy
-#| msgid "expected macro name, but found \"%s\""
-msgid "expected macro name but found \"%s\""
-msgstr "tikėtasi makrokomandos pavadinimo, tačiau aptikta „%s“"
-
 #: lazarusidestrconsts.lismmfromto
 #, object-pascal-format
 msgid "From %s to %s"
@@ -14640,20 +14628,6 @@ msgstr "IKA makrokomanda"
 #, object-pascal-format
 msgid "IDE Macro %s:=%s"
 msgstr "IKA makrokomanda „%s:=%s“"
-
-#: lazarusidestrconsts.lismminvalidcharacterat
-#, object-pascal-format
-msgid "invalid character \"%s\" at %s"
-msgstr "ties „%1:s“ yra nepriimtinas simbolis „%0:s“"
-
-#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
-#, object-pascal-format
-msgid "invalid character in macro value \"%s\""
-msgstr "makrokomandos vertėje yra nepriimtinas simbolis „%s“\""
-
-#: lazarusidestrconsts.lismmmissingmacroname
-msgid "missing macro name"
-msgstr "trūksta makrokomandos pavadinimo"
 
 #: lazarusidestrconsts.lismmmoveselecteditemdown
 msgctxt "lazarusidestrconsts.lismmmoveselecteditemdown"
@@ -23368,4 +23342,5 @@ msgstr ""
 #: lazarusidestrconsts.versioninfotitle
 msgid "Version Info"
 msgstr "Versijos informacija"
+
 

@@ -14424,16 +14424,6 @@ msgstr "Não sobrepõe OutDir (-FU)"
 msgid "Exclude all packages matching name \"%s\""
 msgstr "Excluir todos os pacotes cujos nomes correspondam com \"%s\""
 
-#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
-#, object-pascal-format
-msgid "expected \":=\" after macro name but found \"%s\""
-msgstr "esperado \":=\" após o nome da macro, mas encontrado \"%s\""
-
-#: lazarusidestrconsts.lismmexpectedmacronamebutfound
-#, object-pascal-format
-msgid "expected macro name but found \"%s\""
-msgstr "nome de macro esperado, mas encontrado \"%s\""
-
 #: lazarusidestrconsts.lismmfromto
 #, object-pascal-format
 msgid "From %s to %s"
@@ -14447,20 +14437,6 @@ msgstr "Macro IDE"
 #, object-pascal-format
 msgid "IDE Macro %s:=%s"
 msgstr "Macro IDE %s:=%s"
-
-#: lazarusidestrconsts.lismminvalidcharacterat
-#, object-pascal-format
-msgid "invalid character \"%s\" at %s"
-msgstr "caractere inválido \"%s\" em %s"
-
-#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
-#, object-pascal-format
-msgid "invalid character in macro value \"%s\""
-msgstr "caractere inválido no valor de macro \"%s\""
-
-#: lazarusidestrconsts.lismmmissingmacroname
-msgid "missing macro name"
-msgstr "faltando nome de macro"
 
 #: lazarusidestrconsts.lismmmoveselecteditemdown
 msgctxt "lazarusidestrconsts.lismmmoveselecteditemdown"
@@ -23098,4 +23074,5 @@ msgstr "Opções para o gráfico de unidades"
 #: lazarusidestrconsts.versioninfotitle
 msgid "Version Info"
 msgstr "Informações de versão"
+
 

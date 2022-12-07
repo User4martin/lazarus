@@ -8,7 +8,8 @@ unit IdeConfig;
 interface
 
 uses
-  LazConf, LazarusPackageIntf;
+  LazConf, IDEOptionDefs, IdeConfigStrConsts, ModeMatrixOpts, 
+  LazarusPackageIntf;
 
 implementation
 

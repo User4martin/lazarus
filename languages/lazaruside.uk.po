@@ -14415,16 +14415,6 @@ msgstr "Не перекривається OutDir (-FU)"
 msgid "Exclude all packages matching name \"%s\""
 msgstr "Виключити всі пакунки з назвами \"%s\""
 
-#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
-#, object-pascal-format
-msgid "expected \":=\" after macro name but found \"%s\""
-msgstr "після назви макросу очікувалось \":=\", а виявлено \"%s\""
-
-#: lazarusidestrconsts.lismmexpectedmacronamebutfound
-#, object-pascal-format
-msgid "expected macro name but found \"%s\""
-msgstr "очікувалась назва макросу, а виявлено \"%s\""
-
 #: lazarusidestrconsts.lismmfromto
 #, object-pascal-format
 msgid "From %s to %s"
@@ -14438,20 +14428,6 @@ msgstr "Макрос ІСР"
 #, object-pascal-format
 msgid "IDE Macro %s:=%s"
 msgstr "Макрос ІСР %s:=%s"
-
-#: lazarusidestrconsts.lismminvalidcharacterat
-#, object-pascal-format
-msgid "invalid character \"%s\" at %s"
-msgstr "неправильний символ \"%s\" у %s"
-
-#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
-#, object-pascal-format
-msgid "invalid character in macro value \"%s\""
-msgstr "неправильний символ у значенні макросу \"%s\""
-
-#: lazarusidestrconsts.lismmmissingmacroname
-msgid "missing macro name"
-msgstr "пропущена назва макросу"
 
 #: lazarusidestrconsts.lismmmoveselecteditemdown
 msgctxt "lazarusidestrconsts.lismmmoveselecteditemdown"
@@ -23075,4 +23051,5 @@ msgstr "Параметри діаграми модулів"
 #: lazarusidestrconsts.versioninfotitle
 msgid "Version Info"
 msgstr "Інформація про версію"
+
 

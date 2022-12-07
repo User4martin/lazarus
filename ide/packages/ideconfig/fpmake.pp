@@ -34,6 +34,8 @@ begin
 
     P.Flags.Add('LazarusDsgnPkg');
 
+    D := P.Dependencies.Add('buildintf');
+    D := P.Dependencies.Add('lclbase');
     D := P.Dependencies.Add('codetools');
     D := P.Dependencies.Add('fcl');
     P.Options.Add('-MObjFPC');
@@ -48,8 +50,10 @@ begin
     P.UnitPath.Add('.');
     T:=P.Targets.AddUnit('ideconfig.pas');
     t.Dependencies.AddUnit('lazconf');
+    t.Dependencies.AddUnit('ideoptiondefs');
 
     T:=P.Targets.AddUnit('lazconf.pp');
+    T:=P.Targets.AddUnit('ideoptiondefs.pas');
 
     // copy the compiled file, so the IDE knows how the package was compiled
     P.Sources.AddSrc('IdeConfig.compiled');

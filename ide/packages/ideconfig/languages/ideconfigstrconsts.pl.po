@@ -1,0 +1,40 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2021-09-19 10:32+0200\n"
+"Last-Translator: Swen Heinig <swen@heinig.email>\n"
+"Language-Team: Deutsch <lazarus@miraclec.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"Language: de_DE\n"
+"X-Generator: Poedit 2.4.2\n"
+
+
+#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
+#, object-pascal-format, fuzzy, badformat
+msgid "expected \":=\" after macro name but found \"%s\""
+msgstr "zamiast \";\" po specyfikacji właściwości \"%s\" znalaziono %s"
+
+#: lazarusidestrconsts.lismmexpectedmacronamebutfound
+#, object-pascal-format, fuzzy
+msgid "expected macro name but found \"%s\""
+msgstr "zamiast końca programu \"end.\" znaleziono %s"
+
+#: lazarusidestrconsts.lismminvalidcharacterat
+#, object-pascal-format
+msgid "invalid character \"%s\" at %s"
+msgstr "niedozwolony znak \"%s\" w %s"
+
+#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
+#, object-pascal-format, fuzzy, badformat
+msgid "invalid character in macro value \"%s\""
+msgstr "niedozwolony znak \"%s\" w %s"
+
+#: lazarusidestrconsts.lismmmissingmacroname
+msgid "missing macro name"
+msgstr "brak nazwy makro"
+
+

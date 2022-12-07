@@ -1,0 +1,31 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
+#, object-pascal-format
+msgid "expected \":=\" after macro name but found \"%s\""
+msgstr ""
+
+#: lazarusidestrconsts.lismmexpectedmacronamebutfound
+#, object-pascal-format
+msgid "expected macro name but found \"%s\""
+msgstr ""
+
+#: lazarusidestrconsts.lismminvalidcharacterat
+#, object-pascal-format
+msgid "invalid character \"%s\" at %s"
+msgstr ""
+
+#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
+#, object-pascal-format
+msgid "invalid character in macro value \"%s\""
+msgstr ""
+
+#: lazarusidestrconsts.lismmmissingmacroname
+msgid "missing macro name"
+msgstr ""
+
+

@@ -14418,16 +14418,6 @@ msgstr "Nem bírálja felül az OutDir (-FU) értékét"
 msgid "Exclude all packages matching name \"%s\""
 msgstr "Minden erre illeszkedő nevű csomag kizárása: \"%s\""
 
-#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
-#, object-pascal-format
-msgid "expected \":=\" after macro name but found \"%s\""
-msgstr "a makrónév után \":=\" szükséges, de \"%s\" található"
-
-#: lazarusidestrconsts.lismmexpectedmacronamebutfound
-#, object-pascal-format
-msgid "expected macro name but found \"%s\""
-msgstr "makrónév szükséges, de \"%s\" található"
-
 #: lazarusidestrconsts.lismmfromto
 #, object-pascal-format
 msgid "From %s to %s"
@@ -14441,20 +14431,6 @@ msgstr "IDE makró"
 #, object-pascal-format
 msgid "IDE Macro %s:=%s"
 msgstr "IDE Makró %s:=%s"
-
-#: lazarusidestrconsts.lismminvalidcharacterat
-#, object-pascal-format
-msgid "invalid character \"%s\" at %s"
-msgstr "érvénytelen karakter \"%s\" itt: %s"
-
-#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
-#, object-pascal-format
-msgid "invalid character in macro value \"%s\""
-msgstr "érvénytelen karakter a makró értékében: \"%s\""
-
-#: lazarusidestrconsts.lismmmissingmacroname
-msgid "missing macro name"
-msgstr "hiányzó makró név"
 
 #: lazarusidestrconsts.lismmmoveselecteditemdown
 msgctxt "lazarusidestrconsts.lismmmoveselecteditemdown"
@@ -23077,4 +23053,5 @@ msgstr "Unit-fa beállítása"
 #: lazarusidestrconsts.versioninfotitle
 msgid "Version Info"
 msgstr "Változatinformációk"
+
 

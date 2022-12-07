@@ -14584,16 +14584,6 @@ msgstr "Nadpisz katalog wyjściowy (-FU)"
 msgid "Exclude all packages matching name \"%s\""
 msgstr ""
 
-#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
-#, object-pascal-format, fuzzy, badformat
-msgid "expected \":=\" after macro name but found \"%s\""
-msgstr "zamiast \";\" po specyfikacji właściwości \"%s\" znalaziono %s"
-
-#: lazarusidestrconsts.lismmexpectedmacronamebutfound
-#, object-pascal-format, fuzzy
-msgid "expected macro name but found \"%s\""
-msgstr "zamiast końca programu \"end.\" znaleziono %s"
-
 #: lazarusidestrconsts.lismmfromto
 #, object-pascal-format, fuzzy, badformat
 msgid "From %s to %s"
@@ -14607,20 +14597,6 @@ msgstr "Makro IDE"
 #, object-pascal-format
 msgid "IDE Macro %s:=%s"
 msgstr "Makro IDE %s:=%s"
-
-#: lazarusidestrconsts.lismminvalidcharacterat
-#, object-pascal-format
-msgid "invalid character \"%s\" at %s"
-msgstr "niedozwolony znak \"%s\" w %s"
-
-#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
-#, object-pascal-format, fuzzy, badformat
-msgid "invalid character in macro value \"%s\""
-msgstr "niedozwolony znak \"%s\" w %s"
-
-#: lazarusidestrconsts.lismmmissingmacroname
-msgid "missing macro name"
-msgstr "brak nazwy makro"
 
 #: lazarusidestrconsts.lismmmoveselecteditemdown
 msgctxt "lazarusidestrconsts.lismmmoveselecteditemdown"
@@ -23338,4 +23314,5 @@ msgstr ""
 #: lazarusidestrconsts.versioninfotitle
 msgid "Version Info"
 msgstr "Informacje o wersji"
+
 

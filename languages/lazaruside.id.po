@@ -14964,16 +14964,6 @@ msgstr ""
 msgid "Exclude all packages matching name \"%s\""
 msgstr ""
 
-#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
-#, object-pascal-format
-msgid "expected \":=\" after macro name but found \"%s\""
-msgstr ""
-
-#: lazarusidestrconsts.lismmexpectedmacronamebutfound
-#, object-pascal-format
-msgid "expected macro name but found \"%s\""
-msgstr ""
-
 #: lazarusidestrconsts.lismmfromto
 #, object-pascal-format
 msgid "From %s to %s"
@@ -14986,20 +14976,6 @@ msgstr ""
 #: lazarusidestrconsts.lismmidemacro2
 #, object-pascal-format
 msgid "IDE Macro %s:=%s"
-msgstr ""
-
-#: lazarusidestrconsts.lismminvalidcharacterat
-#, object-pascal-format
-msgid "invalid character \"%s\" at %s"
-msgstr ""
-
-#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
-#, object-pascal-format
-msgid "invalid character in macro value \"%s\""
-msgstr ""
-
-#: lazarusidestrconsts.lismmmissingmacroname
-msgid "missing macro name"
 msgstr ""
 
 #: lazarusidestrconsts.lismmmoveselecteditemdown
@@ -23914,4 +23890,5 @@ msgstr ""
 #: lazarusidestrconsts.versioninfotitle
 msgid "Version Info"
 msgstr "Info Versi"
+
 

@@ -14421,16 +14421,6 @@ msgstr "不覆盖输出目录(-FU)"
 msgid "Exclude all packages matching name \"%s\""
 msgstr "应用到所有软件包匹配名称\"%s\""
 
-#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
-#, object-pascal-format
-msgid "expected \":=\" after macro name but found \"%s\""
-msgstr "在宏命令名称后要求\":=\",但是找到\"%s\""
-
-#: lazarusidestrconsts.lismmexpectedmacronamebutfound
-#, object-pascal-format
-msgid "expected macro name but found \"%s\""
-msgstr "要求宏命令名称,但是找到\"%s\""
-
 #: lazarusidestrconsts.lismmfromto
 #, object-pascal-format
 msgid "From %s to %s"
@@ -14444,20 +14434,6 @@ msgstr "IDE宏命令"
 #, object-pascal-format
 msgid "IDE Macro %s:=%s"
 msgstr "IDE宏命令%s:=%s"
-
-#: lazarusidestrconsts.lismminvalidcharacterat
-#, object-pascal-format
-msgid "invalid character \"%s\" at %s"
-msgstr "无效字符\"%s\"在%s"
-
-#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
-#, object-pascal-format
-msgid "invalid character in macro value \"%s\""
-msgstr "无效字符在宏值\"%s\""
-
-#: lazarusidestrconsts.lismmmissingmacroname
-msgid "missing macro name"
-msgstr "缺少宏命令名称"
 
 #: lazarusidestrconsts.lismmmoveselecteditemdown
 msgctxt "lazarusidestrconsts.lismmmoveselecteditemdown"
@@ -23132,4 +23108,5 @@ msgstr "单元图表选项"
 #: lazarusidestrconsts.versioninfotitle
 msgid "Version Info"
 msgstr "版本信息"
+
 

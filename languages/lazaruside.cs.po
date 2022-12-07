@@ -14483,16 +14483,6 @@ msgstr "Nepřepisovat OutDir (-FU)"
 msgid "Exclude all packages matching name \"%s\""
 msgstr "Vyloučit všechny balíky odpovídající názvu \"%s\""
 
-#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
-#, object-pascal-format
-msgid "expected \":=\" after macro name but found \"%s\""
-msgstr "očekáváno \":=\" po jménu makra, ale nalezeno \"%s\""
-
-#: lazarusidestrconsts.lismmexpectedmacronamebutfound
-#, object-pascal-format
-msgid "expected macro name but found \"%s\""
-msgstr "očekáváno jméno makra, ale nalezeno \"%s\""
-
 #: lazarusidestrconsts.lismmfromto
 #, object-pascal-format
 msgid "From %s to %s"
@@ -14506,20 +14496,6 @@ msgstr "IDE Makro"
 #, object-pascal-format
 msgid "IDE Macro %s:=%s"
 msgstr "IDE Makro %s:=%s"
-
-#: lazarusidestrconsts.lismminvalidcharacterat
-#, object-pascal-format
-msgid "invalid character \"%s\" at %s"
-msgstr "neplatný znak \"%s\" @ %s"
-
-#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
-#, object-pascal-format
-msgid "invalid character in macro value \"%s\""
-msgstr "neplatný znak v hodnotě makra \"%s\""
-
-#: lazarusidestrconsts.lismmmissingmacroname
-msgid "missing macro name"
-msgstr "chybějící jméno makra"
 
 #: lazarusidestrconsts.lismmmoveselecteditemdown
 msgctxt "lazarusidestrconsts.lismmmoveselecteditemdown"
@@ -23156,4 +23132,5 @@ msgstr ""
 #: lazarusidestrconsts.versioninfotitle
 msgid "Version Info"
 msgstr "Informace o verzi"
+
 

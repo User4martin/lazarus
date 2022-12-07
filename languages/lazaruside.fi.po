@@ -14325,16 +14325,6 @@ msgstr "Ei syrjäytä OutDir:a (-FU)"
 msgid "Exclude all packages matching name \"%s\""
 msgstr "Jätä pois kaikki \"%s\" nimiset paketit"
 
-#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
-#, object-pascal-format
-msgid "expected \":=\" after macro name but found \"%s\""
-msgstr "odotettiin \":=\" makron nimen jälkeen, mutta löydettiin \"%s\""
-
-#: lazarusidestrconsts.lismmexpectedmacronamebutfound
-#, object-pascal-format
-msgid "expected macro name but found \"%s\""
-msgstr "odotettiin makron nimeä, mutta löydettiin \"%s\""
-
 #: lazarusidestrconsts.lismmfromto
 #, object-pascal-format
 msgid "From %s to %s"
@@ -14348,20 +14338,6 @@ msgstr "IDE-makro"
 #, object-pascal-format
 msgid "IDE Macro %s:=%s"
 msgstr "IDE-makro %s:=%s"
-
-#: lazarusidestrconsts.lismminvalidcharacterat
-#, object-pascal-format
-msgid "invalid character \"%s\" at %s"
-msgstr "kelvoton merkki \"%s\" at %s"
-
-#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
-#, object-pascal-format
-msgid "invalid character in macro value \"%s\""
-msgstr "kelvoton merkki makron arvossa \"%s\""
-
-#: lazarusidestrconsts.lismmmissingmacroname
-msgid "missing macro name"
-msgstr "puuttuva makron nimi"
 
 #: lazarusidestrconsts.lismmmoveselecteditemdown
 msgctxt "lazarusidestrconsts.lismmmoveselecteditemdown"
@@ -22951,4 +22927,5 @@ msgstr ""
 #: lazarusidestrconsts.versioninfotitle
 msgid "Version Info"
 msgstr "Versiotiedot"
+
 

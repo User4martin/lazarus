@@ -14323,16 +14323,6 @@ msgstr "OutDir (-FU) öğesini geçersiz kılmaz"
 msgid "Exclude all packages matching name \"%s\""
 msgstr "\"%s\" adıyla eşleşen tüm paketleri hariç tut"
 
-#: lazarusidestrconsts.lismmexpectedaftermacronamebutfound
-#, object-pascal-format
-msgid "expected \":=\" after macro name but found \"%s\""
-msgstr "makro adından sonra beklenen \": =\" ancak \"%s\" bulundu"
-
-#: lazarusidestrconsts.lismmexpectedmacronamebutfound
-#, object-pascal-format
-msgid "expected macro name but found \"%s\""
-msgstr "beklenen makro adı, ancak \"%s\" bulundu"
-
 #: lazarusidestrconsts.lismmfromto
 #, object-pascal-format
 msgid "From %s to %s"
@@ -14346,20 +14336,6 @@ msgstr "IDE Makro"
 #, object-pascal-format
 msgid "IDE Macro %s:=%s"
 msgstr "IDE Makro %s: = %s"
-
-#: lazarusidestrconsts.lismminvalidcharacterat
-#, object-pascal-format
-msgid "invalid character \"%s\" at %s"
-msgstr "geçersiz karakter \"%s\" %s"
-
-#: lazarusidestrconsts.lismminvalidcharacterinmacrovalue
-#, object-pascal-format
-msgid "invalid character in macro value \"%s\""
-msgstr "makro değerindeki geçersiz karakter \"%s\""
-
-#: lazarusidestrconsts.lismmmissingmacroname
-msgid "missing macro name"
-msgstr "makro adı eksik"
 
 #: lazarusidestrconsts.lismmmoveselecteditemdown
 msgctxt "lazarusidestrconsts.lismmmoveselecteditemdown"
@@ -22934,4 +22910,5 @@ msgstr "Birim grafiği için seçenekler"
 #: lazarusidestrconsts.versioninfotitle
 msgid "Version Info"
 msgstr "Versiyon bilgisi"
+
 
