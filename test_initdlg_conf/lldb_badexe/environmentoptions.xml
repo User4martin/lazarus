@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <EnvironmentOptions>
+    <Version Value="110" Lazarus="2.3.0"/>
+    <LazarusDirectory Value="%LazDir%">
+    </LazarusDirectory>
+    <CompilerFilename Value="%FpcBinDir%\fpc.exe">
+    </CompilerFilename>
+    <FPCSourceDirectory Value="$(LazarusDir)\fpc\$(FPCVer)\source">
+    </FPCSourceDirectory>
+    <MakeFilename Value="%FpcBinDir%\make.exe">
+    </MakeFilename>
+    <TestBuildDirectory Value="%Temp%">
+    </TestBuildDirectory>
+    <Debugger>
+      <Configs>
+        <Config ConfigName="lldb" ConfigClass="TLldbDebugger" DebuggerFilename="foobar.exe" Active="True"/>
+        <Config ConfigName="lldb lldb" ConfigClass="TLldbDebugger" DebuggerFilename="lldb" />
+        <Config ConfigName="lldb cmd" ConfigClass="TLldbDebugger" DebuggerFilename="cmd.exe" />
+        <Config ConfigName="lldb laz" ConfigClass="TLldbDebugger" DebuggerFilename="$(LazarusDir)\lazarus.exe" />
+        <Config ConfigName="Gdb" ConfigClass="TGDBMIDebugger" DebuggerFilename="gdb.exe"/>
+      </Configs>
+    </Debugger>
+  </EnvironmentOptions>
+</CONFIG>
