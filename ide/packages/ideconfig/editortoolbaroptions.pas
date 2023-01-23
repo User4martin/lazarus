@@ -77,6 +77,9 @@ begin
   ButtonNames.Add('IDEMainMenu/Search/itmJumpings/itmJumpBack');
   ButtonNames.Add('IDEMainMenu/Search/itmJumpings/itmJumpForward');
   ButtonNames.Add(cIDEToolbarDivider);
+  ButtonNames.Add('Go to Bookmark...');
+  ButtonNames.Add('Toggle Bookmark...');
+  ButtonNames.Add(cIDEToolbarDivider);
 end;
 
 procedure TEditorToolBarOptions.Load(XMLConfig: TXMLConfig; Path: String);
