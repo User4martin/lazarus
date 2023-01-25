@@ -7036,6 +7036,7 @@ var
 begin
   IDECommandList.ExecuteUpdateEvents;
 
+  SourceEditorMenuRoot.MenuItem:=nil;
   SourceEditorMenuRoot.MenuItem:=SrcPopupMenu.Items;
   RemoveUserDefinedMenuItems;
   RemoveContextMenuItems;
