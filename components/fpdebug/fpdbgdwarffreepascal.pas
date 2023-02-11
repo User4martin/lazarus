@@ -13,6 +13,12 @@ uses
   DbgIntfBaseTypes,
   {$ifdef FORCE_LAZLOGGER_DUMMY} LazLoggerDummy {$else} LazLoggerBase {$endif}, LazStringUtils;
 
+const
+  DW_TAG_FPC_property = $4230;
+  DW_AT_FPC_property_read   = $3230;
+  DW_AT_FPC_property_write  = $3231;
+  DW_AT_FPC_property_stored = $3232;
+
 type
 
   {%Region * ***** SymbolClassMap ***** *}
@@ -154,6 +160,7 @@ type
 
   TFpSymbolDwarfFreePascalTypeStructure = class(TFpSymbolDwarfTypeStructure)
   protected
+    function IsValidMemberTag(AnAbbrevTag: Cardinal): Boolean; override;
     procedure KindNeeded; override;
     //function GetInstanceClass(AValueObj: TFpValueDwarf): TFpSymbolDwarf; override;
     class function GetInstanceClassNameFromPVmt(APVmt: TDbgPtr;
@@ -165,6 +172,28 @@ type
     function GetInstanceClassName(AValueObj: TFpValue;
       AClassName, AUnitName: PString;
       AParentClassIndex: integer = 0): boolean; override;
+  end;
+
+  { TFpSymbolDwarfFreePascalDataProperty }
+
+  TFpSymbolDwarfFreePascalDataProperty = class(TFpSymbolDwarfData) // TFpSymbolDwarfData // TFpSymbolDwarf assert in TFpSymbolDwarf.GetNestedValue
+  private
+    FPropGetterSymbol, FPropSetterSymbol: TFpSymbolDwarfType;
+  protected
+    function GetPropGetterSymbol: TFpSymbol; override;
+    function GetFlags: TDbgSymbolFlags; override;
+    procedure KindNeeded; override;
+    function GetValueObject: TFpValue; override;
+  public
+    destructor Destroy; override;
+  end;
+
+  { TFpValueDwarfFreePascalDataProperty }
+
+  TFpValueDwarfFreePascalDataProperty = class(TFpValueDwarf)
+  protected
+    function GetPropGetterValue: TFpValue; override;
+    function GetKind: TDbgSymbolKind; override;
   end;
 
   (* *** Record vs ShortString *** *)
@@ -293,6 +322,123 @@ uses
 var
   FPDBG_DWARF_VERBOSE: PLazLoggerLogGroup;
 
+{ TFpValueDwarfFreePascalDataProperty }
+
+function TFpValueDwarfFreePascalDataProperty.GetPropGetterValue: TFpValue;
+var
+  getSym, m: TFpSymbol;
+  StructVal: TFpValueDwarf;
+  TypeSym, OuterSym: TFpSymbolDwarfType;
+begin
+  StructVal := StructureValue;
+
+  getSym := DbgSymbol.PropGetterSymbol;
+  if getSym <> nil then begin
+    Result := getSym.Value;
+    getSym.ReleaseReference;
+    // Only supports getter on the same class
+    TFpValueDwarf(Result).FParentTypeSymbol := FParentTypeSymbol;
+    TFpValueDwarf(Result).SetStructureValue(StructVal);
+    TFpValueDwarf(Result).Context := StructVal.Context;
+    exit;
+  end;
+
+  Result := nil;
+  if FParentTypeSymbol = nil then
+    exit;
+
+  TypeSym := FParentTypeSymbol.TypeInfo;
+  while TypeSym <> nil do begin
+    m := TypeSym.GetNestedSymbolExByName(DbgSymbol.Name, OuterSym);
+    if m = nil then
+      break;
+
+    getSym := m.PropGetterSymbol;
+    if //(m is TFpValueDwarfFreePascalDataProperty) and
+       (getSym <> nil)
+    then begin
+      Result := getSym.Value;
+      getSym.ReleaseReference;
+      // Only supports getter on the same class
+      TFpValueDwarf(Result).FParentTypeSymbol := OuterSym; // m.FParentTypeSymbol;
+      TFpValueDwarf(Result).SetStructureValue(StructVal);
+      TFpValueDwarf(Result).Context := StructVal.Context;
+      exit;
+    end;
+
+    if OuterSym = nil then
+      exit;
+    TypeSym := OuterSym.TypeInfo; // parent class
+  end;
+
+end;
+
+function TFpValueDwarfFreePascalDataProperty.GetKind: TDbgSymbolKind;
+begin
+  Result := skNone;  // caller needs to check flags for property
+end;
+
+{ TFpSymbolDwarfFreePascalDataProperty }
+
+function TFpSymbolDwarfFreePascalDataProperty.GetPropGetterSymbol: TFpSymbol;
+var
+  InfoEntry, NewInfoEntry: TDwarfInformationEntry;
+  InfoPtr: Pointer;
+  CU: TDwarfCompilationUnit;
+begin
+  Result := FPropGetterSymbol;
+  if Result <> nil then begin
+    Result.AddReference;
+    exit;
+  end;
+  if (InformationEntry = nil) then
+    exit;
+
+  if InformationEntry.HasValidScope then begin
+    InfoEntry := InformationEntry.Clone;
+    if InfoEntry.ReadReference(DW_AT_FPC_property_read, InfoPtr, CU) then begin
+      NewInfoEntry := TDwarfInformationEntry.Create(CU, InfoPtr);
+      Result := TFpSymbolDwarf.CreateSubClass(Name, NewInfoEntry);
+      NewInfoEntry.ReleaseReference;
+
+      FPropGetterSymbol := TFpSymbolDwarfType(Result);
+      if FPropGetterSymbol <> nil then
+        FPropGetterSymbol.AddReference;
+    end;
+
+    InfoEntry.ReleaseReference;
+  end;
+end;
+
+function TFpSymbolDwarfFreePascalDataProperty.GetFlags: TDbgSymbolFlags;
+begin
+  Result := inherited GetFlags;
+  Include(Result, sfIsProperty);
+  if (FPropGetterSymbol <> nil) or (InformationEntry.HasAttrib(DW_AT_FPC_property_read)) then
+    Include(Result, sfHasPropGetter);
+  if (FPropSetterSymbol <> nil) or (InformationEntry.HasAttrib(DW_AT_FPC_property_write)) then
+    Include(Result, sfHasPropSetter);
+end;
+
+procedure TFpSymbolDwarfFreePascalDataProperty.KindNeeded;
+begin
+  SetKind(skNone);  // caller needs to check flags for property
+end;
+
+function TFpSymbolDwarfFreePascalDataProperty.GetValueObject: TFpValue;
+var
+  tmp: TFpSymbolDwarfType;
+begin
+  Result := TFpValueDwarfFreePascalDataProperty.Create(nil);
+  TFpValueDwarf(Result).SetDataSymbol(self);
+end;
+
+destructor TFpSymbolDwarfFreePascalDataProperty.Destroy;
+begin
+  FPropGetterSymbol.ReleaseReference;
+  inherited Destroy;
+end;
+
 { TFpDwarfFreePascalSymbolClassMap }
 
 function TFpDwarfFreePascalSymbolClassMap.CanHandleCompUnit(
@@ -413,6 +559,7 @@ begin
     DW_TAG_array_type:       Result := TFpSymbolDwarfFreePascalSymbolTypeArray;
     DW_TAG_subprogram:       Result := TFpSymbolDwarfFreePascalDataProc;
     DW_TAG_formal_parameter: Result := TFpSymbolDwarfFreePascalDataParameter;
+    DW_TAG_FPC_property:     Result := TFpSymbolDwarfFreePascalDataProperty;
     else                     Result := inherited GetDwarfSymbolClass(ATag);
   end;
 end;
@@ -949,6 +1096,15 @@ begin
 end;
 
 { TFpSymbolDwarfFreePascalTypeStructure }
+
+function TFpSymbolDwarfFreePascalTypeStructure.IsValidMemberTag(
+  AnAbbrevTag: Cardinal): Boolean;
+begin
+  Result := (AnAbbrevTag = DW_TAG_member) or
+            (AnAbbrevTag = DW_TAG_subprogram) or
+            (AnAbbrevTag = DW_TAG_variant_part) or
+            (AnAbbrevTag = DW_TAG_FPC_property);
+end;
 
 procedure TFpSymbolDwarfFreePascalTypeStructure.KindNeeded;
 var

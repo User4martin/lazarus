@@ -189,9 +189,12 @@ type
          Also: Enums, Array (others may set this but not used)
        FParentTypeSymbol is hold as part of the type chain in FTypeSymbol // Therefore it does not need AddReference
     *)
+public
     FParentTypeSymbol: TFpSymbolDwarfType;
+private
     FStructureValue: TFpValueDwarf;
     FForcedSize: TFpDbgValueSize; // for typecast from array member
+public
     procedure SetStructureValue(AValue: TFpValueDwarf);
   protected
     function GetSizeFor(AnOtherValue: TFpValue; out ASize: TFpDbgValueSize): Boolean; inline;
@@ -577,7 +580,9 @@ type
     function HasAddress: Boolean; virtual;
 
     function GetNestedSymbolEx(AIndex: Int64; out AnParentTypeSymbol: TFpSymbolDwarfType): TFpSymbol; virtual;
+public
     function GetNestedSymbolExByName(const AIndex: String; out AnParentTypeSymbol: TFpSymbolDwarfType): TFpSymbol; virtual;
+protected
     function GetNestedSymbol(AIndex: Int64): TFpSymbol; override;
     function GetNestedSymbolByName(const AIndex: String): TFpSymbol; override;
 
@@ -978,9 +983,10 @@ DECL = DW_AT_decl_column, DW_AT_decl_file, DW_AT_decl_line
     FMembers: TRefCntObjList;
     FLastChildByName: TFpSymbolDwarf;
     FInheritanceInfo: TDwarfInformationEntry;
-    procedure CreateMembers; virtual;
+    procedure CreateMembers; //virtual;
     procedure InitInheritanceInfo; inline;
   protected
+    function IsValidMemberTag(AnAbbrevTag: Cardinal): Boolean; virtual;
     function DoGetNestedTypeInfo: TFpSymbolDwarfType; override;
     procedure KindNeeded; override;
 
@@ -3878,7 +3884,7 @@ procedure TFpSymbolDwarf.NameNeeded;
 var
   AName: String;
 begin
-  if InformationEntry.ReadName(AName) then
+  if (InformationEntry <> nil) and InformationEntry.ReadName(AName) then
     SetName(AName)
   else
     inherited NameNeeded;
@@ -4332,7 +4338,7 @@ var
 begin
   sym := GetNestedSymbolEx(AIndex, OuterSym);
   if sym <> nil then begin
-    assert(sym is TFpSymbolDwarfData, 'TFpSymbolDwarf.GetNestedValue: sym is TFpSymbolDwarfData');
+    assert(sym is TFpSymbolDwarf, 'TFpSymbolDwarf.GetNestedValue: sym is TFpSymbolDwarfData');
     Result := TFpValueDwarf(sym.Value);
     if Result <> nil then
       Result.FParentTypeSymbol := OuterSym;
@@ -5861,9 +5867,7 @@ begin
   Info.GoChild;
 
   while Info.HasValidScope do begin
-    if (Info.AbbrevTag = DW_TAG_member) or (Info.AbbrevTag = DW_TAG_subprogram) or
-       (Info.AbbrevTag = DW_TAG_variant_part)
-    then begin
+    if IsValidMemberTag(Info.AbbrevTag) then begin
       Info2 := Info.Clone;
       sym := TFpSymbolDwarf.CreateSubClass('', Info2);
       FMembers.Add(sym);
@@ -5880,6 +5884,14 @@ procedure TFpSymbolDwarfTypeStructure.InitInheritanceInfo;
 begin
   if FInheritanceInfo = nil then
     FInheritanceInfo := InformationEntry.FindChildByTag(DW_TAG_inheritance);
+end;
+
+function TFpSymbolDwarfTypeStructure.IsValidMemberTag(AnAbbrevTag: Cardinal
+  ): Boolean;
+begin
+  Result := (AnAbbrevTag = DW_TAG_member) or
+            (AnAbbrevTag = DW_TAG_subprogram) or
+            (AnAbbrevTag = DW_TAG_variant_part);
 end;
 
 function TFpSymbolDwarfTypeStructure.DoGetNestedTypeInfo: TFpSymbolDwarfType;

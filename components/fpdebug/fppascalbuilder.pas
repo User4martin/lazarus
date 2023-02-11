@@ -1122,7 +1122,7 @@ function TFpPascalPrettyPrinter.InternalPrintValue(out APrintedValue: String;
   var
     s, s2, MbName, MbVal: String;
     i: Integer;
-    MemberValue: TFpValue;
+    MemberValue, TmpVal: TFpValue;
     fl: TFpPrettyPrintValueFlags;
     f: TDBGField;
     ti: TFpSymbol;
@@ -1204,6 +1204,14 @@ function TFpPascalPrettyPrinter.InternalPrintValue(out APrintedValue: String;
           MemberValue.ReleaseReference;
           continue;
         end;
+        if (MemberValue.Kind = skNone) and (MemberValue.DbgSymbol <> nil) and (sfIsProperty in MemberValue.DbgSymbol.Flags) then begin
+          TmpVal := MemberValue.PropGetterValue;
+          if TmpVal <> nil then begin
+            MemberValue.ReleaseReference;
+            MemberValue := TmpVal;
+          end;
+        end;
+
         s := '';
         // ppoStackParam: Do not expand nested structures // may need ppoSingleLine?
         InternalPrintValue(MbVal, MemberValue, AnAddressSize, fl, ANestLevel+1, AnIndent, ADisplayFormat, -1, nil, AOptions+[ppoStackParam]);

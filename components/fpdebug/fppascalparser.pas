@@ -140,6 +140,7 @@ type
     procedure Init; virtual;
     function  DoGetIsTypeCast: Boolean; virtual; deprecated;
     function  DoGetResultValue: TFpValue; virtual;
+    function  MaybeResolveProperty(AValue: TFpValue): TFpValue;
     procedure ResetEvaluation; virtual;
 
     Procedure ReplaceInParent(AReplacement: TFpPascalExpressionPart);
@@ -1853,11 +1854,12 @@ begin
       exit;
     end;
   end
+  else begin
+    Result := MaybeResolveProperty(Result);
 {$IFDEF WITH_REFCOUNT_DEBUG}
-  else
     Result.DbgRenameReference(nil, 'DoGetResultValue')
 {$ENDIF}
-  ;
+  end;
 end;
 
 function GetFirstToken(AText: PChar): String;
@@ -2886,6 +2888,23 @@ function TFpPascalExpressionPart.DoGetResultValue: TFpValue;
 begin
   Result := nil;
   SetError('Can not evaluate: "'+GetText+'"');
+end;
+
+function TFpPascalExpressionPart.MaybeResolveProperty(AValue: TFpValue
+  ): TFpValue;
+var
+  tmp2: TFpValue;
+begin
+  Result := AValue;
+  if (Result.Kind = skNone) and (Result.DbgSymbol <> nil) and
+     (sfIsProperty in Result.DbgSymbol.Flags)
+  then begin
+    tmp2 := Result.PropGetterValue;
+    if tmp2 <> nil then begin
+      Result.ReleaseReference;
+      Result := tmp2;
+    end;
+  end;
 end;
 
 procedure TFpPascalExpressionPart.ResetEvaluation;
@@ -4235,6 +4254,7 @@ begin
       SetError(fpErrNoMemberWithName, [MemberName]);
       exit;
     end;
+    Result := MaybeResolveProperty(Result);
     {$IFDEF WITH_REFCOUNT_DEBUG}Result.DbgRenameReference(nil, 'DoGetResultValue'){$ENDIF};
     Assert((Result.DbgSymbol=nil)or(Result.DbgSymbol.SymbolType=stValue), 'member is value');
     exit;
@@ -4248,6 +4268,7 @@ begin
   then begin
     Result := tmp.MemberByName[MemberName];
     if Result <> nil then begin
+      Result := MaybeResolveProperty(Result);
       // only class fields/constants can have an address without valid "self" instance
       if IsReadableLoc(result.DataAddress) then begin   // result.Address?
         {$IFDEF WITH_REFCOUNT_DEBUG}Result.DbgRenameReference(nil, 'DoGetResultValue'){$ENDIF};

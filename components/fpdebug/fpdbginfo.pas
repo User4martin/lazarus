@@ -72,9 +72,10 @@ type
     sfConst,         // The sym is a constant and cannot be modified
     sfVar,
     sfOut,
-    sfpropGet,
-    sfPropSet,
-    sfPropStored,
+    sfIsProperty,
+    sfHasPropGetter, // Has Getter in this class. If absent, there may be a getter in the parent
+    sfHasPropSetter,
+    //sfHasPropStored,
     sfHasLine,
     sfHasLineAddrRng
   );
@@ -148,6 +149,9 @@ type
     function GetMemberCountEx(const AIndex: array of Int64): Integer; virtual;
     function GetMemberEx(const AIndex: Array of Int64): TFpValue; virtual;
 
+    function GetPropGetterValue: TFpValue; virtual;
+    function GetPropSetterValue: TFpValue; virtual;
+
     function GetDbgSymbol: TFpSymbol; virtual;
     function GetTypeInfo: TFpSymbol; virtual;
     function GetParentTypeInfo: TFpSymbol; virtual;
@@ -220,6 +224,10 @@ type
     property DbgSymbol: TFpSymbol read GetDbgSymbol;
     property TypeInfo: TFpSymbol read GetTypeInfo;
     property ParentTypeInfo: TFpSymbol read GetParentTypeInfo; // For members, the class in which this member is declared
+
+    property PropGetterValue: TFpValue read GetPropGetterValue;
+    property PropSetterValue: TFpValue read GetPropSetterValue;
+    //property PropStoredSymbol: TFpSymbol read GetPropStoredSymbol;
 
     property LastError: TFpError read GetLastError;
     procedure ResetError;
@@ -418,6 +426,8 @@ type
     procedure SetTypeInfo(ASymbol: TFpSymbol); inline;
     procedure SetMemberVisibility(AValue: TDbgSymbolMemberVisibility); inline;
 
+    function GetPropGetterSymbol: TFpSymbol; virtual;
+    function GetPropSetterSymbol: TFpSymbol; virtual;
     function GetInternalTypeInfo: TFpSymbol; virtual;
     procedure KindNeeded; virtual;
     procedure NameNeeded; virtual;
@@ -444,6 +454,10 @@ type
     // stType: Pointer: type pointed to / Array: Element Type / Func: Result / Class: itheritance
     property TypeInfo: TFpSymbol read GetTypeInfo;
     property InternalTypeInfo: TFpSymbol read GetInternalTypeInfo; // Not modified by any dwarf modifier
+    // For properties, if sfIsProperty in Flags
+    property PropGetterSymbol: TFpSymbol read GetPropGetterSymbol;
+    property PropSetterSymbol: TFpSymbol read GetPropSetterSymbol;
+    //property PropStoredSymbol: TFpSymbol read GetPropStoredSymbol;
     // Location
     property FileName: String read GetFile;
     property Line: Cardinal read GetLine;
@@ -1035,6 +1049,16 @@ begin
   Result := 0;
 end;
 
+function TFpValue.GetPropGetterValue: TFpValue;
+begin
+  Result := nil;
+end;
+
+function TFpValue.GetPropSetterValue: TFpValue;
+begin
+  Result := nil;
+end;
+
 procedure TFpValue.Reset;
 begin
   FEvalFlags := [];
@@ -1553,6 +1577,16 @@ begin
   if not(sfiSymType in FEvaluatedFields) then
     SymbolTypeNeeded;
   Result := FSymbolType;
+end;
+
+function TFpSymbol.GetPropGetterSymbol: TFpSymbol;
+begin
+  Result := nil;
+end;
+
+function TFpSymbol.GetPropSetterSymbol: TFpSymbol;
+begin
+  Result := nil;
 end;
 
 function TFpSymbol.GetInternalTypeInfo: TFpSymbol;

@@ -509,7 +509,7 @@ var
   Cache: TFpDbgMemCacheBase;
   AnchestorMap: TAnchestorMap;
   i, j, WasRecurseInstanceCnt: Integer;
-  MemberValue: TFpValue;
+  MemberValue, TmpVal: TFpValue;
   ti, sym: TFpSymbol;
   ResAnch, ResField, TopAnch, UnkAnch: TLzDbgWatchDataIntf;
   MbName: String;
@@ -611,13 +611,23 @@ begin
         ResAnch := UnkAnch;
       end;
 
+      // sym is from the property => name and visibility
+      // MemberValue will become the field/getter
+      sym := MemberValue.DbgSymbol;
+      if (MemberValue.Kind = skNone) and (sym <> nil) and (sfIsProperty in sym.Flags) then begin
+        TmpVal := MemberValue.PropGetterValue;
+        if TmpVal <> nil then begin
+          MemberValue.ReleaseReference;
+          MemberValue := TmpVal;
+        end;
+      end;
+
       if MemberValue.Kind = skVariantPart then begin
         AddVariantMembers(MemberValue, ResAnch);
         MemberValue.ReleaseReference;
         continue;
       end;
 
-      sym := MemberValue.DbgSymbol;
       if sym <> nil then begin
         MbName := sym.Name;
         case sym.MemberVisibility of
