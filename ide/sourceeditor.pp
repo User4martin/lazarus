@@ -1728,8 +1728,7 @@ begin
     // register the Goto Bookmarks Submenu
     SrcEditSubMenuGotoBookmarks:=RegisterIDESubMenu(AParent,
         'Goto bookmarks', uemGotoBookmark,
-        nil, TNotifyProcedure(@TToolButton_GotoBookmarks.ShowAloneMenu),
-        'menu_goto_bookmarks');
+        nil, nil, 'menu_goto_bookmarks');
     AParent:=SrcEditSubMenuGotoBookmarks;
       for I in TBookmarkNumRange do
         SrcEditMenuGotoBookmark[I]:=RegisterIDEMenuCommand(AParent,
@@ -1750,8 +1749,7 @@ begin
   AParent:=SrcEditMenuSectionMarks;
     SrcEditSubMenuToggleBookmarks:=RegisterIDESubMenu(AParent,
         'Toggle bookmarks', uemToggleBookmark,
-        nil, TNotifyProcedure(@TToolButton_ToggleBookmarks.ShowAloneMenu),
-        'menu_toggle_bookmarks');
+        nil, nil, 'menu_toggle_bookmarks');
     AParent:=SrcEditSubMenuToggleBookmarks;
       for I in TBookmarkNumRange do
         SrcEditMenuToggleBookmark[I]:=RegisterIDEMenuCommand(AParent,
@@ -4282,6 +4280,9 @@ Begin
 
   ecCloseOtherTabs: Application.QueueAsyncCall(@Manager.CloseOtherPagesClickedAsync, PtrInt(SourceNotebook.GetNoteBookPage(SourceNotebook.FindPageWithEditor(Self))));
   ecCloseRightTabs: Application.QueueAsyncCall(@Manager.CloseRightPagesClickedAsync, PtrInt(SourceNotebook.GetNoteBookPage(SourceNotebook.FindPageWithEditor(Self))));
+
+  ecGotoBookmarks:   TToolButton_GotoBookmarks.ShowAloneMenu(nil);
+  ecToggleBookmarks: TToolButton_ToggleBookmarks.ShowAloneMenu(nil);
 
   else
     begin
@@ -10947,9 +10948,6 @@ begin
   SrcEditMenuSetFreeBookmark.Command:=GetIdeCmdRegToolBtn(ecSetFreeBookmark);
   SrcEditMenuClearFileBookmark.Command:=GetIdeCmdRegToolBtn(ecClearBookmarkForFile);
   SrcEditMenuClearAllBookmark.Command:=GetIdeCmdRegToolBtn(ecClearAllBookmark);
-
-  SrcEditSubMenuGotoBookmarks.Command:=GetCommand(ecGotoBookmarks, TToolButton_GotoBookmarks);
-  SrcEditSubMenuToggleBookmarks.Command:=GetCommand(ecToggleBookmarks, TToolButton_ToggleBookmarks);
 
   for i in TBookmarkNumRange do
     SrcEditMenuGotoBookmark[i].Command := GetIdeCmdRegToolBtn(ecGotoMarker0 + i);
