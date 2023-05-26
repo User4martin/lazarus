@@ -14,7 +14,7 @@ program WatchesValuePrg;
 {$notes off}
 {$warnings off}
 {$inline off}
-{$IfnDEF WIndows} {$Codepage utf8} {$ENDIF}
+{$IfnDEF WIndows} {  $Codepage utf8} {$ENDIF}
 
 uses sysutils, Classes, variants;
 
@@ -911,8 +911,8 @@ var
 
 
 begin
-  U8Data1 := #$2267; //#$E2#$89#$A7;
-  U8Data2 := #$2267'X';
+  U8Data1 := #$E2#$89#$A7;
+  U8Data2 := #$E2#$89#$A7'X';
   // access constant that are not passed as function arg
   // so every constant is accessed, and they can not be optimized away
   InterfacedObject:= TInterfacedObject.create;
