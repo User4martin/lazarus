@@ -235,7 +235,9 @@ type
     FContextFlags: TIdentifierListContextFlags;
     FOnGatherUserIdentifiersToFilteredList: TOnGatherUserIdentifiersToFilteredList;
     FSortForHistory: boolean;
+    FSortForHistoryLimit:integer;
     FSortForScope: boolean;
+    FSortForDeclaration:boolean;
     FStartAtom: TAtomPosition;
     FStartAtomBehind: TAtomPosition;
     FStartAtomInFront: TAtomPosition;
@@ -255,7 +257,9 @@ type
     function CompareIdentListItems({%H-}Tree: TAvlTree; Data1, Data2: Pointer): integer;
     procedure SetHistory(const AValue: TIdentifierHistoryList);
     procedure SetSortForHistory(AValue: boolean);
+    procedure SetSortForHistoryLimit(AValue: integer);
     procedure SetSortForScope(AValue: boolean);
+    procedure SetSortForDeclaration(AValue: boolean);
     procedure UpdateFilteredList;
     function GetFilteredItems(Index: integer): TIdentifierListItem;
     procedure SetPrefix(const AValue: string);
@@ -286,7 +290,11 @@ type
     property History: TIdentifierHistoryList read FHistory write SetHistory;
     property Prefix: string read FPrefix write SetPrefix;
     property SortForHistory: boolean read FSortForHistory write SetSortForHistory;
+    property SortForHistoryLimit: integer read FSortForHistoryLimit write SetSortForHistoryLimit;
     property SortForScope: boolean read FSortForScope write SetSortForScope;
+    property SortForDeclaration: boolean read FSortForDeclaration write SetSortForDeclaration;
+
+
     property StartAtom: TAtomPosition read FStartAtom write FStartAtom;
     property StartAtomInFront: TAtomPosition
       read FStartAtomInFront write FStartAtomInFront; // in front of variable, not only of identifier
@@ -582,6 +590,7 @@ var
   Item1: TIdentifierListItem absolute Data1;
   Item2: TIdentifierListItem absolute Data2;
 begin
+
   if SortForScope then begin
     // first sort for Compatibility  (lower is better)
     if ord(Item1.Compatibility)<ord(Item2.Compatibility) then begin
@@ -615,10 +624,27 @@ begin
     end;
   end;
 
-  // then sort alpabetically (lower is better)
-  Result:=CompareIdentifierPtrs(Pointer(Item2.Identifier),Pointer(Item1.Identifier));
-  if Result<>0 then exit;
-
+  if SortForDeclaration then
+  begin
+    if (Item1.Node<>nil) and (Item2.Node<>nil) then
+    begin
+      if Item1.Node.StartPos<Item2.Node.StartPos then
+      begin
+        Result:=-1;
+        exit;
+      end else
+      if Item1.Node.StartPos>Item2.Node.StartPos then
+      begin
+        Result:=1;
+        exit;
+      end;
+    end else
+      exit;
+  end else
+  begin // then sort alpabetically (lower is better)
+    Result:=CompareIdentifierPtrs(Pointer(Item2.Identifier),Pointer(Item1.Identifier));
+    if Result<>0 then exit;
+  end;
   // then sort for ParamList (lower is better)
   Result:=Item2.CompareParamList(Item1);
 end;
@@ -697,6 +723,12 @@ begin
   FSortForHistory:=AValue;
   Clear;
 end;
+procedure TIdentifierList.SetSortForHistoryLimit(AValue: integer);
+begin
+  if FSortForHistoryLimit=AValue then Exit;
+  FSortForHistoryLimit:=AValue;
+  Clear;
+end;
 
 procedure TIdentifierList.SetSortForScope(AValue: boolean);
 begin
@@ -704,6 +736,13 @@ begin
   FSortForScope:=AValue;
   Clear;
 end;
+procedure TIdentifierList.SetSortForDeclaration(AValue: boolean);
+begin
+  if FSortForDeclaration=AValue then Exit;
+  FSortForDeclaration:=AValue;
+  Clear;
+end;
+
 
 function TIdentifierList.GetFilteredItems(Index: integer): TIdentifierListItem;
 begin
@@ -723,6 +762,7 @@ begin
   FCreatedIdentifiers:=TFPList.Create;
   FSortForHistory:=true;
   FSortForScope:=true;
+  FSortForDeclaration:=true;
 end;
 
 destructor TIdentifierList.Destroy;

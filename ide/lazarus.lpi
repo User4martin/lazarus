@@ -1272,6 +1272,7 @@
       <Unit>
         <Filename Value="wordcompletion.pp"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="WordCompletion"/>
       </Unit>
       <Unit>
         <Filename Value="editdefinetree.pas"/>

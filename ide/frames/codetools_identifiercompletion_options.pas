@@ -27,7 +27,7 @@ interface
 uses
   SysUtils,
   // LCL
-  Forms, StdCtrls, Spin,
+  Forms, StdCtrls, Spin, ExtCtrls,
   // LazControls
   DividerBevel,
   // IdeIntf
@@ -62,12 +62,15 @@ type
     ICSortDividerBevel: TDividerBevel;
     ICAppearanceDividerBevel: TDividerBevel;
     ICContentDividerBevel: TDividerBevel;
-    ICSortForHistoryCheckBox: TCheckBox;
     ICSortForScopeCheckBox: TCheckBox;
+    ICSortForHistoryCheckBox: TCheckBox;
     ICUseIconsInCompletionBoxCheckBox: TCheckBox;
     ICIncludeWordsLabel: TLabel;
     ICAutoOnTypeMinLengthLbl: TLabel;
     ICAutoOnTypeMinLength: TSpinEdit;
+    ICHistoryLimit: TLabel;
+    ICSortOrderRadioGroup: TRadioGroup;
+    ICHistoryLimitValue: TSpinEdit;
   private
   public
     function GetTitle: String; override;
@@ -110,10 +113,13 @@ begin
   ICAutoAddParameterBracketsCheckBox.Caption:=lisAddParameterBrackets;
 
   ICSortDividerBevel.Caption:=lisSorting;
-  ICSortForHistoryCheckBox.Caption:=lisShowRecentlyUsedIdentifiersAtTop;
   ICSortForScopeCheckBox.Caption:=lisSortForScope;
+  ICSortForHistoryCheckBox.Caption:=lisShowRecentlyUsedIdentifiersAtTop;
   ICSortForScopeCheckBox.Hint:=lisForExampleShowAtTopTheLocalVariablesThenTheMembers;
-
+  ICSortOrderRadioGroup.Caption:=' '+lisSortOrderTitle+' ';
+  ICSortOrderRadioGroup.Items[0]:= lisSortOrderDefinition;
+  ICSortOrderRadioGroup.Items[1]:= lisSortOrderAlphabetic;
+  ICHistoryLimit.Caption:=lisSortHistoryLimit;
   ICContentDividerBevel.Caption:=lisContents;
   ICContainsFilterCheckBox.Caption := dlgIncludeIdentifiersContainingPrefix;
   ICIncludeWordsLabel.Caption := dlgIncludeWordsToIdentCompl;
@@ -152,12 +158,15 @@ begin
     ICReplaceCheckBox.Checked:=IdentComplReplaceIdentifier;
     ICJumpToErrorCheckBox.Checked:=IdentComplJumpToError;
     ICShowHelpCheckBox.Checked:=IdentComplShowHelp;
-    ICSortForHistoryCheckBox.Checked:=IdentComplSortForHistory;
     ICSortForScopeCheckBox.Checked:=IdentComplSortForScope;
+    ICSortForHistoryCheckBox.Checked:=IdentComplSortForHistory;
+    ICHistoryLimitValue.Value:=IdentComplSortForHistoryLimit;
+    ICSortOrderRadioGroup.ItemIndex:= byte(not IdentComplSortForDeclaration) and 1;
     ICContainsFilterCheckBox.Checked:=IdentComplUseContainsFilter;
     ICIncludeKeywordsCheckBox.Checked := IdentComplIncludeKeywords;
     ICIncludeCodeTemplatesCheckBox.Checked:=IdentComplIncludeCodeTemplates;
     ICUseIconsInCompletionBoxCheckBox.Checked:=IdentComplShowIcons;
+
     case IdentComplIncludeWords of
       icwIncludeFromAllUnits: ICAddWordsComboBox.ItemIndex:=0;
       icwIncludeFromCurrentUnit: ICAddWordsComboBox.ItemIndex:=1;
@@ -186,7 +195,10 @@ begin
     IdentComplJumpToError:=ICJumpToErrorCheckBox.Checked;
     IdentComplShowHelp:=ICShowHelpCheckBox.Checked;
     IdentComplSortForHistory:=ICSortForHistoryCheckBox.Checked;
+    IdentComplSortForHistoryLimit:=ICHistoryLimitValue.Value;
     IdentComplSortForScope:=ICSortForScopeCheckBox.Checked;
+    IdentComplSortForDeclaration:=ICSortOrderRadioGroup.ItemIndex=0;
+
     IdentComplUseContainsFilter:=ICContainsFilterCheckBox.Checked;
     IdentComplIncludeKeywords := ICIncludeKeywordsCheckBox.Checked;
     IdentComplIncludeCodeTemplates:=ICIncludeCodeTemplatesCheckBox.Checked;
