@@ -5780,6 +5780,7 @@ resourcestring
   lisSortOrderDefinition = 'Definition (Scoped)';
   lisSortOrderSopedAlphabetic = 'Alphabetic (Scoped)';
   lisSortOrderAlphabetic = 'Alphabetic';
+  lisSortHistoryLimit = 'History items limit';
   lisShowEmptyUnitsPackages = 'Show empty units/packages';
   lisUsePackageInProject = 'Use package %s in project';
   lisUsePackageInProject2 = 'Use package in project';

@@ -33,7 +33,7 @@ uses
   // IdeIntf
   IDEOptionsIntf, IDEOptEditorIntf, IdentCompletionTool,
   // IDE
-  CodeToolsOptions, LazarusIDEStrConsts;
+  CodeToolsOptions, LazarusIDEStrConsts, Classes;
 
 type
 
@@ -67,7 +67,10 @@ type
     ICIncludeWordsLabel: TLabel;
     ICAutoOnTypeMinLengthLbl: TLabel;
     ICAutoOnTypeMinLength: TSpinEdit;
+    ICHistoryLimit: TLabel;
     ICSortOrderRadioGroup: TRadioGroup;
+    ICHistoryLimitValue: TSpinEdit;
+    procedure ICSortForHistoryCheckBoxChange(Sender: TObject);
   private
   public
     function GetTitle: String; override;
@@ -82,6 +85,12 @@ implementation
 {$R *.lfm}
 
 { TCodetoolsIndentifierCompletionOptionsFrame }
+
+procedure TCodetoolsIndentifierCompletionOptionsFrame.ICSortForHistoryCheckBoxChange
+  (Sender: TObject);
+begin
+  ICHistoryLimitValue.Enabled := ICSortForHistoryCheckBox.Checked;
+end;
 
 function TCodetoolsIndentifierCompletionOptionsFrame.GetTitle: String;
 begin
@@ -116,6 +125,7 @@ begin
   ICSortOrderRadioGroup.Items[0]:= lisSortOrderSopedAlphabetic;
   ICSortOrderRadioGroup.Items[1]:= lisSortOrderAlphabetic;
   ICSortOrderRadioGroup.Items[2]:= lisSortOrderDefinition;
+  ICHistoryLimit.Caption:=lisSortHistoryLimit;
   ICContentDividerBevel.Caption:=lisContents;
   ICContainsFilterCheckBox.Caption := dlgIncludeIdentifiersContainingPrefix;
   ICIncludeWordsLabel.Caption := dlgIncludeWordsToIdentCompl;
@@ -155,6 +165,7 @@ begin
     ICJumpToErrorCheckBox.Checked:=IdentComplJumpToError;
     ICShowHelpCheckBox.Checked:=IdentComplShowHelp;
     ICSortForHistoryCheckBox.Checked:=IdentComplSortForHistory;
+    ICHistoryLimitValue.Value:=IdentComplSortForHistoryLimit;
     case IdentComplSortMethod of
       icsScopedAlphabetic:  ICSortOrderRadioGroup.ItemIndex:= 0;
       icsAlphabetic:        ICSortOrderRadioGroup.ItemIndex:= 1;
@@ -193,6 +204,7 @@ begin
     IdentComplJumpToError:=ICJumpToErrorCheckBox.Checked;
     IdentComplShowHelp:=ICShowHelpCheckBox.Checked;
     IdentComplSortForHistory:=ICSortForHistoryCheckBox.Checked;
+    IdentComplSortForHistoryLimit:=ICHistoryLimitValue.Value;
     case ICSortOrderRadioGroup.ItemIndex of
       0: IdentComplSortMethod:=icsScopedAlphabetic;
       1: IdentComplSortMethod:=icsAlphabetic;

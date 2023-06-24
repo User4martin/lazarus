@@ -237,6 +237,7 @@ type
     FContextFlags: TIdentifierListContextFlags;
     FOnGatherUserIdentifiersToFilteredList: TOnGatherUserIdentifiersToFilteredList;
     FSortForHistory: boolean;
+    FSortForHistoryLimit:integer;
     FSortMethodForCompletion: TIdentComplSortMethod;
     FStartAtom: TAtomPosition;
     FStartAtomBehind: TAtomPosition;
@@ -257,6 +258,7 @@ type
     function CompareIdentListItems({%H-}Tree: TAvlTree; Data1, Data2: Pointer): integer;
     procedure SetHistory(const AValue: TIdentifierHistoryList);
     procedure SetSortForHistory(AValue: boolean);
+    procedure SetSortForHistoryLimit(AValue: integer);
     procedure SetSortMethodForCompletion(AValue: TIdentComplSortMethod);
     procedure UpdateFilteredList;
     function GetFilteredItems(Index: integer): TIdentifierListItem;
@@ -288,6 +290,7 @@ type
     property History: TIdentifierHistoryList read FHistory write SetHistory;
     property Prefix: string read FPrefix write SetPrefix;
     property SortForHistory: boolean read FSortForHistory write SetSortForHistory;
+    property SortForHistoryLimit: integer read FSortForHistoryLimit write SetSortForHistoryLimit;
     property SortMethodForCompletion: TIdentComplSortMethod read FSortMethodForCompletion
                                              write SetSortMethodForCompletion;
 
@@ -598,12 +601,17 @@ begin
     end;
   end;
 
-  if SortForHistory then begin
+  if SortForHistory and
+     ( (Item1.HistoryIndex<SortForHistoryLimit) or
+       (Item2.HistoryIndex<SortForHistoryLimit) )
+  then begin
     // then sort for History (lower is better)
     if Item1.HistoryIndex<Item2.HistoryIndex then begin
       Result:=-1;
       exit;
-    end else if Item1.HistoryIndex>Item2.HistoryIndex then begin
+    end
+    else
+    if Item1.HistoryIndex>Item2.HistoryIndex then begin
       Result:=1;
       exit;
     end;
@@ -731,6 +739,13 @@ procedure TIdentifierList.SetSortForHistory(AValue: boolean);
 begin
   if FSortForHistory=AValue then Exit;
   FSortForHistory:=AValue;
+  Clear;
+end;
+
+procedure TIdentifierList.SetSortForHistoryLimit(AValue: integer);
+begin
+  if FSortForHistoryLimit=AValue then Exit;
+  FSortForHistoryLimit:=AValue;
   Clear;
 end;
 
