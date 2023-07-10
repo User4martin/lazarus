@@ -210,14 +210,14 @@ begin
   // The resulting region
   Result := CreateRectRgn(X1, Y1, X2, Y2);
 
-  if not ((nWidthEllipse = 0) and (nHeightEllipse = 0)) then
+  nWidthEllipse := abs(nWidthEllipse);
+  nHeightEllipse := abs(nHeightEllipse);
+
+  if (nWidthEllipse > X2 - X1) then nWidthEllipse := X2 - X1;
+  if (nHeightEllipse > Y2 - Y1) then nHeightEllipse := Y2 - Y1;
+
+  if (nWidthEllipse > 0) and (nHeightEllipse > 0) then
   begin
-    nWidthEllipse := abs(nWidthEllipse);
-    nHeightEllipse := abs(nHeightEllipse);
-
-    if (nWidthEllipse > X2 - X1) then nWidthEllipse := X2 - X1;
-    if (nHeightEllipse > Y2 - Y1) then nHeightEllipse := Y2 - Y1;
-
     nHalfX := nWidthEllipse div 2;
     nHalfY := nHeightEllipse div 2;
 
