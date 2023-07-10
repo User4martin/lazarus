@@ -1316,7 +1316,7 @@ begin
   Yc := Y1 + b;
 
   // Choose a large enough amount of points
-  n_points := Max(X2-X1,Y2-Y1) * 4;
+  n_points := Max(X2-X1,Y2-Y1) * 2 + 2;
   SetLength(points{%H-}, n_points);
   // And fill them iterating through the ellipse
   for i := 0 to n_points - 1 do
