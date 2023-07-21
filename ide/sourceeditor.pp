@@ -2428,7 +2428,7 @@ Begin
   {$ENDIF}
   TheForm.Font := Editor.Font;
 
-  FActiveHistoryTextColor := clGreen; //will be overwritten
+  FActiveHistoryTextColor := clNone;
   FActiveEditTextColor := Editor.Font.Color;
   FActiveEditBorderColor := RGBToColor(200, 200, 200);
   FActiveEditBackgroundColor := Editor.Color;
@@ -2730,14 +2730,15 @@ begin
       //(Index<CodeToolBoss.IdentifierList.SortForHistoryLimit) and
       //(Index<CodeToolBoss.IdentifierHistory.Count) and //to allow mixing history items
       (CodeToolBoss.IdentifierList.FilteredItems[Index].HistoryIndex <
-        CodeToolBoss.IdentifierList.SortForHistoryLimit) then  begin
+        CodeToolBoss.IdentifierList.SortForHistoryLimit) and
+      (FActiveHistoryTextColor <> clNone)
+    then  begin
       Colors.TextColor := FActiveHistoryTextColor; // - to display history items
-      Colors.BackgroundColor := FActiveEditBackgroundColor;
     end else begin
       Colors.TextColor := FActiveEditTextColor;
-      Colors.BackgroundColor:= FActiveEditBackgroundColor;
     end;
 
+    Colors.BackgroundColor := FActiveEditBackgroundColor;
     Colors.BackgroundSelectedColor := FActiveEditBackgroundSelectedColor;
     Colors.TextSelectedColor := FActiveEditTextSelectedColor;
     Colors.TextHilightColor := FActiveEditTextHighLightColor;
