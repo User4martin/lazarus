@@ -2727,10 +2727,7 @@ begin
     end;
 
     if CodeToolBoss.IdentifierList.SortForHistory and
-      //(Index<CodeToolBoss.IdentifierList.SortForHistoryLimit) and
-      //(Index<CodeToolBoss.IdentifierHistory.Count) and //to allow mixing history items
-      (CodeToolBoss.IdentifierList.FilteredItems[Index].HistoryIndex <
-        CodeToolBoss.IdentifierList.SortForHistoryLimit) and
+      (iliIsRecentItem in CodeToolBoss.IdentifierList.FilteredItems[Index].Flags) and
       (FActiveHistoryTextColor <> clNone)
     then  begin
       Colors.TextColor := FActiveHistoryTextColor; // - to display history items
