@@ -135,6 +135,7 @@ type
     FActiveEditBackgroundSelectedColor: TColor;
     FActiveEditBorderColor: TColor;
     FActiveEditTextColor: TColor;
+    FActiveHistoryTextColor: TColor;
     FActiveEditTextSelectedColor: TColor;
     FActiveEditTextHighLightColor: TColor;
 
@@ -2427,6 +2428,7 @@ Begin
   {$ENDIF}
   TheForm.Font := Editor.Font;
 
+  FActiveHistoryTextColor := clGreen; //will be overwritten
   FActiveEditTextColor := Editor.Font.Color;
   FActiveEditBorderColor := RGBToColor(200, 200, 200);
   FActiveEditBackgroundColor := Editor.Color;
@@ -2462,6 +2464,8 @@ Begin
       FActiveEditBackgroundSelectedColor := SynEditor.MarkupIdentComplWindow.BackgroundSelectedColor;
     if SynEditor.MarkupIdentComplWindow.HighlightColor<>clNone then
       FActiveEditTextHighLightColor := SynEditor.MarkupIdentComplWindow.HighlightColor;
+    if SynEditor.MarkupIdentComplWindow.HistoryTextColor<>clNone then
+      FActiveHistoryTextColor:=SynEditor.MarkupIdentComplWindow.HistoryTextColor;
   end;
 
   SL := TStringList.Create;
@@ -2721,9 +2725,20 @@ begin
       end;
       Font.Style:=[];
     end;
-    Colors.BackgroundColor := FActiveEditBackgroundColor;
+
+    if CodeToolBoss.IdentifierList.SortForHistory and
+      //(Index<CodeToolBoss.IdentifierList.SortForHistoryLimit) and
+      //(Index<CodeToolBoss.IdentifierHistory.Count) and //to allow mixing history items
+      (CodeToolBoss.IdentifierList.FilteredItems[Index].HistoryIndex <
+        CodeToolBoss.IdentifierList.SortForHistoryLimit) then  begin
+      Colors.TextColor := FActiveHistoryTextColor; // - to display history items
+      Colors.BackgroundColor := FActiveEditBackgroundColor;
+    end else begin
+      Colors.TextColor := FActiveEditTextColor;
+      Colors.BackgroundColor:= FActiveEditBackgroundColor;
+    end;
+
     Colors.BackgroundSelectedColor := FActiveEditBackgroundSelectedColor;
-    Colors.TextColor := FActiveEditTextColor;
     Colors.TextSelectedColor := FActiveEditTextSelectedColor;
     Colors.TextHilightColor := FActiveEditTextHighLightColor;
     MaxX:=TheForm.ClientWidth;

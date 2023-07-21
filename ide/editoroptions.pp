@@ -126,7 +126,7 @@ const
     '', '', // ahaCaretColor, ahaOverviewGutter
     '', '', '',  // ahaIfDefBlockInactive, ahaIfDefBlockActive, ahaIfDefBlockTmpActive
     '', '', '',  // ahaIfDefNodeInactive, ahaIfDefNodeActive, ahaIfDefNodeTmpActive
-    '', '', '', '', // ahaIdentComplWindow, ahaIdentComplWindowBorder, ahaIdentComplWindowSelection, ahaIdentComplWindowHighlight
+    '', '', '', '', '', //ahaIdentComplWindowRecent, ahaIdentComplWindow, ahaIdentComplWindowBorder, ahaIdentComplWindowSelection, ahaIdentComplWindowHighlight
     '', '', '', '', '', '', '', '', '', '' // ahaOutlineLevel1Color..ahaOutlineLevel10Color
   );
 
@@ -172,6 +172,7 @@ const
     { ahaIfDefNodeInactive }   agnIfDef,
     { ahaIfDefNodeActive }     agnIfDef,
     { ahaIfDefNodeTmpActive }  agnIfDef,
+    { ahaIdentComplWindowRecent }     agnIdentComplWindow,
     { ahaIdentComplWindow }           agnIdentComplWindow,
     { ahaIdentComplWindowBorder }     agnIdentComplWindow,
     { ahaIdentComplWindowSelection }  agnIdentComplWindow,
@@ -231,6 +232,7 @@ const
     { ahaIfDefNodeInactive }  [hafBackColor, hafForeColor, hafFrameColor, hafAlpha, hafPrior, hafFrameStyle, hafFrameEdges, hafStyle, hafStyleMask],
     { ahaIfDefNodeActive }    [hafBackColor, hafForeColor, hafFrameColor, hafAlpha, hafPrior, hafFrameStyle, hafFrameEdges, hafStyle, hafStyleMask],
     { ahaIfDefNodeTmpActive } [hafBackColor, hafForeColor, hafFrameColor, hafAlpha, hafPrior, hafFrameStyle, hafFrameEdges, hafStyle, hafStyleMask],
+    { ahaIdentComplWindowRecent }    [hafForeColor],
     { ahaIdentComplWindow }   [hafBackColor, hafForeColor],
     { ahaIdentComplWindowBorder }    [hafForeColor],
     { ahaIdentComplWindowSelection } [hafBackColor, hafForeColor],
@@ -2723,6 +2725,7 @@ begin
 
   AdditionalHighlightAttributes[ahaIdentComplWindow]          := dlgAddHiAttrDefaultWindow;
   AdditionalHighlightAttributes[ahaIdentComplWindowBorder]    := dlgAddHiAttrWindowBorder;
+  AdditionalHighlightAttributes[ahaIdentComplRecent]          := dlgAddHiAttrRecentlyUsed;
   AdditionalHighlightAttributes[ahaIdentComplWindowSelection] := dlgBlockGroupOptions;
   AdditionalHighlightAttributes[ahaIdentComplWindowHighlight] := dlgAddHiAttrHighlightPrefix;
   AdditionalHighlightGroupNames[agnIdentComplWindow]          := dlgIdentifierCompletion;
@@ -6885,6 +6888,12 @@ begin
     if ASynEdit is TIDESynEditor then
     begin
       IDESynEdit := TIDESynEditor(ASynEdit);
+
+      Attri := GetUsedAttr(ahaIdentComplRecent);
+      if Attri<>nil then
+        IDESynEdit.MarkupIdentComplWindow.HistoryTextColor := Attri.Foreground
+      else
+        IDESynEdit.MarkupIdentComplWindow.HistoryTextColor := clNone;
 
       Attri := GetUsedAttr(ahaIdentComplWindow);
       if Attri<>nil then
