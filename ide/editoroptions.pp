@@ -126,7 +126,7 @@ const
     '', '', // ahaCaretColor, ahaOverviewGutter
     '', '', '',  // ahaIfDefBlockInactive, ahaIfDefBlockActive, ahaIfDefBlockTmpActive
     '', '', '',  // ahaIfDefNodeInactive, ahaIfDefNodeActive, ahaIfDefNodeTmpActive
-    '', '', '', '', '', //ahaIdentComplWindowRecent, ahaIdentComplWindow, ahaIdentComplWindowBorder, ahaIdentComplWindowSelection, ahaIdentComplWindowHighlight
+    '', '', '', '', '', // ahaIdentComplWindow, ahaIdentComplWindowBorder, ahaIdentComplRecent, ahaIdentComplWindowSelection, ahaIdentComplWindowHighlight
     '', '', '', '', '', '', '', '', '', '' // ahaOutlineLevel1Color..ahaOutlineLevel10Color
   );
 
@@ -172,9 +172,9 @@ const
     { ahaIfDefNodeInactive }   agnIfDef,
     { ahaIfDefNodeActive }     agnIfDef,
     { ahaIfDefNodeTmpActive }  agnIfDef,
-    { ahaIdentComplWindowRecent }     agnIdentComplWindow,
     { ahaIdentComplWindow }           agnIdentComplWindow,
     { ahaIdentComplWindowBorder }     agnIdentComplWindow,
+    { ahaIdentComplRecent }     agnIdentComplWindow,
     { ahaIdentComplWindowSelection }  agnIdentComplWindow,
     { ahaIdentComplWindowHighlight }  agnIdentComplWindow,
     { ahaOutlineLevel1Color }  agnOutlineColors,
@@ -232,9 +232,9 @@ const
     { ahaIfDefNodeInactive }  [hafBackColor, hafForeColor, hafFrameColor, hafAlpha, hafPrior, hafFrameStyle, hafFrameEdges, hafStyle, hafStyleMask],
     { ahaIfDefNodeActive }    [hafBackColor, hafForeColor, hafFrameColor, hafAlpha, hafPrior, hafFrameStyle, hafFrameEdges, hafStyle, hafStyleMask],
     { ahaIfDefNodeTmpActive } [hafBackColor, hafForeColor, hafFrameColor, hafAlpha, hafPrior, hafFrameStyle, hafFrameEdges, hafStyle, hafStyleMask],
-    { ahaIdentComplWindowRecent }    [hafForeColor],
     { ahaIdentComplWindow }   [hafBackColor, hafForeColor],
     { ahaIdentComplWindowBorder }    [hafForeColor],
+    { ahaIdentComplRecent}    [hafForeColor],
     { ahaIdentComplWindowSelection } [hafBackColor, hafForeColor],
     { ahaIdentComplWindowHighlight } [hafForeColor],
     { ahaFoldLevel1Color }    [hafBackColor, hafForeColor, hafFrameColor, hafAlpha, hafPrior, hafFrameStyle, hafFrameEdges, hafStyle, hafStyleMask, hafMarkupFoldColor],
@@ -6889,12 +6889,6 @@ begin
     begin
       IDESynEdit := TIDESynEditor(ASynEdit);
 
-      Attri := GetUsedAttr(ahaIdentComplRecent);
-      if Attri<>nil then
-        IDESynEdit.MarkupIdentComplWindow.HistoryTextColor := Attri.Foreground
-      else
-        IDESynEdit.MarkupIdentComplWindow.HistoryTextColor := clNone;
-
       Attri := GetUsedAttr(ahaIdentComplWindow);
       if Attri<>nil then
       begin
@@ -6911,6 +6905,12 @@ begin
         IDESynEdit.MarkupIdentComplWindow.BorderColor:= Attri.Foreground
       else
         IDESynEdit.MarkupIdentComplWindow.BorderColor:= clNone;
+
+      Attri := GetUsedAttr(ahaIdentComplRecent);
+      if Attri<>nil then
+        IDESynEdit.MarkupIdentComplWindow.HistoryTextColor := Attri.Foreground
+      else
+        IDESynEdit.MarkupIdentComplWindow.HistoryTextColor := clNone;
 
       Attri := GetUsedAttr(ahaIdentComplWindowHighlight);
       if Attri<>nil then
