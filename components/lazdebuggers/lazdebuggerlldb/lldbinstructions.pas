@@ -1107,6 +1107,13 @@ begin
     exit;
   end;
 
+debugln(['TLldbInstructionExpressionBase', AData]);
+if StrMatches(AData, ['(', ') 0x', ' ', ''], found) then
+  debugln(['TLldbInstructionExpressionBase', found[1], ' ## ' , found[2]]);
+if StrMatches(AData, ['(', ') 0x', #9, ''], found) then
+  debugln(['TLldbInstructionExpressionBase #9', found[1], ' ## ' , found[2]]);
+
+
   if StrMatches(AData, ['(', ')', ' = ', ''], found) then begin
     FRes := AData;
     FCurly := 0;

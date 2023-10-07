@@ -1027,22 +1027,27 @@ begin
   {%region exception }
   s := TrimLeft(ALine);
   Instr := nil;
+debugln('DoLineDataReceived()');
   if StrStartsWith(s, Debugger.FExceptionInfo.FReg0Cmd, True) then begin
+debugln('DoLineDataReceived()  FReg0Cmd');
     Instr := TLldbInstructionReadExpression.Create;
     Instr.OnSuccess := @ExceptionReadReg0Success;
   end
   else
   if StrStartsWith(s, Debugger.FExceptionInfo.FReg2Cmd, True) then begin
+debugln('DoLineDataReceived()  FReg2Cmd');
     Instr := TLldbInstructionReadExpression.Create;
     Instr.OnSuccess := @ExceptionReadReg2Success;
   end
   else
   if StrStartsWith(s, Debugger.FExceptionInfo.FExceptClassCmd, True) then begin
+debugln('DoLineDataReceived()  FExceptClassCmd');
     Instr := TLldbInstructionReadExpression.Create;
     Instr.OnSuccess := @ExceptionReadClassSuccess;
   end
   else
   if StrStartsWith(s, Debugger.FExceptionInfo.FExceptMsgCmd, True) then begin
+debugln('DoLineDataReceived()  FExceptMsgCmd');
     Instr := TLldbInstructionReadExpression.Create;
     Instr.OnSuccess := @ExceptionReadMsgSuccess;
   end;
@@ -3160,7 +3165,7 @@ begin
 end;
 
 initialization
-  DBG_VERBOSE       := DebugLogger.FindOrRegisterLogGroup('DBG_VERBOSE' {$IFDEF DBG_VERBOSE} , True {$ENDIF} );
+  DBG_VERBOSE       := DebugLogger.FindOrRegisterLogGroup('DBG_VERBOSE', True  );
 
 end.
 
