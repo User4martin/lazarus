@@ -1113,6 +1113,15 @@ begin
     if ParseStruct(found[2]) then
       SetContentReceieved;
     exit;
+  end
+  else
+  // (char *) 0x0000000111246cd8 "\"\" is not a valid boolean."
+  if StrMatches(AData, ['(', ') 0x', ' ', ''], found) then begin
+    FRes := AData;
+    FCurly := 0;
+    if ParseStruct(found[2]) then
+      SetContentReceieved;
+    exit;
   end;
 // error: use of undeclared identifier 'i'
 // (int) $0 = 133
