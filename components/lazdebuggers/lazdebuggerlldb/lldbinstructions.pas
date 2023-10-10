@@ -1107,13 +1107,10 @@ begin
     exit;
   end;
 
-debugln(['TLldbInstructionExpressionBase', AData]);
-if StrMatches(AData, ['(', ') 0x', ' ', ''], found) then
-  debugln(['TLldbInstructionExpressionBase', found[1], ' ## ' , found[2]]);
-if StrMatches(AData, ['(', ') 0x', #9, ''], found) then
-  debugln(['TLldbInstructionExpressionBase #9', found[1], ' ## ' , found[2]]);
-
-
+  // error: use of undeclared identifier 'i'
+  // (int) $0 = 133
+  // (LONGINT) I = 99
+  // (ANSISTRING) $1 = 0x005aac80
   if StrMatches(AData, ['(', ')', ' = ', ''], found) then begin
     FRes := AData;
     FCurly := 0;
@@ -1123,17 +1120,14 @@ if StrMatches(AData, ['(', ') 0x', #9, ''], found) then
   end
   else
   // (char *) 0x0000000111246cd8 "\"\" is not a valid boolean."
-  if StrMatches(AData, ['(', ') 0x', ' ', ''], found) then begin
+  // (unsigned long) 0x0000000106e6f8a0
+  if StrMatches(AData, ['(', ') ', ''], found) then begin
     FRes := AData;
     FCurly := 0;
-    if ParseStruct(found[2]) then
+    if ParseStruct(found[1]) then
       SetContentReceieved;
     exit;
   end;
-// error: use of undeclared identifier 'i'
-// (int) $0 = 133
-// (LONGINT) I = 99
-// (ANSISTRING) $1 = 0x005aac80
   Result := inherited ProcessInputFromDbg(AData);
 end;
 
