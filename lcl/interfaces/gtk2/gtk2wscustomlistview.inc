@@ -446,6 +446,8 @@ var
   Bmp: TBitmap;
   pixbuf: PGdkPixbuf;
 begin
+  if PGtkCellRendererPixbuf(cell)^.pixbuf <> nil then
+    g_object_unref(PGtkCellRendererPixbuf(cell)^.pixbuf);
   PGtkCellRendererPixbuf(cell)^.pixbuf := nil;
   Widgets := PTVWidgets(WidgetInfo^.UserData);
   gtk_tree_model_get(tree_model, iter, [0, @ListItem, -1]);
@@ -489,14 +491,20 @@ begin
       ImageList.GetBitmap(ImageIndex, Bmp);
       Gtk2_PixBufFromBitmap(Bmp,pixbuf);
       PGtkCellRendererPixbuf(cell)^.pixbuf :=pixbuf;
+      g_object_ref(PGtkCellRendererPixbuf(cell)^.pixbuf);
     finally
       Bmp.Free;
     end;
   end else
-  if (ImageIndex > -1) and (ImageIndex <= Images.Count-1) then
-    PGtkCellRendererPixbuf(cell)^.pixbuf := PGdkPixbuf(Images.Items[ImageIndex])
-  else
+  if (ImageIndex > -1) and (ImageIndex <= Images.Count-1) then begin
+    PGtkCellRendererPixbuf(cell)^.pixbuf := PGdkPixbuf(Images.Items[ImageIndex]);
+    g_object_ref(PGtkCellRendererPixbuf(cell)^.pixbuf);
+  end
+  else begin
+    if PGtkCellRendererPixbuf(cell)^.pixbuf <> nil then
+      g_object_unref(PGtkCellRendererPixbuf(cell)^.pixbuf);
     PGtkCellRendererPixbuf(cell)^.pixbuf := nil;
+  end;
 end;
 
 procedure Gtk2WSLV_ListViewGetPixbufDataFuncForIconView({%H-}cell_layout:PGtkCellLayout;
@@ -508,6 +516,8 @@ var
   ImageIndex: Integer;
   APath: PGtkTreePath;
 begin
+  if PGtkCellRendererPixbuf(cell)^.pixbuf <> nil then
+    g_object_unref(PGtkCellRendererPixbuf(cell)^.pixbuf);
   PGtkCellRendererPixbuf(cell)^.pixbuf := nil;
   Widgets := PTVWidgets(WidgetInfo^.UserData);
   gtk_tree_model_get(tree_model, iter, [0, @ListItem, -1]);
@@ -529,10 +539,15 @@ begin
 
   ImageIndex := ListItem.ImageIndex;
 
-  if (ImageIndex > -1) and (ImageIndex <= Images.Count-1) then
-    PGtkCellRendererPixbuf(cell)^.pixbuf := PGdkPixbuf(Images.Items[ImageIndex])
-  else
+  if (ImageIndex > -1) and (ImageIndex <= Images.Count-1) then begin
+    PGtkCellRendererPixbuf(cell)^.pixbuf := PGdkPixbuf(Images.Items[ImageIndex]);
+    g_object_ref(PGtkCellRendererPixbuf(cell)^.pixbuf);
+  end
+  else begin
+    if PGtkCellRendererPixbuf(cell)^.pixbuf <> nil then
+      g_object_unref(PGtkCellRendererPixbuf(cell)^.pixbuf);
     PGtkCellRendererPixbuf(cell)^.pixbuf := nil;
+  end;
 end;
 
 { TGtk2WSCustomListView }
