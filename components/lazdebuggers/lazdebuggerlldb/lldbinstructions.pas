@@ -18,7 +18,7 @@ unit LldbInstructions;
 interface
 
 uses
-  SysUtils, Classes, strutils,
+  SysUtils, Classes, windows, strutils,
   // LazUtils
   LazLoggerBase,
   // DebuggerIntf
@@ -129,6 +129,8 @@ type
   { TLldbInstructionProcessLaunch }
 
   TLldbInstructionProcessLaunch = class(TLldbInstruction)
+  private
+    FErrorCount: integer;
   protected
     function ProcessInputFromDbg(const AData: String): Boolean; override;
   public
@@ -732,6 +734,18 @@ end;
 function TLldbInstructionProcessLaunch.ProcessInputFromDbg(const AData: String
   ): Boolean;
 begin
+  if LeftStr(AData, 7) = 'error: ' then begin
+    inc(FErrorCount);
+    if FErrorCount > 9 then begin
+      Result := inherited ProcessInputFromDbg(AData);
+      exit;
+    end;
+    sleep(100 * min(3, FErrorCount));
+    inherited SendCommandDataToDbg;
+    exit;
+  end;
+
+
   if StrStartsWith(AData, 'Process ') and (pos(' launched:', AData) > 8) then begin
     SetContentReceieved;
   end
