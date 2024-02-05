@@ -53,6 +53,7 @@ resourcestring
   dlgBackConvOptRemove = 'Remove';
   dlgBackConvOptMatchTypesByName = 'Match types by name';
   dlgBackConvOptAction = 'Action';
+  dlgVarFormatterDebugOptions = 'Value Formatter';
   dlgBackConvOptDebugOptions = 'Backend Converter';
   dlgIdeDbgDebugger = 'Debugger';
   dlgIdeDbgNewItem = 'New Item';

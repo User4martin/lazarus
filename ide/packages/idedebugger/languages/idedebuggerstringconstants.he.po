@@ -192,6 +192,10 @@ msgstr "ערך"
 msgid "Data-Address"
 msgstr ""
 
+#: idedebuggerstringconstants.dlgvarformatterdebugoptions
+msgid "Value Formatter"
+msgstr ""
+
 #: idedebuggerstringconstants.drsaddwatch
 msgctxt "idedebuggerstringconstants.drsaddwatch"
 msgid "Add watch"

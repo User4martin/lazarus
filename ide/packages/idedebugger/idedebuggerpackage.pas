@@ -18,7 +18,9 @@ uses
   HistoryDlg, PseudoTerminalDlg, RegistersDlg, DebugOutputForm, ExceptionDlg, 
   FeedbackDlg, DebugAttachDialog, BreakPropertyDlg, EvaluateDlg, InspectDlg, 
   BreakPointsDlg, AssemblerDlg, DbgTreeViewWatchData, EnvDebuggerOptions, 
-  BreakpointGroupFrame, LazarusPackageIntf;
+  BreakpointGroupFrame, IdeDbgValueFormatterSettingsFrame, 
+  IdeDebuggerValueFormatter, IdeDebugger_ValFormatter_Options, 
+  IdeDebuggerCommonValueFormatter, LazarusPackageIntf;
 
 implementation
 
@@ -26,6 +28,8 @@ procedure Register;
 begin
   RegisterUnit('IdeDebugger_ValConv_Options', 
     @IdeDebugger_ValConv_Options.Register);
+  RegisterUnit('IdeDebugger_ValFormatter_Options', 
+    @IdeDebugger_ValFormatter_Options.Register);
 end;
 
 initialization

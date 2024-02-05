@@ -48,15 +48,16 @@ uses
   //SynEdit
   SynEdit,
   // IdeIntf
-  IDEWindowIntf, IDEImagesIntf, IdeIntfStrConsts,
+  IDEWindowIntf, IDEImagesIntf, IdeIntfStrConsts, IdeDebuggerWatchValueIntf,
   // DebuggerIntf
   DbgIntfBaseTypes, DbgIntfDebuggerBase, DbgIntfMiscClasses,
   // LazDebuggerIntf
   LazDebuggerIntf, LazDebuggerIntfBaseTypes,
   // IdeDebugger
   Debugger, DebuggerTreeView, IdeDebuggerBase, DebuggerDlg, BaseDebugManager,
-  IdeDebuggerWatchResult, IdeDebuggerWatchResPrinter, ArrayNavigationFrame, IdeDebuggerUtils,
-  IdeDebuggerStringConstants, DbgTreeViewWatchData, EnvDebuggerOptions;
+  IdeDebuggerWatchResult, IdeDebuggerWatchResPrinter, ArrayNavigationFrame,
+  IdeDebuggerUtils, IdeDebuggerStringConstants, DbgTreeViewWatchData,
+  EnvDebuggerOptions, IdeDebuggerValueFormatter;
 
 type
 
@@ -1167,6 +1168,28 @@ begin
 
   t := d.TypeInfo;
 
+  FWatchPrinter.FormatFlags := [rpfIndent, rpfMultiLine];
+
+  if (d.ResultData <> nil) and
+     not( (d.ResultData.ValueKind = rdkPrePrinted) and (t <> nil) )
+  then begin
+    if ValueFormatterSelectorList.FormatValue(d.ResultData, d.DisplayFormat, FWatchPrinter, s)
+    then begin
+      InspectMemo.WordWrap := True;
+      InspectMemo.Text := s;
+      exit;
+    end;
+  end
+  else
+  if (t <> nil) and
+     ValueFormatterSelectorList.FormatValue(t, d.Value, d.DisplayFormat, s)
+  then begin
+    InspectMemo.WordWrap := True;
+    InspectMemo.Text := s;
+    exit;
+  end;
+
+
   if (t <> nil) and (t.Fields <> nil) and (t.Fields.Count > 0) and
      (d.DisplayFormat in [wdfDefault, wdfStructure])
   then begin
@@ -1197,12 +1220,11 @@ begin
   end;
 
   InspectMemo.WordWrap := True;
-  FWatchPrinter.FormatFlags := [rpfIndent, rpfMultiLine];
   if d.ResultData <> nil then
     s := FWatchPrinter.PrintWatchValue(d.ResultData, d.DisplayFormat)
   else
     s := d.Value;
-  InspectMemo.Text := DebugBoss.FormatValue(d.TypeInfo, s);
+  InspectMemo.Text := s;
   finally
     FWatchPrinter.FormatFlags := [rpfClearMultiLine];
     DebugBoss.UnLockCommandProcessing;
@@ -1487,13 +1509,22 @@ begin
        (AWatchAbleResult.Validity in [ddsValid, ddsInvalid, ddsError]) or // snapshot
        (AWatchAbleResult.ResultData <> nil)
     then begin
-      if (AWatchAbleResult.ResultData <> nil) then begin
+      if (AWatchAbleResult.ResultData <> nil) and
+         not( (AWatchAbleResult.ResultData.ValueKind = rdkPrePrinted) and
+              (AWatchAbleResult.TypeInfo <> nil)
+         )
+      then begin
         FWatchDlg.FWatchPrinter.FormatFlags := [rpfClearMultiLine];
-        WatchValueStr := FWatchDlg.FWatchPrinter.PrintWatchValue(AWatchAbleResult.ResultData, AWatchAbleResult.DisplayFormat);
-        WatchValueStr := DebugBoss.FormatValue(AWatchAbleResult.TypeInfo, WatchValueStr);
-        if (AWatchAbleResult.ResultData.ValueKind = rdkArray) and (AWatchAbleResult.ResultData.ArrayLength > 0)
-        then TreeView.NodeText[AVNode, COL_WATCH_VALUE-1] := Format(drsLen, [AWatchAbleResult.ResultData.ArrayLength]) + WatchValueStr
-        else TreeView.NodeText[AVNode, COL_WATCH_VALUE-1] := WatchValueStr;
+        if not ValueFormatterSelectorList.FormatValue(AWatchAbleResult.ResultData,
+           AWatchAbleResult.DisplayFormat, FWatchDlg.FWatchPrinter, WatchValueStr)
+        then begin
+          WatchValueStr := FWatchDlg.FWatchPrinter.PrintWatchValue(AWatchAbleResult.ResultData, AWatchAbleResult.DisplayFormat);
+          if (AWatchAbleResult.ResultData.ValueKind = rdkArray) and (AWatchAbleResult.ResultData.ArrayLength > 0)
+          then
+            WatchValueStr := Format(drsLen, [AWatchAbleResult.ResultData.ArrayLength]) + WatchValueStr;
+        end;
+        TreeView.NodeText[AVNode, COL_WATCH_VALUE-1] := WatchValueStr;
+
         if AWatchAbleResult.ResultData.HasDataAddress then begin
           da := AWatchAbleResult.ResultData.DataAddress;
           if da = 0
@@ -1502,11 +1533,18 @@ begin
         end
       end
       else begin
-        if (AWatchAbleResult.TypeInfo <> nil) and
-           (AWatchAbleResult.TypeInfo.Attributes * [saArray, saDynArray] <> []) and
-           (AWatchAbleResult.TypeInfo.Len >= 0)
-        then TreeView.NodeText[AVNode, COL_WATCH_VALUE-1] := Format(drsLen, [AWatchAbleResult.TypeInfo.Len]) + AWatchAbleResult.Value
-        else TreeView.NodeText[AVNode, COL_WATCH_VALUE-1] := ClearMultiline(AWatchAbleResult.Value);
+        if (AWatchAbleResult.TypeInfo = nil) or
+           not ValueFormatterSelectorList.FormatValue(AWatchAbleResult.TypeInfo,
+           AWatchAbleResult.Value, AWatchAbleResult.DisplayFormat, WatchValueStr)
+        then begin
+          WatchValueStr := AWatchAbleResult.Value;
+          if (AWatchAbleResult.TypeInfo <> nil) and
+             (AWatchAbleResult.TypeInfo.Attributes * [saArray, saDynArray] <> []) and
+             (AWatchAbleResult.TypeInfo.Len >= 0)
+          then
+            WatchValueStr := Format(drsLen, [AWatchAbleResult.TypeInfo.Len]) + WatchValueStr;
+        end;
+        TreeView.NodeText[AVNode, COL_WATCH_VALUE-1] := ClearMultiline(WatchValueStr);
       end;
     end
     else

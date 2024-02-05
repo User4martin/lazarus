@@ -186,6 +186,10 @@ msgstr "Значення"
 msgid "Data-Address"
 msgstr "Дані-адреса"
 
+#: idedebuggerstringconstants.dlgvarformatterdebugoptions
+msgid "Value Formatter"
+msgstr ""
+
 #: idedebuggerstringconstants.drsaddwatch
 msgctxt "idedebuggerstringconstants.drsaddwatch"
 msgid "Add watch"

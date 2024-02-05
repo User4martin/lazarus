@@ -52,17 +52,19 @@ uses
   ProjectIntf, CompOptsIntf,
   // IDEIntf
   IDEWindowIntf, SrcEditorIntf, MenuIntf, IDECommands, LazIDEIntf,
-  IdeIntfStrConsts, IDEDialogs, ToolBarIntf, InputHistory,
+  IdeIntfStrConsts, IDEDialogs, ToolBarIntf, InputHistory, IdeDebuggerValueFormatterIntf,
   // DebuggerIntf
   DbgIntfBaseTypes, DbgIntfDebuggerBase, DbgIntfMiscClasses, DbgIntfPseudoTerminal,
   // LazDebuggerIntf
   LazDebuggerIntf, LazDebuggerIntfBaseTypes,
   // IDEDebugger
-  IdeDebuggerStringConstants, DebuggerDlg, WatchesDlg, BreakPointsdlg, BreakPropertyDlg,
-  LocalsDlg, WatchPropertyDlg, CallStackDlg, EvaluateDlg, RegistersDlg, AssemblerDlg,
-  DebugOutputForm, ExceptionDlg, InspectDlg, PseudoTerminalDlg, FeedbackDlg, ThreadDlg,
-  HistoryDlg, ProcessDebugger, IdeDebuggerBase, IdeDebuggerOpts, EnvDebuggerOptions,
+  IdeDebuggerStringConstants, DebuggerDlg, WatchesDlg, BreakPointsdlg,
+  BreakPropertyDlg, LocalsDlg, WatchPropertyDlg, CallStackDlg, EvaluateDlg,
+  RegistersDlg, AssemblerDlg, DebugOutputForm, ExceptionDlg, InspectDlg,
+  PseudoTerminalDlg, FeedbackDlg, ThreadDlg, HistoryDlg, ProcessDebugger,
+  IdeDebuggerBase, IdeDebuggerOpts, EnvDebuggerOptions,
   IdeDebuggerBackendValueConv, Debugger, BaseDebugManager,
+  IdeDebuggerValueFormatter,
   // IdeConfig
   LazConf,
   // IDE
@@ -2125,12 +2127,12 @@ begin
 
   LazarusIDE.AddHandlerOnProjectClose(@DoProjectClose);
 
-  RegisterValueFormatter(skSimple, 'TDate', @DBGDateTimeFormatter);
-  RegisterValueFormatter(skFloat, 'TDate', @DBGDateTimeFormatter);
-  RegisterValueFormatter(skSimple, 'TTime', @DBGDateTimeFormatter);
-  RegisterValueFormatter(skFloat, 'TTime', @DBGDateTimeFormatter);
-  RegisterValueFormatter(skSimple, 'TDateTime', @DBGDateTimeFormatter);
-  RegisterValueFormatter(skFloat, 'TDateTime', @DBGDateTimeFormatter);
+  //RegisterValueFormatter(skSimple, 'TDate', @DBGDateTimeFormatter);
+  //RegisterValueFormatter(skFloat, 'TDate', @DBGDateTimeFormatter);
+  //RegisterValueFormatter(skSimple, 'TTime', @DBGDateTimeFormatter);
+  //RegisterValueFormatter(skFloat, 'TTime', @DBGDateTimeFormatter);
+  //RegisterValueFormatter(skSimple, 'TDateTime', @DBGDateTimeFormatter);
+  //RegisterValueFormatter(skFloat, 'TDateTime', @DBGDateTimeFormatter);
 
   FEventLogManager := TDebugEventLogManager.Create;
   FProjectLink := TProjectDebugLink.Create;
@@ -2516,16 +2518,24 @@ procedure TDebugManager.DoBackendConverterChanged;
 begin
   ValueConverterSelectorList.Lock;
   ProjectValueConverterSelectorList := nil;
+  ProjectValueFormatterSelectorList := nil;
 
   try
     ValueConverterSelectorList.Clear;
-    if {(Project1 <> nil) and} (FProjectLink.UseBackendConverterFromProject) then
+    ValueFormatterSelectorList.Clear;
+    if {(Project1 <> nil) and} (FProjectLink.UseBackendConverterFromProject) then begin
       FProjectLink.BackendConverterConfig.AssignEnabledTo(ValueConverterSelectorList, True);
-    if (Project1 = nil) or (FProjectLink.UseBackendConverterFromIDE) then
+      FProjectLink.ValueFormatterConfig.AssignEnabledTo(ValueFormatterSelectorList, True);
+    end;
+    if (Project1 = nil) or (FProjectLink.UseBackendConverterFromIDE) then begin
       DebuggerOptions.BackendConverterConfig.AssignEnabledTo(ValueConverterSelectorList, True);
+      DebuggerOptions.ValueFormatterConfig.AssignEnabledTo(ValueFormatterSelectorList, True);
+    end;
 
-    if (Project1 <> nil) then
+    if (Project1 <> nil) then begin
       ProjectValueConverterSelectorList := FProjectLink.BackendConverterConfig;
+      ProjectValueFormatterSelectorList := FProjectLink.ValueFormatterConfig;
+    end;
   finally
     ValueConverterSelectorList.Unlock;
   end;

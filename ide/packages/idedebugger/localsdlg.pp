@@ -43,7 +43,7 @@ uses
   // LazUtils
   LazLoggerBase, LazStringUtils, LazUTF8,
   // IdeIntf
-  IDEWindowIntf, IDEImagesIntf,
+  IDEWindowIntf, IDEImagesIntf, IdeDebuggerWatchValueIntf,
   // DebuggerIntf
   DbgIntfDebuggerBase,
   // LazDebuggerIntf

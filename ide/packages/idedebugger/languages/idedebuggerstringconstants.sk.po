@@ -184,6 +184,10 @@ msgstr "Hodnota"
 msgid "Data-Address"
 msgstr ""
 
+#: idedebuggerstringconstants.dlgvarformatterdebugoptions
+msgid "Value Formatter"
+msgstr ""
+
 #: idedebuggerstringconstants.drsaddwatch
 #, fuzzy
 msgctxt "idedebuggerstringconstants.drsaddwatch"

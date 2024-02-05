@@ -181,6 +181,10 @@ msgstr "Değer"
 msgid "Data-Address"
 msgstr "Veri-Adres"
 
+#: idedebuggerstringconstants.dlgvarformatterdebugoptions
+msgid "Value Formatter"
+msgstr ""
+
 #: idedebuggerstringconstants.drsaddwatch
 msgctxt "idedebuggerstringconstants.drsaddwatch"
 msgid "Add watch"
