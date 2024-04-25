@@ -3572,7 +3572,7 @@ begin
     Result:=CheckIfCurPkgOutDirNeedsCompile(APackage,
                true,SkipDesignTimePackages,GroupCompile,
                NeedBuildAllFlag,ConfigChanged,DependenciesChanged,Note);
-    if Result=mrNo then begin
+    if Result in [mrNo, mrCancel] then begin
       // the current output is valid
       exit;
     end;
@@ -3637,7 +3637,7 @@ begin
     DefResult:=CheckIfCurPkgOutDirNeedsCompile(APackage,
                  true,SkipDesignTimePackages,GroupCompile,
                  NeedBuildAllFlag,ConfigChanged,DependenciesChanged,Note);
-    if IsDefDirWritable or (DefResult=mrNo) then begin
+    if IsDefDirWritable or (DefResult in [mrNo, mrCancel]) then begin
       // switching back to the default output directory
       debugln(['Hint: (lazarus) switching back to the normal output directory: "',APackage.GetOutputDirectory,'" Package ',APackage.IDAsString]);
       Note+='Switching back to default output directory.'+LineEnding;
@@ -4342,7 +4342,7 @@ begin
     if Note<>'' then
       Note:='Compile reason: '+Note;
     if (pcfOnlyIfNeeded in Flags) then begin
-      if Result=mrNo then begin
+      if Result in [mrNo, mrCancel] then begin
         //DebugLn(['TLazPackageGraph.CompilePackage ',APackage.IDAsString,' does not need compilation.']);
         Result:=mrOk;
         exit;
