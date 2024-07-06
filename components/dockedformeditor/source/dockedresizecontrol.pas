@@ -60,7 +60,7 @@ type
     function  GetAnchorContainer: TWinControl;
     function  GetFakeMenu: TCustomControl;
     function  GetFormClient: TWinControl;
-    function  GetFormContainer: TWinControl;
+    function  GetFormContainer: TResizeFormContainer;
     function  GetSizerGripSize: Integer;
     procedure RefreshAnchorDesigner;
     procedure ResizeBarPaint(Sender: TObject);
@@ -82,7 +82,7 @@ type
     property DesignForm: TDesignForm read FDesignForm write SetDesignForm;
     property FakeMenu: TCustomControl read GetFakeMenu;
     property FormClient: TWinControl read GetFormClient;
-    property FormContainer: TWinControl read GetFormContainer;
+    property FormContainer: TResizeFormContainer read GetFormContainer;
     property NewFormSize: TPoint read FNewFormSize;
     property OnResized: TNotifyEvent read FOnResized write FOnResized;
     property Resizing: Boolean read FResizing;
@@ -95,20 +95,23 @@ implementation
 
 procedure TResizeControl.AdjustFormContainer;
 var
+  ClOffs: TPoint;
   LLeft, LTop, LWidth, LHeight: Integer;
 begin
+  ClOffs  := FDesignForm.ClientOffset;
   LLeft   := - FDesignForm.Form.Left        // real form left - aka Form1.Left in OI
-             - FDesignForm.ClientOffset.X;  // offset of frame of form to client rect
+             - ClOffs.X;  // offset of frame of form to client rect
   LTop    := - FDesignForm.Form.Top
-             - FDesignForm.ClientOffset.Y;
-  LWidth  :=   FDesignForm.Form.Width
-             + Abs(FDesignForm.Form.Left)
-             + FDesignForm.ClientOffset.X;
-  LHeight :=   FDesignForm.Form.Height
-             + FakeMenu.Height
+             - ClOffs.Y;
+  LWidth  :=   Abs(FDesignForm.Form.Left)
+             + ClOffs.X;
+  LHeight :=   FakeMenu.Height
              + Abs(FDesignForm.Form.Top)
-             + FDesignForm.ClientOffset.Y;
-  FormContainer.SetBounds(LLeft, LTop, LWidth, LHeight);
+             + ClOffs.Y;
+  FormContainer.SetClientRectAdjust(LWidth, LHeight);
+  FormContainer.SetBounds(LLeft, LTop,
+                          FDesignForm.Form.Width + LWidth,
+                          FDesignForm.Form.Height + LHeight);
   RefreshAnchorDesigner;
 end;
 
@@ -275,7 +278,7 @@ begin
   Result := FResizeContainer.FormClient;
 end;
 
-function TResizeControl.GetFormContainer: TWinControl;
+function TResizeControl.GetFormContainer: TResizeFormContainer;
 begin
   Result := FResizeContainer.FormContainer;
 end;

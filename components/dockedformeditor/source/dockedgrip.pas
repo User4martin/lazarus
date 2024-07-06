@@ -40,7 +40,7 @@ uses
   // RTL, FCL
   Classes, SysUtils, math,
   // LCL
-  Controls, ExtCtrls, Graphics, Menus;
+  Controls, ExtCtrls, Graphics, Menus, Forms;
 
 type
 
@@ -180,6 +180,17 @@ type
     property PopupMenu: TPopupMenu read GetPopupMenu write SetPopupMenu;
   end;
 
+  { TResizeFormContainer }
+
+  TResizeFormContainer = class(TWinControl)
+  private
+    FClientRectAdjust: TPoint;
+  protected
+    function GetClientRect: TRect; override;
+  public
+    procedure SetClientRectAdjust(X,Y: integer);
+  end;
+
   { TResizeContainer }
 
   TResizeContainer = class(TComponent)
@@ -188,7 +199,7 @@ type
     FBoundsRect: TRect;
     FFakeMenu: TCustomControl;
     FFormClient: TWinControl;
-    FFormContainer: TWinControl;
+    FFormContainer: TResizeFormContainer;
     FParent: TWinControl;
     FResizeBars: TResizeBars;
     FResizeGrips: TResizeGrips;
@@ -203,7 +214,7 @@ type
     property BoundsRect: TRect read FBoundsRect;
     property FakeMenu: TCustomControl read FFakeMenu;
     property FormClient: TWinControl read FFormClient;
-    property FormContainer: TWinControl read FFormContainer;
+    property FormContainer: TResizeFormContainer read FFormContainer;
     property Parent: TWinControl read FParent;
     property ResizeBars: TResizeBars read FResizeBars;
     property ResizeGrips: TResizeGrips read FResizeGrips;
@@ -578,6 +589,20 @@ begin
   FBar[7].SetBounds(ARect.Left, ARect.Top + BarSize, BarSize, LMiddleTop - ARect.Top - BarSize);
 end;
 
+{ TResizeFormContainer }
+
+function TResizeFormContainer.GetClientRect: TRect;
+begin
+  Result := inherited GetClientRect;
+  dec(Result.Right,  FClientRectAdjust.X);
+  dec(Result.Bottom, FClientRectAdjust.Y);
+end;
+
+procedure TResizeFormContainer.SetClientRectAdjust(X, Y: integer);
+begin
+  FClientRectAdjust := Point(X, Y);
+end;
+
 { TResizeContainer }
 
 constructor TResizeContainer.Create(AWinControl: TWinControl);
@@ -599,7 +624,7 @@ begin
   FFormClient.ControlStyle:= FFormClient.ControlStyle + [csOpaque];
   FFormClient.Parent := Parent;
 
-  FFormContainer := TWinControl.Create(FFormClient);
+  FFormContainer := TResizeFormContainer.Create(FFormClient);
   FFormContainer.Parent := FFormClient;
 
   FAnchorContainer := TWinControl.Create(Parent);
