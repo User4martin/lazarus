@@ -1787,10 +1787,10 @@ type
 var
   Context: PCONTEXT;
   ContextSize: DWord;
-  Buffer: Pointer;
+  Buffer, Buffer2: Pointer;
   FeatureMask: DWORD64;
   Xmm, Ymm: PM128A;
-  FeatureLength: DWORD;
+  FeatureLength, FeatureLength2: DWORD;
   i: Integer;
   EM: TFPUExceptionMask;
 {$endif}
@@ -1998,12 +1998,13 @@ begin
       then
         exit;
 
-      Buffer := AllocMem(ContextSize);
+      Buffer := AllocMem(ContextSize+$40);
       if Buffer = nil then
         exit;
+      Buffer2 := AlignPtr(Buffer, $40);
 
       try
-        if not _InitializeContext(Buffer, CONTEXT_ALL or CONTEXT_XSTATE, @Context, @ContextSize) then
+        if not _InitializeContext(Buffer2, CONTEXT_ALL or CONTEXT_XSTATE, @Context, @ContextSize) then
           exit;
         if not _SetXStateFeaturesMask(Context, XSTATE_MASK_AVX) then
           exit;
@@ -2015,8 +2016,8 @@ begin
           exit;
 
         Xmm := _LocateXStateFeature(Context, XSTATE_LEGACY_SSE, @FeatureLength);
-        Ymm := _LocateXStateFeature(Context, XSTATE_AVX, nil);
-        if (Xmm = nil) or (Ymm = nil) then
+        Ymm := _LocateXStateFeature(Context, XSTATE_AVX, @FeatureLength2);
+        if (Xmm = nil) or (Ymm = nil) or (FeatureLength2 = 0) then
           exit;
 
         for i := 0 to FeatureLength div SizeOf(M128A) - 1 do begin
