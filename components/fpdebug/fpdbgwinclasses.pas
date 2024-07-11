@@ -349,6 +349,35 @@ begin
 end;
 
 
+const
+  {$ifdef cpux86_64}
+  CONTEXT_XSTATE = $00100040; // 64bit
+  {$else}
+  CONTEXT_XSTATE = $00010040; // 32 bit
+  {$endif}
+
+  XSTATE_LEGACY_FLOATING_POINT = 0;
+  XSTATE_LEGACY_SSE            = 1;
+  XSTATE_GSSE                  = 2;
+  XSTATE_AVX                   = XSTATE_GSSE;
+  XSTATE_MPX_BNDREGS           = 3;
+  XSTATE_MPX_BNDCSR            = 4;
+  XSTATE_AVX512_KMASK          = 5;
+  XSTATE_AVX512_ZMM_H          = 6;
+  XSTATE_AVX512_ZMM            = 7;
+  XSTATE_IPT                   = 8;
+  XSTATE_CET_U                 = 11;
+  XSTATE_LWP                   = 62;
+  MAXIMUM_XSTATE_FEATURES      = 64;
+
+  XSTATE_MASK_LEGACY_FLOATING_POINT = DWORD64(1 << XSTATE_LEGACY_FLOATING_POINT);
+  XSTATE_MASK_LEGACY_SSE            = DWORD64(1 << XSTATE_LEGACY_SSE);
+  XSTATE_MASK_LEGACY                = (XSTATE_MASK_LEGACY_FLOATING_POINT or XSTATE_MASK_LEGACY_SSE);
+  XSTATE_MASK_GSSE                  = DWORD64(1 << XSTATE_GSSE);
+  XSTATE_MASK_AVX                   = XSTATE_MASK_GSSE;
+type
+  PPCONTEXT = ^PCONTEXT;
+
 var
   DebugBreakAddr: Pointer = nil;
   _CreateRemoteThread: function(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; stdcall = nil;
@@ -363,6 +392,13 @@ var
   _DebugBreakProcess: function(Process:HANDLE): WINBOOL; stdcall = nil;
   _GetThreadDescription: function(hThread: THandle; ppszThreadDescription: PPWSTR): HResult; stdcall = nil;
   _WaitForDebugEventEx: function(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; stdcall = nil;
+  // XState
+  _GetEnabledXStateFeatures: function(): DWORD64; stdcall = nil;
+  _InitializeContext:     function(Buffer: Pointer; ContextFlags: DWORD; Context: PPCONTEXT; ContextLength: PDWORD): BOOL; stdcall = nil;
+  _GetXStateFeaturesMask: function(Context: PCONTEXT; FeatureMask: PDWORD64): BOOL; stdcall = nil;
+  _LocateXStateFeature:   function(Context: PCONTEXT; FeatureId: DWORD; Length: PDWORD): PM128A; stdcall = nil;
+  _SetXStateFeaturesMask: function(Context: PCONTEXT; FeatureMask: DWORD64): BOOL; stdcall = nil;
+  _xstate_FeatureMask: DWORD64;
 
 procedure LoadKernelEntryPoints;
 var
@@ -388,6 +424,25 @@ begin
   Pointer(_Wow64SuspendThread) := GetProcAddress(hMod, 'Wow64SuspendThread');
   {$endif}
   Pointer(_WaitForDebugEventEx) := GetProcAddress(hMod, 'WaitForDebugEventEx');
+  // xstate
+  Pointer(_GetEnabledXStateFeatures) := nil;
+  {$ifdef cpux86_64}
+  Pointer(_GetEnabledXStateFeatures) := GetProcAddress(hMod, 'GetEnabledXStateFeatures');
+  Pointer(_InitializeContext)        := GetProcAddress(hMod, 'InitializeContext');
+  Pointer(_GetXStateFeaturesMask)    := GetProcAddress(hMod, 'GetXStateFeaturesMask');
+  Pointer(_LocateXStateFeature)      := GetProcAddress(hMod, 'LocateXStateFeature');
+  Pointer(_SetXStateFeaturesMask)    := GetProcAddress(hMod, 'SetXStateFeaturesMask');
+  if (_GetEnabledXStateFeatures=nil) or (_InitializeContext=nil) or (_GetXStateFeaturesMask=nil) or
+     (_LocateXStateFeature=nil) or (_SetXStateFeaturesMask=nil)
+  then begin
+    _GetEnabledXStateFeatures := nil;
+  end
+  else begin
+    _xstate_FeatureMask := _GetEnabledXStateFeatures();
+    if (_xstate_FeatureMask and XSTATE_MASK_GSSE) = 0 then
+      _GetEnabledXStateFeatures := nil;
+  end;
+  {$endif}
 
   DebugLn(DBG_WARNINGS and (DebugBreakAddr = nil), ['WARNING: Failed to get DebugBreakAddr']);
   DebugLn(DBG_WARNINGS and (_CreateRemoteThread = nil), ['WARNING: Failed to get CreateRemoteThread']);
@@ -1728,8 +1783,17 @@ procedure TDbgWinThread.LoadRegisterValues;
 type
   PExtended = ^floatx80;
 {$endif}{$ENDIF}
+{$ifNdef cpui386}
 var
+  Context: PCONTEXT;
+  ContextSize: DWord;
+  Buffer: Pointer;
+  FeatureMask: DWORD64;
+  Xmm, Ymm: PM128A;
+  FeatureLength: DWORD;
+  i: Integer;
   EM: TFPUExceptionMask;
+{$endif}
 begin
   {$IFDEF FPDEBUG_THREAD_CHECK}AssertFpDebugThreadId('TDbgWinThread.LoadRegisterValues');{$ENDIF}
   assert(MDebugEvent.dwProcessId <> 0, 'TDbgWinThread.LoadRegisterValues: MDebugEvent.dwProcessId <> 0');
@@ -1926,6 +1990,44 @@ begin
     FRegisterValueList.DbgRegisterAutoCreate['MxCsr'].SetValue(FltSave.MxCsr,  IntToStr(FltSave.MxCsr),4,620);
     FRegisterValueList.DbgRegisterAutoCreate['MxCsrM'].SetValue(FltSave.MxCsr_Mask,  IntToStr(FltSave.MxCsr_Mask),4,621);
 
+    if _GetEnabledXStateFeatures <> nil then begin
+      ContextSize := 0;
+
+      if _InitializeContext(nil, CONTEXT_ALL or CONTEXT_XSTATE, nil, @ContextSize) or
+         (GetLastError <> ERROR_INSUFFICIENT_BUFFER)
+      then
+        exit;
+
+      Buffer := AllocMem(ContextSize);
+      if Buffer = nil then
+        exit;
+
+      try
+        if not _InitializeContext(Buffer, CONTEXT_ALL or CONTEXT_XSTATE, @Context, @ContextSize) then
+          exit;
+        if not _SetXStateFeaturesMask(Context, XSTATE_MASK_AVX) then
+          exit;
+        if not  GetThreadContext(Handle, Context^) then // context is VAR PARAM
+          exit;
+        if (not _GetXStateFeaturesMask(Context, @FeatureMask)) or
+           ((FeatureMask and XSTATE_MASK_AVX) = 0)
+        then
+          exit;
+
+        Xmm := _LocateXStateFeature(Context, XSTATE_LEGACY_SSE, @FeatureLength);
+        Ymm := _LocateXStateFeature(Context, XSTATE_AVX, nil);
+        if (Xmm = nil) or (Ymm = nil) then
+          exit;
+
+        for i := 0 to FeatureLength div SizeOf(M128A) - 1 do begin
+          FRegisterValueList.DbgRegisterAutoCreate['Ymm'+IntToStr(i)].SetValue
+            (0,  YmmToString(Xmm[i], Ymm[i]),32,700+i);
+        end;
+      finally
+        Freemem(Buffer);
+      end;
+
+    end;
   end;
 {$endif}
   finally
