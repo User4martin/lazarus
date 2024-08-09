@@ -40,7 +40,7 @@ uses
   // RTL, FCL
   Classes, SysUtils, math,
   // LCL
-  Controls, ExtCtrls, Graphics, Menus;
+  Controls, ExtCtrls, Graphics, Menus, Forms;
 
 type
 
@@ -182,9 +182,13 @@ type
 
   { TResizeFormContainer }
 
-  TResizeFormContainer = class(TWinControl)
+  //TResizeFormContainer = class(TWinControl)
+  TResizeFormContainer = class(TScrollingWinControl)
+  public
+    DsgnOffset: TPoint;
   protected
     procedure AlignControls(AControl: TControl; var RemainingClientRect: TRect); override;
+    function GetClientScrollOffset: TPoint; override;
   end;
 
   { TResizeContainer }
@@ -590,6 +594,16 @@ end;
 procedure TResizeFormContainer.AlignControls(AControl: TControl; var RemainingClientRect: TRect);
 begin
   // Do not align the form
+end;
+
+function TResizeFormContainer.GetClientScrollOffset: TPoint;
+var
+  c: TControl;
+begin
+Result := Point(0,0);
+  if ControlCount <> 1 then exit;
+  c := Controls[0];
+  Result := Point(c.Left+DsgnOffset.x ,c.Top+DsgnOffset.y);
 end;
 
 { TResizeContainer }

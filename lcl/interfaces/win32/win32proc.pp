@@ -701,18 +701,10 @@ begin
     {$else}
     with TScrollingWinControl(TheWinControl) do
     begin
-      if HorzScrollBar <> nil then
-      begin
-        // left and right bounds are shifted by scroll position
-        ORect.Left := -HorzScrollBar.Position;
-        ORect.Right := -HorzScrollBar.Position;
-      end;
-      if VertScrollBar <> nil then
-      begin
-        // top and bottom bounds are shifted by scroll position
-        ORect.Top := -VertScrollBar.Position;
-        ORect.Bottom := -VertScrollBar.Position;
-      end;
+      ORect.TopLeft := ClientScrollOffset;
+      ORect.Top  := -ORect.Top;
+      ORect.Left := -ORect.Left;
+      ORect.BottomRight := ORect.TopLeft;
     end;
     {$endif}
   end else

@@ -94,21 +94,9 @@ implementation
 { TResizerFrame }
 
 procedure TResizeControl.AdjustFormContainer;
-var
-  LLeft, LTop, LWidth, LHeight: Integer;
 begin
-  LLeft   := - FDesignForm.Form.Left        // real form left - aka Form1.Left in OI
-             - FDesignForm.ClientOffset.X;  // offset of frame of form to client rect
-  LTop    := - FDesignForm.Form.Top
-             - FDesignForm.ClientOffset.Y;
-  LWidth  :=   FDesignForm.Form.Width
-             + Abs(FDesignForm.Form.Left)
-             + FDesignForm.ClientOffset.X;
-  LHeight :=   FDesignForm.Form.Height
-             + FakeMenu.Height
-             + Abs(FDesignForm.Form.Top)
-             + FDesignForm.ClientOffset.Y;
-  FormContainer.SetBounds(LLeft, LTop, LWidth, LHeight);
+  FormContainer.DsgnOffset := Point(FDesignForm.ClientOffset.X, FDesignForm.ClientOffset.Y);
+  FormContainer.SetBounds(0, 0, FDesignForm.Width, FDesignForm.Height);
   RefreshAnchorDesigner;
 end;
 
