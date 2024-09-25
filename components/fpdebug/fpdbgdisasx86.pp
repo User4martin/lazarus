@@ -5428,10 +5428,12 @@ function TX86AsmDecoder.UnwindFrame(var AnAddress, AStackPtr, AFramePtr: TDBGPtr
   begin
     Reg := CleanRegisterName(Reg);
     r := ARegisterValueList.FindRegisterByName(Reg);
+DebugLn(['----------------------CLEAR REG ', reg , '  ', r<> nil]);
     if r <> nil then ARegisterValueList.Remove(r);
     Reg := FullRegisterName(Reg);
     if Reg <> '' then begin
       r := ARegisterValueList.FindRegisterByName(Reg);
+DebugLn(['----------------------CLEAR REG ', reg , '  ', r<> nil]);
       if r <> nil then ARegisterValueList.Remove(r);
     end;
   end;
@@ -5468,6 +5470,7 @@ var
         if (LowerCase(FullName) = LowerCase(Oper.Value)) then begin
           r := ARegisterValueList.FindRegisterByName(FullName);
           if r <> nil then begin
+DebugLn(['+++++++++++++++++++++++ GOT  REG !!!!!!! ', FullName , '  ', dbghex(AVal)]);
             AVal := r.NumValue;
             Exit(True);
           end;
@@ -5480,6 +5483,7 @@ var
     then begin
       if IsLea and not (ofMemory in Oper.Flags) then exit(False);
       OpVal := ValueFromMem(CurAddr[Oper.CodeIndex], Oper.ByteCount, Oper.FormatFlags);
+debugln(['val from op   ', oper.Value, ' ',dbghex(OpVal), '  ns ', dbghex(NewStack), ' nf ', dbghex(NewFrame), ' #mem ',(ofMemory in Oper.Flags)]);
 
       if (IsRegister(Oper.Value, 'bp%s')) then begin
         if NewFrame = 0 then exit(False);
@@ -5504,6 +5508,7 @@ var
         FullName := FullRegisterName(Oper.Value);
         AVal := 0;
         if (LowerCase(FullName)+'%s' = LowerCase(Oper.Value)) then begin
+debugln(['%%%%%%%%%%%%%%%%%%%%%%%%% reg relative mem ', FullName, ' ',Oper.Value]);
           r := ARegisterValueList.FindRegisterByName(FullName);
           if r = nil then
             exit(False);
@@ -5515,6 +5520,7 @@ var
           else
             AVal := 0;
           {$POP}
+DebugLn(['+++++++++++++++++++++++ GOT  REG !!!!!!! ', FullName , '  ', dbghex(AVal)]);
         end;
         if AVal = 0 then
           exit(False);
@@ -5529,6 +5535,7 @@ var
       Src := AVal;
       AVal := 0;
       RSize := RegisterSize(Oper.Value);
+debugln(['@@@@@@@@@@@@@@@@ read from address ', dbghex(src)]);
       if not FProcess.ReadData(Src, RSize, AVal, RSize) then
         exit(False);
     end;
@@ -5584,6 +5591,7 @@ var
     end
     else
     if NewAddr > AddressDoneBlocks[CurAddressDoneBlock].Last then begin
+debugln('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MAx blOck xxxxxxxxxxtb');
       AddressDoneBlocks[CurAddressDoneBlock].Last :=  NewAddr;
     end;
   end;
@@ -5609,6 +5617,7 @@ var
       then begin
         ConditionalForwardAddr[j] := ConditionalForwardAddr[i];
         inc(j);
+end else begin debugln(['//////// removing done (in check) ', dbghex(ConditionalForwardAddr[i])]);
       end;
     CurConditionalForwardAddr := j - 1;
   end;
@@ -5620,12 +5629,14 @@ var
     i := CurConditionalForwardAddr;
     while (i >= 0) and (AnAddr <> ConditionalForwardAddr[i]) do
       dec(i);
+if i >= 0 then debugln(['//////////////////// NOT ADDING --- ',dbghex(AnAddr)]);
     if i >= 0 then
       exit;
 
     if CurConditionalForwardAddr < MAX_FORWARD_ADDR then begin
       inc(CurConditionalForwardAddr);
       ConditionalForwardAddr[CurConditionalForwardAddr] := AnAddr;
+debugln(['////////// ADDING (INC) ',dbghex(AnAddr), '  ',CurConditionalForwardAddr]);
     end
     else begin
       j := 0;
@@ -5635,11 +5646,13 @@ var
         then begin
           ConditionalForwardAddr[j] := ConditionalForwardAddr[i];
           inc(j);
+end else begin debugln(['//////// removing done ', dbghex(ConditionalForwardAddr[i])]);
         end;
       CurConditionalForwardAddr := j - 1;
       if CurConditionalForwardAddr < MAX_FORWARD_ADDR then
         inc(CurConditionalForwardAddr);
       ConditionalForwardAddr[CurConditionalForwardAddr] := AnAddr;
+debugln(['////////// ADDING (xxx) ',dbghex(AnAddr), '  ',CurConditionalForwardAddr]);
     end;
   end;
 
@@ -5653,6 +5666,8 @@ var
   ClearRecValList, ForceDifferentBranch: Boolean;
   FullName: String;
 begin
+try
+debugln(['>>>>>>>>>>>>>>>>>>>>>>>>>>> ', dbghex(AStackPtr)]);
   Result := False;
   NewAddr    := AnAddress;
   NewStack   := AStackPtr;
@@ -5674,6 +5689,7 @@ begin
   ClearRecValList := False;
   ForceDifferentBranch := False;
   while (Cnt > 0) do begin
+if ClearRecValList and (ARegisterValueList.Count >0 ) then DebugLn(['+++-------------- CLEAR ALL REG ']);
     if ClearRecValList then ARegisterValueList.Clear;
 
     if ForceDifferentBranch or (NewAddr >= MaxAddr) or( NewAddr > MaxAddrCurrentBlock) then begin
@@ -5684,11 +5700,13 @@ begin
       do
         dec(CurConditionalForwardAddr);
       if (CurConditionalForwardAddr >= 0) then begin
+debugln(['exe cjmp  fwrd ', CurConditionalForwardAddr, ': ', dbghex(ConditionalForwardAddr[CurConditionalForwardAddr]), ' ## ', dbghex(BackwardJumpAddress)]);
         NewAddr := ConditionalForwardAddr[CurConditionalForwardAddr];
         dec(CurConditionalForwardAddr);
       end
       else
       if (BackwardJumpAddress > 0) and (not AddrWasDone(BackwardJumpAddress)) then begin
+debugln(['exe cjmp back  ## ', dbghex(BackwardJumpAddress)]);
         NewAddr := BackwardJumpAddress;
         BackwardJumpAddress := 0;
       end
@@ -5709,6 +5727,10 @@ begin
     NewAddr := NewAddr + instr.InstructionLength;
     {$POP}
     CurAddr := @instr.FCodeBin[0];
+
+debugln([ ' >>> stack === ', dbghex(NewAddr-instr.InstructionLength), ' ',instr.InstructionLength, '  ', OPCODE_NAME[instr.X86OpCode], ' #',instr.X86Instruction.OperCnt, '  stck ',dbghex(NewStack), ' base ', dbghex(NewFrame) ]);
+if instr.X86Instruction.OperCnt >= 1 then debugln([ '           + 1: ',instr.X86Instruction.Operand[1].Value, '  // ',instr.X86Instruction.Operand[1].ByteCount, ' / ',instr.X86Instruction.Operand[1].ByteCount2, ' / idx ',instr.X86Instruction.Operand[1].CodeIndex]);
+if instr.X86Instruction.OperCnt >= 2 then debugln([ '           + 2: ',instr.X86Instruction.Operand[2].Value, '  // ',instr.X86Instruction.Operand[2].ByteCount, ' / ',instr.X86Instruction.Operand[2].ByteCount2, ' / idx ',instr.X86Instruction.Operand[2].CodeIndex]);
 
     ClearRecValList := True;
     case instr.X86OpCode of
@@ -5737,6 +5759,7 @@ begin
           AnAddress := NewAddr;
           AStackPtr := NewStack;
           AFramePtr := NewFrame;
+if AQuick then  DebugLn(['************** FOUND after steps: ', 10-Cnt]) else DebugLn(['************** FOUND after steps: ', MAX_SEARCH_CNT-Cnt]);
           exit;
         end;
       OPpush:
@@ -5814,6 +5837,7 @@ begin
             RSize := RegisterSize(instr.X86Instruction.Operand[1].Value);
             if FProcess.ReadData(NewStack, RSize, Tmp, RSize) then begin
               FullName := LowerCase(FullRegisterName(instr.X86Instruction.Operand[1].Value));
+DebugLn(['+++++++++++++++++++++++ SET REG ', FullName , '  ', dbghex(Tmp)]);
               ARegisterValueList.DbgRegisterAutoCreate[FullName].SetValue(Tmp, IntToStr(Tmp), RSize, 0);
             end;
           end;
@@ -5870,6 +5894,7 @@ begin
             FullName := LowerCase(FullRegisterName(instr.X86Instruction.Operand[1].Value));
             if ValueFromOperand(instr.X86Instruction.Operand[2], Tmp) then begin
               RSize := RegisterSize(instr.X86Instruction.Operand[1].Value);
+DebugLn(['+++++++++++++++++++++++ SET REG ', FullName , '  ', dbghex(Tmp)]);
               ARegisterValueList.DbgRegisterAutoCreate[FullName].SetValue(Tmp, IntToStr(Tmp), RSize, 0);
             end
             else
@@ -5911,6 +5936,7 @@ begin
             end
             else
             if ValueFromOperand(instr.X86Instruction.Operand[2], Tmp, True) then begin
+DebugLn(['+++++++++++++++++++++++ SET REG !!!!! BP ', FullName , '  ', dbghex(Tmp)]);
               NewFrame := Tmp;
             end;
           end
@@ -5943,6 +5969,7 @@ begin
             end
             else
             if ValueFromOperand(instr.X86Instruction.Operand[2], Tmp, True) then begin
+DebugLn(['+++++++++++++++++++++++ SET REG !!!!! SP ', FullName , '  ', dbghex(Tmp)]);
               NewStack := Tmp;
             end
             else begin
@@ -5960,6 +5987,7 @@ begin
             else begin
               if ValueFromOperand(instr.X86Instruction.Operand[2], Tmp, True) then begin
                 RSize := RegisterSize(instr.X86Instruction.Operand[1].Value);
+DebugLn(['+++++++++++++++++++++++ SET REG ', FullName , '  ', dbghex(Tmp)]);
                 ARegisterValueList.DbgRegisterAutoCreate[FullName].SetValue(Tmp, IntToStr(Tmp), RSize, 0);
               end
               else
@@ -5973,6 +6001,7 @@ begin
             ForceDifferentBranch := True;
             continue;
           end;
+debugln(['--- add',IsRegister(instr.X86Instruction.Operand[1].Value, 'sp'), (ofMemory in Instr.X86Instruction.Operand[2].Flags)]);
           ClearRecValList := False;
           ClearRegister(instr.X86Instruction.Operand[1].Value);
 
@@ -5983,6 +6012,7 @@ begin
               ForceDifferentBranch := True;
               continue;
             end;
+debugln([val]);
             {$PUSH}{$R-}{$Q-}
             if NewStack <> 0 then
               NewStack := NewStack + int64(Tmp);
@@ -6007,6 +6037,7 @@ begin
             ForceDifferentBranch := True;
             continue;
           end;
+debugln(['--- sub',IsRegister(instr.X86Instruction.Operand[1].Value, 'sp'), (ofMemory in Instr.X86Instruction.Operand[2].Flags)]);
           ClearRecValList := False;
           ClearRegister(instr.X86Instruction.Operand[1].Value);
 
@@ -6017,6 +6048,7 @@ begin
               ForceDifferentBranch := True;
               continue;
             end;
+debugln([val]);
             {$PUSH}{$R-}{$Q-}
             if NewStack <> 0 then
               NewStack := NewStack - int64(Tmp);
@@ -6046,6 +6078,7 @@ begin
           Val := ValueFromMem(CurAddr[Instr.X86Instruction.Operand[1].CodeIndex], Instr.X86Instruction.Operand[1].ByteCount, Instr.X86Instruction.Operand[1].FormatFlags);
           {$PUSH}{$R-}{$Q-}
           Tmp := NewAddr + Val;
+debugln(['## c-JUMP ', ' # ',dbghex(tmp), '  ',val]);
           {$POP}
           if Val > 0 then begin
             if (Tmp < MaxAddr) and (not AddrWasDone(Tmp)) then
@@ -6078,12 +6111,15 @@ begin
           end;
 
           Val := ValueFromMem(CurAddr[Instr.X86Instruction.Operand[1].CodeIndex], Instr.X86Instruction.Operand[1].ByteCount, Instr.X86Instruction.Operand[1].FormatFlags);
+debugln(['## JUMP ',val, ' # ']);
           {$PUSH}{$R-}{$Q-}
           Tmp := NewAddr + Val;
+debugln(['## JUMP ',dbghex(NewAddr), ' # ',dbghex(tmp)]);
           {$POP}
           if (Val < 0) then begin
             CheckConditionalForwAddr;
             if (CurConditionalForwardAddr >= 0) then begin
+debugln(['jump prefer cjump ',CurConditionalForwardAddr, '  ',dbghex(ConditionalForwardAddr[CurConditionalForwardAddr])]);
               FinishCurAddrBlock;
               NewAddr := ConditionalForwardAddr[CurConditionalForwardAddr];
               dec(CurConditionalForwardAddr);
@@ -6104,6 +6140,7 @@ begin
             continue;
           end;
 
+debugln(['## JUMP ',dbghex(NewAddr), ' # ',dbghex(tmp)]);
           FinishCurAddrBlock;
           NewAddr := Tmp;
           StartNextAddrBlock;
@@ -6129,6 +6166,9 @@ begin
     end;
   end;
   if ClearRecValList then ARegisterValueList.Clear;
+finally
+debugln('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+end;
 end;
 
 { TDbgStackUnwinderIntelDisAssembler }
