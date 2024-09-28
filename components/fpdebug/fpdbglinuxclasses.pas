@@ -363,6 +363,7 @@ type
     function AttachToInstance(APid: Integer; out AnError: TFpError): boolean; override;
 
     function ReadData(const AAdress: TDbgPtr; const ASize: Cardinal; out AData): Boolean; override;
+    function ReadData(const AAdress: TDbgPtr; const ASize: Cardinal; out AData; out APartSize: Cardinal): Boolean; override;
     function WriteData(const AAdress: TDbgPtr; const ASize: Cardinal; const AData): Boolean; override;
     function CallParamDefaultLocation(AParamIdx: Integer): TFpDbgMemLocation; override;
 
@@ -1359,75 +1360,97 @@ end;
 
 function TDbgLinuxProcess.ReadData(const AAdress: TDbgPtr;
   const ASize: Cardinal; out AData): Boolean;
+var
+  APartSize: Cardinal;
+begin
+  Result := ReadData(AAdress, ASize, AData, APartSize);
+  Result := Result and (APartSize = ASize);
+end;
 
+function TDbgLinuxProcess.ReadData(const AAdress: TDbgPtr;
+  const ASize: Cardinal; out AData; out APartSize: Cardinal): Boolean;
 var
   WordSize, BytesDone: integer;
   BufSize: int64;
   AVal: TDbgPtr;
   buf: pbyte;
-  AAdressAlign: TDBGPtr;
+  AAdress2, AAdressAlign: TDBGPtr;
+
   localiov, remoteiov: iovec;
+  readcnt: ssize_t;
 begin
-  {$IFDEF FPDEBUG_THREAD_CHECK}AssertFpDebugThreadId('TDbgLinuxProcess.ReadData');{$ENDIF}
-
-  // since kernel >= 3.2
-  // https://kernelnewbies.org/Linux_3.2#Cross_memory_attach
-  if Assigned(process_vm_readv) then
-  begin
-    localiov.iov_base := @AData;
-    localiov.iov_len := ASize;
-    remoteiov.iov_base := Pointer(AAdress);
-    remoteiov.iov_len := ASize;
-    Result := process_vm_readv(ProcessID, @localiov, 1, @remoteiov, 1, 0) = ASize;
-    if Result then
-    begin
-      MaskBreakpointsInReadData(AAdress, ASize, AData);
-      Exit;
-    end;
-  end;
-
   result := false;
-  fpseterrno(0);
+  APartSize := 0;
   BytesDone := 0;
-  buf := @AData;
-  BufSize := ASize;
-  WordSize:=DBGPTRSIZE[Mode];
+  try
 
-  {$ifNdef LINUX_NO_PTRACE_ALIGN}  // according to man, only peek/poke_user need align
-  AAdressAlign := AAdress and (not TDBGPtr(WordSize - 1));
-  if AAdressAlign <> AAdress then begin
-    if not ReadWordSize(AAdressAlign, AVal) then
-      Exit;
-    BytesDone := WordSize - (AAdress-AAdressAlign);
-    if BytesDone > ASize then
-      BytesDone := ASize;
-    move(PByte(@AVal)[AAdress-AAdressAlign], buf[0], BytesDone);
-    inc(AAdressAlign, WordSize);
+    // since kernel >= 3.2
+    // https://kernelnewbies.org/Linux_3.2#Cross_memory_attach
+    if Assigned(process_vm_readv) then
+    begin
+      localiov.iov_base := @AData;
+      localiov.iov_len := ASize;
+      remoteiov.iov_base := Pointer(AAdress);
+      remoteiov.iov_len := ASize;
+      readcnt := process_vm_readv(ProcessID, @localiov, 1, @remoteiov, 1, 0);
+      Result := readcnt > 0;
+      if Result then
+      begin
+        APartSize := Cardinal(readcnt);
+        if ASize - APartSize = 0 then
+          Exit;
+      end;
+    end;
+
+    fpseterrno(0);
+    BytesDone := 0;
+    buf := @AData + APartSize;
+    BufSize := ASize - APartSize;
+    WordSize:=DBGPTRSIZE[Mode];
+    AAdress2:=AAdress+APartSize;
+
+
+    {$ifNdef LINUX_NO_PTRACE_ALIGN}  // according to man, only peek/poke_user need align
+    AAdressAlign := AAdress2 and (not TDBGPtr(WordSize - 1));
+    if AAdressAlign <> AAdress2 then begin
+      if not ReadWordSize(AAdressAlign, AVal) then
+        Exit;  // APartSize is still correct
+
+      BytesDone := WordSize - (AAdress2-AAdressAlign);
+      if BytesDone > BufSize then
+        BytesDone := BufSize;
+      move(PByte(@AVal)[AAdress2-AAdressAlign], buf[0], BytesDone);
+      inc(AAdressAlign, WordSize);
+    end;
+    {$else}
+    AAdressAlign := AAdress2;
+    {$endif}
+
+    dec(BufSize, WordSize - 1); // full words only
+
+    while BytesDone < BufSize do begin
+      if not ReadWordSize(AAdressAlign, AVal) then
+        Exit;
+      move(AVal, buf[BytesDone], WordSize);
+      inc(BytesDone, WordSize);
+      inc(AAdressAlign, WordSize);
+    end;
+
+    BufSize := ASize - APartSize - BytesDone;
+    assert((BufSize>=0) and (BufSize<WordSize));
+
+    if BufSize > 0 then begin
+      if not ReadWordSize(AAdressAlign, AVal) then
+        Exit;
+      move(AVal, buf[BytesDone], BufSize);
+    end;
+
+  finally
+    APartSize := APartSize + BytesDone;
+    Result := APartSize > 0;
+    if Result then
+      MaskBreakpointsInReadData(AAdress, ASize - APartSize, AData);
   end;
-  {$else}
-  AAdressAlign := AAdress;
-  {$endif}
-
-  dec(BufSize, WordSize - 1); // full words only
-
-  while BytesDone < BufSize do begin
-    if not ReadWordSize(AAdressAlign, AVal) then
-      Exit;
-    move(AVal, buf[BytesDone], WordSize);
-    inc(BytesDone, WordSize);
-    inc(AAdressAlign, WordSize);
-  end;
-
-  BufSize := ASize - BytesDone;
-  assert((BufSize>=0) and (BufSize<WordSize));
-
-  if BufSize > 0 then begin
-    if not ReadWordSize(AAdressAlign, AVal) then
-      Exit;
-    move(AVal, buf[BytesDone], BufSize);
-  end;
-
-  MaskBreakpointsInReadData(AAdress, ASize, AData);
   result := true;
 end;
 
