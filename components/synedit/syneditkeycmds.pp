@@ -294,6 +294,8 @@ const
   ecString          = 640;  //Insert a whole string
 
   ecAutoCompletion  = 650;
+  ecColumnBlockShiftIndent      = 651;  // Indent column selection and cut off other end
+//  ecColumnBlockShiftUnindent  = 652;  // Indent column selection and cut off other end
 
   ecGotFocus        = 700;
   ecLostFocus       = 701;
@@ -514,7 +516,7 @@ end;
 { Command mapping routines }
 
 const
-  EditorCommandStrs: array[0..172] of TIdentMapEntry = (
+  EditorCommandStrs: array[0..173] of TIdentMapEntry = (
     (Value: ecNone; Name: 'ecNone'),
     (Value: ecLeft; Name: 'ecLeft'),
     (Value: ecRight; Name: 'ecRight'),
@@ -627,6 +629,8 @@ const
     (Value: ecToggleMode; Name: 'ecToggleMode'),
     (Value: ecBlockIndent; Name: 'ecBlockIndent'),
     (Value: ecBlockUnindent; Name: 'ecBlockUnindent'),
+    (Value: ecColumnBlockShiftIndent; Name: 'ecColumnBlockShiftIndent'),
+    //(Value: ecColumnBlockShiftUnindent; Name: 'ecColumnBlockShiftUnindent'),
     (Value: ecTab; Name: 'ecTab'),
     (Value: ecShiftTab; Name: 'ecShiftTab'),
     (Value: ecMatchBracket; Name: 'ecMatchBracket'),

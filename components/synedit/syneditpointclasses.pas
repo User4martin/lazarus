@@ -1103,7 +1103,8 @@ end;
 procedure TSynEditCaret.DoLock;
 begin
   FTouched := False;
-  ValidateCharPos;
+  if FFlags * [scBytePosValid, scViewedPosValid] <> [] then
+    ValidateCharPos;
   //ValidateBytePos;
   FOldCharPos := FCharPos;
   FOldLinePos := FLinePos;
@@ -1924,8 +1925,10 @@ begin
 
           TotalLen := 0;
           for i := First to Last do begin
+            //FInternalCaret.Invalidate;
             FInternalCaret.LineCharPos := Point(C1, i + 1);
             Col[i - First] := FInternalCaret.BytePos;
+            //FInternalCaret.Invalidate;
             FInternalCaret.LineCharPos := Point(C2, i + 1);
             Len[i - First] := Max(0, FInternalCaret.BytePos - Col[i - First]);
             Inc(TotalLen, Len[i - First]);

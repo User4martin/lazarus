@@ -2916,6 +2916,8 @@ begin
   AddDefault(C, 'Line selection mode', srkmecLineSelect, ecLineSelect);
   AddDefault(C, 'Indent block', srkmecBlockIndent, ecBlockIndent);
   AddDefault(C, 'Unindent block', srkmecBlockUnindent, ecBlockUnindent);
+  AddDefault(C, 'Shift (indent) block', srkmecColumnBlockShiftIndent, ecColumnBlockShiftIndent);
+  //AddDefault(C, 'Unshift (unindent) block', srkmecColumnBlockShiftUnindent, ecColumnBlockShiftUnindent);
   AddDefault(C, 'Uppercase selection', lisMenuUpperCaseSelection, ecSelectionUpperCase);
   AddDefault(C, 'Lowercase selection', lisMenuLowerCaseSelection, ecSelectionLowerCase);
   AddDefault(C, 'Swap case in selection', lisMenuSwapCaseSelection, ecSelectionSwapCase);

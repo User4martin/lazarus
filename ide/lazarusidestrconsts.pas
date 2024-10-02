@@ -3105,6 +3105,8 @@ resourcestring
   srkmecToggleMode            = 'Toggle Mode';
   srkmecBlockIndent           = 'Indent block';
   srkmecBlockUnindent         = 'Unindent block';
+  srkmecColumnBlockShiftIndent       = 'Shift (indent) block';
+  //srkmecColumnBlockShiftUnindent   = 'Unshift (unindent) block';
   srkmecPluginMultiCaretSetCaret         = 'Add extra caret';
   srkmecPluginMultiCaretUnsetCaret       = 'Remove extra caret';
   srkmecPluginMultiCaretToggleCaret      = 'Toggle extra caret';

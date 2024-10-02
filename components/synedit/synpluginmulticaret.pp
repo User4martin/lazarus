@@ -2682,29 +2682,32 @@ begin
         StartEditing;
         if Editor.ReadOnly then exit;
         if (eoTabIndent in Editor.Options) and Editor.SelAvail then begin
-          if (SelectionObj.ActiveSelectionMode = smColumn) then begin
-            // no indent for column mode, when multicaret
-            Editor.BeginUpdate(True);
-            try
-              AddCaret(Editor.LogicalCaretXY.x, Editor.CaretY, CaretObj.BytePosOffset, [cfMainCaret, cfNoneVisual, cfAddDuplicate]);
-              Editor.SelText := '';
-              if Carets.MainCaretIndex >= 0 then begin
-                Editor.LogicalCaretXY := Carets.Caret[Carets.MainCaretIndex];
-                RemoveCaret(Carets.MainCaretIndex);
-              end
-              else
-                assert(False, 'TSynCustomPluginMultiCaret.ProcessAllSynCommand: Maincaret index not found');
-              ExecCommandRepeated;
-            finally
-              Editor.EndUpdate;
-            end;
-          end
-          else // exec once and adjust
+//          if (SelectionObj.ActiveSelectionMode = smColumn) then begin
+//            // no indent for column mode, when multicaret
+//            Editor.BeginUpdate(True);
+//            try
+//              AddCaret(Editor.LogicalCaretXY.x, Editor.CaretY, CaretObj.BytePosOffset, [cfMainCaret, cfNoneVisual, cfAddDuplicate]);
+//              Editor.SelText := '';
+//              if Carets.MainCaretIndex >= 0 then begin
+//                Editor.LogicalCaretXY := Carets.Caret[Carets.MainCaretIndex];
+//                RemoveCaret(Carets.MainCaretIndex);
+//              end
+//              else
+//                assert(False, 'TSynCustomPluginMultiCaret.ProcessAllSynCommand: Maincaret index not found');
+//              ExecCommandRepeated;
+//            finally
+//              Editor.EndUpdate;
+//            end;
+//          end
+//          else // exec once and adjust
             exit;
         end
         else
           ExecCommandRepeated;
       end;
+    ecColumnBlockShiftIndent, //ecColumnBlockShiftUnindent,
+    ecBlockIndent, ecBlockUnindent:
+      exit;
     ecSelectionStart..ecSelectionEnd:
     //ecSelColCmdRangeStart..ecSelColCmdRangeEnd:
       begin

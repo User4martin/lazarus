@@ -646,6 +646,7 @@ type
     procedure SurrenderPrimarySelection;
     procedure ComputeCaret(X, Y: Integer);
     procedure DoBlockIndent;
+    procedure DoBlockIndentColSel(ADeleteAtRightBound: Boolean = False);
     procedure DoBlockUnindent;
     procedure DoHomeKey(aMode: TSynHomeMode = synhmDefault);
     procedure DoEndKey;
@@ -7739,6 +7740,10 @@ begin
         if not ReadOnly then DoBlockIndent;
       ecBlockUnindent:
         if not ReadOnly then DoBlockUnindent;
+      ecColumnBlockShiftIndent:
+        if not ReadOnly then DoBlockIndentColSel(True);
+      //ecColumnBlockShiftUnindent:
+      //  if not ReadOnly then DoBlockUnindent(True);
       ecNormalSelect,
       ecColumnSelect,
       ecLineSelect:
@@ -9120,6 +9125,11 @@ var
   end;
 
 begin
+  if SelAvail and (SelectionMode = smColumn) then begin
+    DoBlockIndentColSel(False);
+    exit;
+  end;
+
   IncPaintLock;
   FBlockSelection.IncPersistentLock;
   try
@@ -9158,6 +9168,85 @@ begin
     FTrimmedLinesView.ForceTrim; // Otherwise it may reset the block
     FCaret.LineBytePos := FBlockSelection.EndLineBytePos;
     FBlockSelection.DecPersistentLock;
+    DecPaintLock;
+  end;
+end;
+
+procedure TCustomSynEdit.DoBlockIndentColSel(ADeleteAtRightBound: Boolean);
+var
+  BB,BE            : TPoint;
+  Len, y, LeftBytePos, RightCharPos, RightBytePos, DelPos, DelLen: integer;
+  LineStr, IndentStr: String;
+
+  function GetLeadWSLen(AnStartBytePos: integer): integer;
+  var
+    Line: PChar;
+    Run : PChar;
+  begin
+    Line := PChar(LineStr) + AnStartBytePos;
+    Run := Line;
+    while (Run^ = #9) do
+      Inc(Run);
+    Result := Run - Line;
+  end;
+
+begin
+  if not (SelAvail and (SelectionMode = smColumn)) then
+    exit;
+  if (FBlockIndent <= 0) and (FBlockTabIndent <= 0) then
+    exit;
+
+  IncPaintLock;
+  FBlockSelection.IncPersistentLock;
+  try
+    // build text to insert
+    BB := BlockBegin;
+    BE := BlockEnd;
+
+    IndentStr := StringOfChar( #9, FBlockTabIndent) + StringOfChar(#32, FBlockIndent);
+    RightCharPos := FBlockSelection.ColumnRightCharPos;
+    //fUndoList.Lock;
+    //fRedoList.Lock;
+    //try
+      for y := BB.Y to BE.y do begin
+        LineStr := FTheLinesView[y - 1];
+        LeftBytePos := FBlockSelection.ColumnStartBytePos[y];
+        if ADeleteAtRightBound then
+          RightBytePos := FBlockSelection.ColumnEndBytePos[y];
+        Len := GetLeadWSLen(LeftBytePos);
+        FTheLinesView.EditInsert(LeftBytePos + Len, y, IndentStr);
+        if ADeleteAtRightBound then begin
+          FInternalCaret.Invalidate;
+          FInternalCaret.LineCharPos := Point(RightCharPos, y);
+          DelPos := FInternalCaret.BytePos;
+          DelLen := RightBytePos + Length(IndentStr) - DelPos;
+          if DelPos > 0 then
+            FTheLinesView.EditDelete(DelPos, y, DelLen);
+        end;
+      end;
+    //finally
+    //  fUndoList.Unlock;
+    //  fRedoList.Unlock;
+    //end;
+    //
+    //fUndoList.AddChange(TSynEditUndoIndent.Create(BB.Y, BE.Y, FBlockIndent, FBlockTabIndent));
+  finally
+    FTrimmedLinesView.ForceTrim; // Otherwise it may reset the block
+    BB := FBlockSelection.StartLineBytePos;
+    BE := FBlockSelection.EndLineBytePos;
+    FCaret.LineBytePos := FBlockSelection.EndLineBytePos;
+    FBlockSelection.DecPersistentLock;
+
+    if not ADeleteAtRightBound then begin
+      if BE.X < BB.X then
+        BB.X := BB.X + Length(IndentStr)
+      else
+        BE.X := BE.X + Length(IndentStr);
+      FBlockSelection.StartLineBytePos := BB;
+      FBlockSelection.EndLineBytePos := BE;
+      FBlockSelection.ActiveSelectionMode := smColumn;
+      FCaret.LineBytePos := FBlockSelection.EndLineBytePos;
+    end;
     DecPaintLock;
   end;
 end;
