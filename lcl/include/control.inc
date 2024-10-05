@@ -3197,11 +3197,11 @@ begin
     begin
       if not(akLeft in Anchors) then
       begin
-        NewRight := Round((Parent.ClientWidth-NewLeft-OldWidth) * AXProportion);
+        NewRight := Round((FBaseParentClientSize.Width-NewLeft-OldWidth) * AXProportion); // NewLeft must be same as OldLeft, since akLeft is not set;
         NewLeft := Parent.ClientWidth-NewRight-OldWidth
       end else
       begin
-        NewRight := Round((Parent.ClientWidth-Left-OldWidth) * AXProportion);
+        NewRight := Round((FBaseParentClientSize.Width-Left-OldWidth) * AXProportion);
         NewWidth := Parent.ClientWidth-NewLeft-NewRight;
       end;
     end;
@@ -3213,11 +3213,11 @@ begin
     begin
       if not(akTop in Anchors) then
       begin
-        NewBottom := Round((Parent.ClientHeight-NewTop-OldHeight) * AYProportion);
+        NewBottom := Round((FBaseParentClientSize.Height-NewTop-OldHeight) * AYProportion); // NewTop must be same as OldTop, since akTop is not set
         NewTop := Parent.ClientHeight-NewBottom-OldHeight
       end else
       begin
-        NewBottom := Round((Parent.ClientHeight-Top-OldHeight) * AYProportion);
+        NewBottom := Round((FBaseParentClientSize.Height-Top-OldHeight) * AYProportion);
         NewHeight := Parent.ClientHeight-NewTop-NewBottom;
       end;
     end;
