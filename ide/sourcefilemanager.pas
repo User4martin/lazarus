@@ -6437,6 +6437,7 @@ begin
         if NewUnitName='' then
           NewUnitName:=ExtractFileNameOnly(AnUnitInfo.Filename);
         DisableAutoSize:=true;
+        PreventAutoSize := True;
         NewComponent:=FormEditor1.CreateRawComponentFromStream(BinStream,
           AnUnitInfo.UnitResourceFileformat,
           AncestorType,copy(NewUnitName,1,255),true,true,DisableAutoSize,AnUnitInfo);
@@ -6449,8 +6450,6 @@ begin
             PreventAutoSize := (IDETabMaster <> nil)
                                and (NewControl is TCustomDesignControl)
                                and IDETabMaster.AutoSizeInShowDesigner(NewControl);
-            if not PreventAutoSize then
-              NewControl.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorDockMaster Delayed'){$ENDIF};
           end;
         end;
 
@@ -6466,6 +6465,10 @@ begin
           end;
           DsgControl.PixelsPerInch := Screen.PixelsPerInch;
         end;
+
+        if not PreventAutoSize then
+          NewControl.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorDockMaster Delayed'){$ENDIF};
+
         if NewComponent is TDataModule then
         begin
           DsgDataModule := TDataModule(NewComponent);
