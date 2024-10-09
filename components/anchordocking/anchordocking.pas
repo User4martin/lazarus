@@ -245,6 +245,7 @@ type
     property AsyncUpdateDockBounds: boolean read FAsyncUpdateDockBounds write SetAsyncUpdateDockBounds;
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: integer); override; // any normal movement sets the DockBounds
     procedure SetBoundsPercentually;
+    procedure ForceIntoParentHeight;
     procedure SetBoundsKeepDockBounds(ALeft, ATop, AWidth, AHeight: integer); // movement for scaling keeps the DockBounds
     function SideAnchoredControlCount(Side: TAnchorKind): integer;
     function HasAnchoredControls: boolean;
@@ -2676,6 +2677,7 @@ begin
     begin
       S := TAnchorDockSplitter(Components[I]);
       S.UpdateDockBounds;
+      S.ForceIntoParentHeight; // Before percent / or we get positons at greater 100%
       S.UpdatePercentPosition;
     end;
 end;
@@ -8018,7 +8020,7 @@ end;
 
 procedure TAnchorDockSplitter.SetBoundsPercentually;
 var
-  NewLeft, NewTop: Integer;
+  NewLeft, NewTop, MaxVal: Integer;
   AControl: TControl;
   SplitterAnchorKind:TAnchorKind;
 begin
@@ -8032,6 +8034,9 @@ begin
         else
           NewLeft := (DockBounds.Left*Parent.ClientWidth) div DockParentClientSize.cx;
         NewTop := Top;
+        MaxVal := Parent.ClientWidth - Width;
+        if MaxVal < 0 then MaxVal := 0;
+        if NewLeft > MaxVal then NewLeft := MaxVal;
         SetBoundsKeepDockBounds(NewLeft,NewTop,Width,Height);
       end;
     end else
@@ -8043,6 +8048,9 @@ begin
           NewTop := Round(FPercentPosition*Parent.ClientHeight)
         else
           NewTop := (DockBounds.Top*Parent.ClientHeight) div DockParentClientSize.cy;
+        MaxVal := Parent.ClientHeight - Height;
+        if MaxVal < 0 then MaxVal := 0;
+        if NewTop > MaxVal then NewTop := MaxVal;
         SetBoundsKeepDockBounds(NewLeft,NewTop,Width,Height);
       end;
     end;
@@ -8079,6 +8087,24 @@ begin
       end;
       SetBoundsKeepDockBounds(NewLeft,NewTop,Width,Height);
     end;
+  end;
+end;
+
+procedure TAnchorDockSplitter.ForceIntoParentHeight;
+var
+  MaxVal: Integer;
+begin
+  if ResizeAnchor in [akLeft,akRight] then begin
+    MaxVal := DockParentClientSize.cx - Width;
+    if MaxVal < 0 then MaxVal := 0;
+    if Left > MaxVal then
+      Left := MaxVal;
+  end
+  else begin
+    MaxVal := DockParentClientSize.cy - Height;
+    if MaxVal < 0 then MaxVal := 0;
+    if Top > MaxVal then
+      Top := MaxVal;
   end;
 end;
 
