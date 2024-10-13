@@ -15,12 +15,12 @@
       <ResourceType Value="res"/>
     </General>
     <MacroValues Count="1">
-      <Macro1 Name="LCLWidgetType" Value="nogui"/>
+      <Macro1 Name="LCLWidgetType" Value="testmock"/>
     </MacroValues>
     <BuildModes>
       <Item Name="Default" Default="True"/>
       <SharedMatrixOptions Count="1">
-        <Item1 ID="887419357598" Modes="Default" Type="IDEMacro" MacroName="LCLWidgetType" Value="nogui"/>
+        <Item1 ID="887419357598" Modes="Default" Type="IDEMacro" MacroName="LCLWidgetType" Value="testmock"/>
       </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
@@ -31,6 +31,9 @@
       <FormatVersion Value="2"/>
     </RunParams>
     <RequiredPackages>
+      <Item>
+        <PackageName Value="AnchorDocking"/>
+      </Item>
       <Item>
         <PackageName Value="LCL"/>
       </Item>
@@ -47,6 +50,11 @@
         <Filename Value="test_childsizing.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Test_ChildSizing"/>
+      </Unit>
+      <Unit>
+        <Filename Value="test_anchordock.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Test_AnchorDock"/>
       </Unit>
     </Units>
   </ProjectOptions>

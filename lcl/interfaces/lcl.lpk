@@ -131,7 +131,7 @@ end;"/>
     <License Value="modified LGPL-2
 "/>
     <Version Major="4" Minor="99"/>
-    <Files Count="556">
+    <Files Count="563">
       <Item1>
         <Filename Value="carbon/agl.pp"/>
         <AddToUsesPkgSection Value="False"/>
@@ -2739,6 +2739,41 @@ end;"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="Gtk3Boxes"/>
       </Item556>
+      <Item557>
+        <Filename Value="testmock/alllclintfunits.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="AllLCLIntfUnits"/>
+      </Item557>
+      <Item558>
+        <Filename Value="testmock/interfaces.pp"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="Interfaces"/>
+      </Item558>
+      <Item559>
+        <Filename Value="testmock/testmockint.pp"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="TestMockInt"/>
+      </Item559>
+      <Item560>
+        <Filename Value="testmock/testmockwscontrols.pp"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="TestMockWSControls"/>
+      </Item560>
+      <Item561>
+        <Filename Value="testmock/testmockwsfactory.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="TestMockWSFactory"/>
+      </Item561>
+      <Item562>
+        <Filename Value="testmock/testmockwsforms.pp"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="TestMockWSForms"/>
+      </Item562>
+      <Item563>
+        <Filename Value="testmock/testmockwsmenus.pp"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="TestMockWSMenus"/>
+      </Item563>
     </Files>
     <CompatibilityMode Value="True"/>
     <LazDoc Paths="../../docs/xml/lcl"/>
