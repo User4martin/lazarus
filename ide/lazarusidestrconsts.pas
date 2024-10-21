@@ -6289,6 +6289,23 @@ resourcestring
   optDispGutterNoCurrentLineColor = 'No current line color';
   optDispGutterUseCurrentLineColor = 'Use current line color';
   optDispGutterUseCurrentLineNumberColor = 'Use current line number color';
+  dlgIAhadentifierComplEntryVar = 'Var';
+  dlgIAhadentifierComplEntryType = 'Type';
+  dlgIAhadentifierComplEntryConst = 'Const';
+  dlgIAhadentifierComplEntryProc = 'Procedure';
+  dlgIAhadentifierComplEntryFunc = 'Function';
+  dlgIAhadentifierComplEntryAbstractProcFunc = 'Abstract proc/func';
+  dlgIAhadentifierComplEntryLowerVisibilityProcFunc = 'Lower visibility proc/func';
+  dlgIAhadentifierComplEntryProperty = 'Property';
+  dlgIAhadentifierComplEntryIdent = 'Identifier';
+  dlgIAhadentifierComplEntryLabel = 'Label';
+  dlgIAhadentifierComplEntryUnit = 'Unit';
+  dlgIAhadentifierComplEntryNamespace = 'Namespace';
+  dlgIAhadentifierComplEntryText = 'Text';
+  dlgIAhadentifierComplEntryCodeTemplate = 'Template';
+  dlgIAhadentifierComplEntryKeyword = 'Keyword';
+  dlgIAhadentifierComplEntryOther = 'Other';
+  dlgIAhadentifierComplEntryEnum = 'Enum';
 
 implementation
 

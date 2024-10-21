@@ -136,6 +136,12 @@ const
     '', '', '',  // ahaIfDefBlockInactive, ahaIfDefBlockActive, ahaIfDefBlockTmpActive
     '', '', '',  // ahaIfDefNodeInactive, ahaIfDefNodeActive, ahaIfDefNodeTmpActive
     '', '', '', '', '', // ahaIdentComplWindow, ahaIdentComplWindowBorder, ahaIdentComplRecent, ahaIdentComplWindowSelection, ahaIdentComplWindowHighlight
+    '', '', '',     // ahaIdentComplWindowEntryVar, ahaIdentComplWindowEntryType, ahaIdentComplWindowEntryConst,
+    '', '', '', '', // ahaIdentComplWindowEntryProc, ahaIdentComplWindowEntryFunc, ahaIdentComplWindowEntryMethAbstract, ahaIdentComplWindowEntryMethodLowVis,
+    '', '', '',     // ahaIdentComplWindowEntryProp, ahaIdentComplWindowEntryIdent, ahaIdentComplWindowEntryLabel,
+    '', '', '',     // ahaIdentComplWindowEntryEnum, ahaIdentComplWindowEntryUnit, ahaIdentComplWindowEntryNameSpace,
+    '', '', '',     // ahaIdentComplWindowEntryText, ahaIdentComplWindowEntryTempl, ahaIdentComplWindowEntryKeyword,
+    '',             // ahaIdentComplWindowEntryUnknown,
     '', '', '', '', '', '', '', '', '', '' // ahaOutlineLevel1Color..ahaOutlineLevel10Color
   );
 
@@ -184,11 +190,28 @@ const
     { ahaIfDefNodeInactive }   agnIfDef,
     { ahaIfDefNodeActive }     agnIfDef,
     { ahaIfDefNodeTmpActive }  agnIfDef,
-    { ahaIdentComplWindow }           agnIdentComplWindow,
-    { ahaIdentComplWindowBorder }     agnIdentComplWindow,
-    { ahaIdentComplRecent }     agnIdentComplWindow,
-    { ahaIdentComplWindowSelection }  agnIdentComplWindow,
-    { ahaIdentComplWindowHighlight }  agnIdentComplWindow,
+    { ahaIdentComplWindow }                 agnIdentComplWindow,
+    { ahaIdentComplWindowBorder }           agnIdentComplWindow,
+    { ahaIdentComplRecent }                 agnIdentComplWindow,
+    { ahaIdentComplWindowSelection }        agnIdentComplWindow,
+    { ahaIdentComplWindowHighlight }        agnIdentComplWindow,
+    { ahaIdentComplWindowEntryVar}          agnIdentComplWindow,
+    { ahaIdentComplWindowEntryType}         agnIdentComplWindow,
+    { ahaIdentComplWindowEntryConst}        agnIdentComplWindow,
+    { ahaIdentComplWindowEntryProc}         agnIdentComplWindow,
+    { ahaIdentComplWindowEntryFunc}         agnIdentComplWindow,
+    { ahaIdentComplWindowEntryMethAbstract} agnIdentComplWindow,
+    { ahaIdentComplWindowEntryMethodLowVis} agnIdentComplWindow,
+    { ahaIdentComplWindowEntryProp}         agnIdentComplWindow,
+    { ahaIdentComplWindowEntryIdent}        agnIdentComplWindow,
+    { ahaIdentComplWindowEntryLabel}        agnIdentComplWindow,
+    { ahaIdentComplWindowEntryUnit}         agnIdentComplWindow,
+    { ahaIdentComplWindowEntryEnum}         agnIdentComplWindow,
+    { ahaIdentComplWindowEntryNameSpace}    agnIdentComplWindow,
+    { ahaIdentComplWindowEntryText}         agnIdentComplWindow,
+    { ahaIdentComplWindowEntryTempl}        agnIdentComplWindow,
+    { ahaIdentComplWindowEntryKeyword}      agnIdentComplWindow,
+    { ahaIdentComplWindowEntryUnknown}      agnIdentComplWindow,
     { ahaOutlineLevel1Color }  agnOutlineColors,
     { ahaOutlineLevel2Color }  agnOutlineColors,
     { ahaOutlineLevel3Color }  agnOutlineColors,
@@ -251,7 +274,24 @@ const
     { ahaIdentComplWindowBorder }    [hafForeColor],
     { ahaIdentComplRecent}    [hafForeColor],
     { ahaIdentComplWindowSelection } [hafBackColor, hafForeColor],
-    { ahaIdentComplWindowHighlight } [hafForeColor],
+    { ahaIdentComplWindowHighlight }         [hafForeColor],
+    { ahaIdentComplWindowEntryVar}           [hafForeColor],
+    { ahaIdentComplWindowEntryType}          [hafForeColor],
+    { ahaIdentComplWindowEntryConst}         [hafForeColor],
+    { ahaIdentComplWindowEntryProc}          [hafForeColor],
+    { ahaIdentComplWindowEntryFunc}          [hafForeColor],
+    { ahaIdentComplWindowEntryMethAbstract}  [hafForeColor],
+    { ahaIdentComplWindowEntryMethodLowVis}  [hafForeColor],
+    { ahaIdentComplWindowEntryProp}          [hafForeColor],
+    { ahaIdentComplWindowEntryIdent}         [hafForeColor],
+    { ahaIdentComplWindowEntryLabel}         [hafForeColor],
+    { ahaIdentComplWindowEntryUnit}          [hafForeColor],
+    { ahaIdentComplWindowEntryEnum}          [hafForeColor],
+    { ahaIdentComplWindowEntryNameSpace}     [hafForeColor],
+    { ahaIdentComplWindowEntryText}          [hafForeColor],
+    { ahaIdentComplWindowEntryTempl}         [hafForeColor],
+    { ahaIdentComplWindowEntryKeyword}       [hafForeColor],
+    { ahaIdentComplWindowEntryUnknown}       [hafForeColor],
     { ahaFoldLevel1Color }    [hafBackColor, hafForeColor, hafFrameColor, hafAlpha, hafPrior, hafFrameStyle, hafFrameEdges, hafStyle, hafStyleMask, hafMarkupFoldColor],
     { ahaFoldLevel2Color }    [hafBackColor, hafForeColor, hafFrameColor, hafAlpha, hafPrior, hafFrameStyle, hafFrameEdges, hafStyle, hafStyleMask, hafMarkupFoldColor],
     { ahaFoldLevel3Color }    [hafBackColor, hafForeColor, hafFrameColor, hafAlpha, hafPrior, hafFrameStyle, hafFrameEdges, hafStyle, hafStyleMask, hafMarkupFoldColor],
@@ -2993,12 +3033,29 @@ begin
   AdditionalHighlightAttributes[ahaIfDefNodeTmpActive]  := dlgIfDefNodeTmpActive;
   AdditionalHighlightGroupNames[agnIfDef]        := dlgAddHiAttrGroupIfDef;
 
-  AdditionalHighlightAttributes[ahaIdentComplWindow]          := dlgAddHiAttrDefaultWindow;
-  AdditionalHighlightAttributes[ahaIdentComplWindowBorder]    := dlgAddHiAttrWindowBorder;
-  AdditionalHighlightAttributes[ahaIdentComplRecent]          := dlgAddHiAttrRecentlyUsed;
-  AdditionalHighlightAttributes[ahaIdentComplWindowSelection] := dlgBlockGroupOptions;
-  AdditionalHighlightAttributes[ahaIdentComplWindowHighlight] := dlgAddHiAttrHighlightPrefix;
-  AdditionalHighlightGroupNames[agnIdentComplWindow]          := dlgIdentifierCompletion;
+  AdditionalHighlightAttributes[ahaIdentComplWindow]                  := dlgAddHiAttrDefaultWindow;
+  AdditionalHighlightAttributes[ahaIdentComplWindowBorder]            := dlgAddHiAttrWindowBorder;
+  AdditionalHighlightAttributes[ahaIdentComplRecent]                  := dlgAddHiAttrRecentlyUsed;
+  AdditionalHighlightAttributes[ahaIdentComplWindowSelection]         := dlgBlockGroupOptions;
+  AdditionalHighlightAttributes[ahaIdentComplWindowHighlight]         := dlgAddHiAttrHighlightPrefix;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryVar]          := dlgIAhadentifierComplEntryVar;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryType]         := dlgIAhadentifierComplEntryType;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryConst]        := dlgIAhadentifierComplEntryConst;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryProc]         := dlgIAhadentifierComplEntryProc;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryFunc]         := dlgIAhadentifierComplEntryFunc;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryMethAbstract] := dlgIAhadentifierComplEntryAbstractProcFunc;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryMethodLowVis] := dlgIAhadentifierComplEntryLowerVisibilityProcFunc;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryProp]         := dlgIAhadentifierComplEntryProperty;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryIdent]        := dlgIAhadentifierComplEntryIdent;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryLabel]        := dlgIAhadentifierComplEntryLabel;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryEnum]         := dlgIAhadentifierComplEntryEnum;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryUnit]         := dlgIAhadentifierComplEntryUnit;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryNameSpace]    := dlgIAhadentifierComplEntryNamespace;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryText]         := dlgIAhadentifierComplEntryText;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryTempl]        := dlgIAhadentifierComplEntryCodeTemplate;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryKeyword]      := dlgIAhadentifierComplEntryKeyword;
+  AdditionalHighlightAttributes[ahaIdentComplWindowEntryUnknown]      := dlgIAhadentifierComplEntryOther;
+  AdditionalHighlightGroupNames[agnIdentComplWindow]                  := dlgIdentifierCompletion;
 
   AdditionalHighlightAttributes[ahaOutlineLevel1Color]  := dlgAddHiAttrOutlineLevel1Color;
   AdditionalHighlightAttributes[ahaOutlineLevel2Color]  := dlgAddHiAttrOutlineLevel2Color;
@@ -7676,44 +7733,9 @@ begin
     begin
       IDESynEdit := TIDESynEditor(ASynEdit);
 
-      Attri := GetUsedAttr(ahaIdentComplWindow);
-      if Attri<>nil then
-      begin
-        IDESynEdit.MarkupIdentComplWindow.TextColor := Attri.Foreground;
-        IDESynEdit.MarkupIdentComplWindow.WindowColor:= Attri.Background;
-      end else
-      begin
-        IDESynEdit.MarkupIdentComplWindow.TextColor := clNone;
-        IDESynEdit.MarkupIdentComplWindow.WindowColor:= clNone;
-      end;
-
-      Attri := GetUsedAttr(ahaIdentComplWindowBorder);
-      if Attri<>nil then
-        IDESynEdit.MarkupIdentComplWindow.BorderColor:= Attri.Foreground
-      else
-        IDESynEdit.MarkupIdentComplWindow.BorderColor:= clNone;
-
-      Attri := GetUsedAttr(ahaIdentComplRecent);
-      if Attri<>nil then
-        IDESynEdit.MarkupIdentComplWindow.HistoryTextColor := Attri.Foreground
-      else
-        IDESynEdit.MarkupIdentComplWindow.HistoryTextColor := clNone;
-
-      Attri := GetUsedAttr(ahaIdentComplWindowHighlight);
-      if Attri<>nil then
-        IDESynEdit.MarkupIdentComplWindow.HighlightColor:= Attri.Foreground
-      else
-        IDESynEdit.MarkupIdentComplWindow.HighlightColor:= clNone;
-
-      Attri := GetUsedAttr(ahaIdentComplWindowSelection);
-      if Attri<>nil then
-      begin
-        IDESynEdit.MarkupIdentComplWindow.TextSelectedColor:= Attri.Foreground;
-        IDESynEdit.MarkupIdentComplWindow.BackgroundSelectedColor:= Attri.Background;
-      end else
-      begin
-        IDESynEdit.MarkupIdentComplWindow.TextSelectedColor := clNone;
-        IDESynEdit.MarkupIdentComplWindow.BackgroundSelectedColor:= clNone;
+      for aha := low(TIdentWindowAhaColorRange) to high(TIdentWindowAhaColorRange) do begin
+        Attri := GetUsedAttr(aha);
+        Attri.ApplyTo(IDESynEdit.MarkupIdentComplWindow.Color[aha]);
       end;
     end;
 
