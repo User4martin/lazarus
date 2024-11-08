@@ -489,14 +489,29 @@ type
   { TDWarfLineMap }
 
   TDWarfLineMap = object
-  private
-    // FLineIndexList[ line div 256 ]
-    FLineIndexList: Array of record
-      LineOffsets: Array of Byte;
-      Addresses: Array of TDBGPtr;
+  private const
+    PAGE_SIZE  = 256;
+    PAGE_SHIFT = 8;
+    PAGE_MASK  = 255;
+  private type
+    TLineMapPage = record
+      //FirstOffset, LastOffset: byte;
+      IsAddrList: Array of Boolean8;
+      Addresses: Array [0..PAGE_SIZE-1] of TDBGPtr;  // TDBGPtrArray
     end;
+    PLineMapPage = ^TLineMapPage;
+  private
+    //FFirstPageIndex: integer;
+    FLinePageList: Array of PLineMapPage;
+
+    // FLineIndexList[ line div 256 ]
+    //FLineIndexList: Array of record
+    //  LineOffsets: Array of Byte;
+    //  Addresses: Array of TDBGPtr;
+    //end;
   public
     procedure Init;
+    procedure Free;
     procedure SetAddressForLine(ALine: Cardinal; AnAddress: TDBGPtr); inline;
     function  GetAddressesForLine(ALine: Cardinal; var AResultList: TDBGPtrArray;
       NoData: Boolean = False;
@@ -3562,99 +3577,113 @@ procedure TDWarfLineMap.Init;
 begin
 end;
 
+procedure TDWarfLineMap.Free;
+var
+  idx, j: Integer;
+  CurPage: PLineMapPage;
+begin
+  for idx := 0 to Length(FLinePageList) - 1 do begin
+    CurPage := FLinePageList[idx];
+    if CurPage <> nil then begin
+      if CurPage^.IsAddrList <> nil then
+        for j := 0 to PAGE_SIZE - 1 do
+          if CurPage^.IsAddrList[j] then
+            TDBGPtrArray(CurPage^.Addresses[j]) := nil;
+      Dispose(CurPage);
+    end
+  end;
+end;
+
 procedure TDWarfLineMap.SetAddressForLine(ALine: Cardinal; AnAddress: TDBGPtr);
 var
-  SectLen, SectCnt, i, j, o, o2: Integer;
-  idx, offset: TDBGPtr;
-  LineOffsets: Array of Byte;
-  Addresses: Array of TDBGPtr;
+  idx, offset: integer;
+  i: integer;
+  CurPage: PLineMapPage;
+  AddrList: TDBGPtrArray;
+  IsList: Boolean;
 begin
-  idx := ALine div 256;
-  offset := ALine mod 256;
-  i := Length(FLineIndexList);
+  idx    := ALine SHR PAGE_SHIFT;
+  offset := ALine AND PAGE_MASK;
+  i := Length(FLinePageList);
   if idx >= i then
-    SetLength(FLineIndexList, idx+4);
+    SetLength(FLinePageList, idx*2+8);
 
-  LineOffsets := FLineIndexList[idx].LineOffsets;
-  Addresses := FLineIndexList[idx].Addresses;
+  CurPage := FLinePageList[idx];
+  if CurPage = nil then begin
+    New(CurPage);
+    FillChar(CurPage^, SizeOf(TLineMapPage), 0);
+    FLinePageList[idx] := CurPage;
+  end;
 
-  if Addresses = nil then begin
-    SectLen := 192;
-    SectCnt := 0;
-    SetLength(FLineIndexList[idx].Addresses, 193);
-    SetLength(FLineIndexList[idx].LineOffsets, 192);
-    LineOffsets := FLineIndexList[idx].LineOffsets;
-    Addresses := FLineIndexList[idx].Addresses;
+  IsList := (CurPage^.IsAddrList <> nil) and (CurPage^.IsAddrList[offset]);
+
+  if (CurPage^.Addresses[offset] = AnAddress) and ( (AnAddress <> 0) or IsList ) then
+    exit;
+
+  if (CurPage^.Addresses[offset] = 0) and (not IsList) then begin
+    CurPage^.Addresses[offset] := AnAddress;
+    if (AnAddress = 0) then begin
+      if CurPage^.IsAddrList = nil then
+        SetLength(CurPage^.IsAddrList, PAGE_SIZE);
+      CurPage^.IsAddrList[offset] := True;  // special case: list = nil meand address = nil
+    end;
   end
   else begin
-    SectLen := Length(LineOffsets);
-    SectCnt := Integer(Addresses[SectLen]);
-    if SectCnt >= SectLen then begin
-      SectLen := SectCnt + 64;
-      SetLength(FLineIndexList[idx].Addresses, SectLen+1);
-      SetLength(FLineIndexList[idx].LineOffsets, SectLen);
-      LineOffsets := FLineIndexList[idx].LineOffsets;
-      Addresses := FLineIndexList[idx].Addresses;
+    if CurPage^.IsAddrList = nil then
+      SetLength(CurPage^.IsAddrList, PAGE_SIZE);
+
+    if CurPage^.IsAddrList[offset] then begin
+      AddrList := TDBGPtrArray(CurPage^.Addresses[offset]);
+      i := Length(AddrList) - 1;
+      while (i >= 0) and (AddrList[i] <> AnAddress) do
+        dec(i);
+      if i >= 0 then  // address already exists
+        exit;
+
+      i := Length(AddrList);
+      SetLength(TDBGPtrArray(CurPage^.Addresses[offset]), i+1);
+      TDBGPtrArray(CurPage^.Addresses[offset])[i] := AnAddress;
+    end
+    else begin
+      CurPage^.IsAddrList[offset] := True;
+      SetLength(AddrList, 2);
+      AddrList[0] := CurPage^.Addresses[offset];
+      AddrList[1] := AnAddress;
+      CurPage^.Addresses[offset] := 0;
+      TDBGPtrArray(CurPage^.Addresses[offset]) := AddrList;
     end;
   end;
-
-
-  i := 0;
-  o := 0;
-  while (i < SectCnt) do begin
-    o2 := o + LineOffsets[i];
-    if o2 > offset then break;
-    o := o2;
-    inc(i);
-  end;
-
-  j := SectCnt;
-  while j > i do begin
-    LineOffsets[j] := LineOffsets[j-1];
-    Addresses[j]   := Addresses[j-1];
-    dec(j);
-  end;
-
-  offset := offset - o;
-  LineOffsets[i] := offset;
-  Addresses[i]   := AnAddress;
-
-  if i < SectCnt then begin
-    assert(LineOffsets[i+1] >= offset, 'TDWarfLineMap.SetAddressForLine LineOffsets[i+1] > offset');
-    LineOffsets[i+1] := LineOffsets[i+1] - offset;
-  end;
-
-  Addresses[SectLen] := SectCnt + 1;
 end;
 
 function TDWarfLineMap.GetAddressesForLine(ALine: Cardinal; var AResultList: TDBGPtrArray;
   NoData: Boolean; AFindSibling: TGetLineAddrFindSibling; AFoundLine: PInteger;
   AMaxSiblingDistance: integer; ADbgInfo: TFpDwarfInfo): Boolean;
 var
-  idx: integer;
-  offset, Addr1, Addr2: TDBGPtr;
-  LineOffsets: Array of Byte;
-  Addresses: Array of TDBGPtr;
+  idx, offset: integer;
+  Addr1, Addr2, FndAddr, FirstAddr: TDBGPtr;
   o: Byte;
-  i, j, k, l, ln, CurOffs: Integer;
+  i, j, k, l, ln: Integer;
   TmpResList: TDBGPtrArray;
+  CurPage: PLineMapPage;
+  IsList: Boolean;
 begin
   Result := False;
-  idx := ALine div 256;
-  offset := ALine mod 256;
-  if idx >= Length(FLineIndexList) then begin
+  idx    := ALine SHR PAGE_SHIFT;
+  offset := ALine AND PAGE_MASK;
+
+  if idx >= Length(FLinePageList) then begin
     if AFindSibling  = fsBefore then begin
-      idx := Length(FLineIndexList)-1;
-      offset := 255;
+      idx := Length(FLinePageList)-1;
+      offset := PAGE_SIZE-1;
     end
     else
       exit;
   end;
 
   repeat
-    LineOffsets := FLineIndexList[idx].LineOffsets;
-    Addresses := FLineIndexList[idx].Addresses;
-    if Addresses = nil then
+// TODO: check AMaxSiblingDistance against page size distance
+    CurPage := FLinePageList[idx];
+    if CurPage = nil then
       case AFindSibling of
         fsNone:
             exit;
@@ -3662,75 +3691,63 @@ begin
             if idx = 0 then
               exit;
             dec(idx);
-            offset := 255;
+            offset := PAGE_SIZE-1;
             Continue;
           end;
         fsNext, fsNextFunc, fsNextFuncLazy: begin
             inc(idx);
-            if idx >= Length(FLineIndexList) then
+            if idx >= Length(FLinePageList) then
               exit;
             offset := 0;
             Continue;
           end;
       end;
 
-    l := Length(LineOffsets);
-    i := 0;
-    CurOffs := 0;
-    while (i < l) do begin
-      o := LineOffsets[i];
-      CurOffs := CurOffs + o;
-      if o > offset then begin
-        case AFindSibling of
-          fsNone:
-              exit;
-          fsBefore: begin
-              if i > 0 then begin
-                dec(i);
-                CurOffs := CurOffs - o;
-                offset := 0;  // found line before
-              end
-              else begin
-                // i=0 => will trigger continue for outer loop
-                dec(idx);
-                if idx < 0 then
-                  exit;
-                offset := 255; // Must be last entry from block before (if there is a block before)
-              end;
-            end;
-          fsNext, fsNextFunc, fsNextFuncLazy: begin
-              offset := 0;  // found line after/next
-            end;
-        end;
-        break;
-      end;
-      offset := offset - o;
-      if offset = 0 then
-        break;
-      inc(i);
-    end;
+    FndAddr := CurPage^.Addresses[offset];
+    IsList := (CurPage^.IsAddrList <> nil) and (CurPage^.IsAddrList[offset]);
 
-    if offset = 0 then
-      break;
     case AFindSibling of
-      fsNone: exit;
       fsBefore: begin
-        if i = 0 then
-          continue;
-        assert(i=l, 'TDWarfLineMap.GetAddressesForLine: i=l');
-        dec(i);
-        break;
-      end;
-      else begin
-        inc(idx);
-        if idx >= Length(FLineIndexList) then
-          exit;
-        continue;
-      end;
+          while (FndAddr = 0) and (not IsList) do begin
+            dec(offset);
+            if offset < 0 then
+              break;
+
+            FndAddr := CurPage^.Addresses[offset];
+            IsList := (CurPage^.IsAddrList <> nil) and (CurPage^.IsAddrList[offset]);
+          end;
+          if offset < 0 then begin
+            dec(idx);
+            if idx < 0 then
+              exit;
+            offset := 0;
+            Continue;
+          end;
+        end;
+      fsNext, fsNextFunc, fsNextFuncLazy: begin
+          while (FndAddr = 0) and (not IsList) do begin
+            inc(offset);
+            if offset >= PAGE_SIZE then
+              break;
+            FndAddr := CurPage^.Addresses[offset];
+            IsList := (CurPage^.IsAddrList <> nil) and (CurPage^.IsAddrList[offset]);
+          end;
+          if offset >= PAGE_SIZE then begin
+            inc(idx);
+            if idx >= Length(FLinePageList) then
+              exit;
+            offset := PAGE_SIZE-1;
+            Continue;
+          end;
+        end;
     end;
+    break;
   until False;
 
-  ln := 256 * idx + CurOffs;
+  if (FndAddr = 0) and (not IsList) then
+    exit;
+
+  ln := PAGE_SIZE * idx + offset;
   if ln <> ALine then
     case AFindSibling of
       fsBefore:
@@ -3742,7 +3759,10 @@ begin
         then begin
           // check same function
           if ADbgInfo = nil then exit;
-          if not ADbgInfo.FindProcStartEndPC(Addresses[i], Addr1, Addr2) then exit;
+          FirstAddr := FndAddr;
+          if IsList and (FndAddr <> 0) then
+            FirstAddr := TDBGPtrArray(FirstAddr)[0];
+          if not ADbgInfo.FindProcStartEndPC(FirstAddr, Addr1, Addr2) then exit;
           if GetAddressesForLine(ALine, TmpResList, False, fsBefore) then begin
             if (Length(TmpResList) = 0) or (TmpResList[0] < Addr1) or (TmpResList[0] > Addr2) then
               exit;
@@ -3757,40 +3777,36 @@ begin
       end;
     end;
   if AFoundLine <> nil then
-    AFoundLine^ := 256 * idx + CurOffs;
-
-  if NoData then begin
-    Result := True;
-    exit;
-  end;
-
-  j := i + 1;
-  while (j < l) and (LineOffsets[j] = 0) do inc(j);
-
-  k := Length(AResultList);
-  SetLength(AResultList, k + (j-i));
-  while i < j do begin
-    AResultList[k] := Addresses[i];
-    inc(i);
-    inc(k);
-  end;
+    AFoundLine^ := ln;
 
   Result := True;
+  if NoData then
+    exit;
+
+  k := Length(AResultList);
+  if (not IsList) or (FndAddr = 0) then begin
+    SetLength(AResultList, k + 1);
+    AResultList[k] := FndAddr;
+  end
+  else begin
+    SetLength(AResultList, k + Length(TDBGPtrArray(FndAddr)));
+    move(TDBGPtrArray(FndAddr)[0], AResultList[k], Length(TDBGPtrArray(FndAddr))*SizeOf(TDBGPtrArray(FndAddr)[0]));
+  end;
 end;
 
 procedure TDWarfLineMap.Compress;
 var
   i, j: Integer;
 begin
-  for i := 0 to high(FLineIndexList) do begin
-    j := Length(FLineIndexList[i].LineOffsets);
-    if j <> 0 then begin
-      j := FLineIndexList[i].Addresses[j];
-      SetLength(FLineIndexList[i].Addresses, j+1);
-      FLineIndexList[i].Addresses[j] := j;
-      SetLength(FLineIndexList[i].LineOffsets, j);
-    end;
-  end;
+  //for i := 0 to high(FLineIndexList) do begin
+  //  j := Length(FLineIndexList[i].LineOffsets);
+  //  if j <> 0 then begin
+  //    j := FLineIndexList[i].Addresses[j];
+  //    SetLength(FLineIndexList[i].Addresses, j+1);
+  //    FLineIndexList[i].Addresses[j] := j;
+  //    SetLength(FLineIndexList[i].LineOffsets, j);
+  //  end;
+  //end;
 end;
 
 { TFpDwarfInfo }
@@ -3834,11 +3850,15 @@ destructor TFpDwarfInfo.Destroy;
   procedure FreeLineNumberMap;
   var
     n: Integer;
+    m: PDWarfLineMap;
   begin
     if FLineNumberMap = nil then
       exit;
-    for n := 0 to FLineNumberMap.Count - 1 do
-      Dispose(FLineNumberMap.Data[n]);
+    for n := 0 to FLineNumberMap.Count - 1 do begin
+      m := FLineNumberMap.Data[n];
+      m^.Free;
+      Dispose(m);
+    end;
     FreeAndNil(FLineNumberMap);
   end;
 
