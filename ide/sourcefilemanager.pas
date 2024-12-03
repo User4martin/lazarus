@@ -4216,7 +4216,7 @@ begin
     ExpandFileNameUTF8(ExtractFilePath(ProgramBuf.Filename));
 
   // create a new project
-  Project1:=MainIDE.CreateProjectObject(NewProjectDesc,ProjectDescriptorProgram);
+  Project1:=MainIDE.CreateProjectObject(NewProjectDesc,ProjectDescriptorProgram, TIdeLazarusProjectBackend);
   Result:=InitProjectForProgram(ProgramBuf);
   //debugln('[CreateProjectForProgram] END');
 end;
@@ -4436,7 +4436,9 @@ var
   LoadFlags: TLoadBufferFlags;
   PreReadBuf: TCodeBuffer;
   SourceType: String;
-  LPIFilename: String;
+  LPIFilename, s: String;
+  BackEndClass: TLazProjectBackendClass;
+  i: Integer;
 begin
   if Assigned(aMenuItem) and (aMenuItem.Section=itmProjectRecentOpen) then
   begin
@@ -4457,14 +4459,20 @@ begin
     OpenDialog:=IDEOpenDialogClass.Create(nil);
     try
       InputHistories.ApplyFileDialogSettings(OpenDialog);
-      OpenDialog.Title:=lisOpenProjectFile+' (*.lpi)';
-      OpenDialog.Filter := dlgFilterLazarusProject+' (*.lpi)|*.lpi|'
+      OpenDialog.Title:=lisOpenProjectFile;
+      s := '';
+      for i := 0 to LazProjectBackendList.Count - 1 do
+        s := s + LazProjectBackendList[i].FileFilter + '|';
+      OpenDialog.Filter := s
                           +dlgFilterAll+'|'+GetAllFilesMask;
       if OpenDialog.Execute then begin
         AFilename:=GetPhysicalFilenameCached(ExpandFileNameUTF8(OpenDialog.Filename),false);
-        if not FilenameExtIs(AFilename,'lpi',false) then begin
+
+        BackEndClass := LazProjectBackendList.BackendForFile(AFileName);
+        if BackEndClass = nil then begin
           // not a lpi file
           // check if it is a program source
+          BackEndClass := TIdeLazarusProjectBackend;
 
           // load the source
           LoadFlags := [lbfCheckIfText,lbfUpdateFromDisk,lbfRevert];

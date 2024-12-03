@@ -146,7 +146,8 @@ type
                         out ResultFlags: TIDEFileStateFlags); virtual; abstract;
 
     function CreateProjectObject(ProjectDesc,
-          FallbackProjectDesc: TProjectDescriptor): TProject; virtual; abstract;
+          FallbackProjectDesc: TProjectDescriptor;
+          ABackEndClass: TLazProjectBackendClass): TProject; virtual; abstract;
     function DoInitProjectRun: TModalResult; virtual; abstract;
     function DoOpenMacroFile(Sender: TObject;
         const AFilename: string): TModalResult; virtual; abstract;

@@ -821,13 +821,15 @@ type
 
     // project(s)
     function CreateProjectObject(ProjectDesc,
-                      FallbackProjectDesc: TProjectDescriptor): TProject; override;
+                      FallbackProjectDesc: TProjectDescriptor;
+                      ABackEndClass: TLazProjectBackendClass): TProject; override;
     function DoNewProject(ProjectDesc: TProjectDescriptor): TModalResult; override;
     function DoSaveProject(Flags: TSaveFlags): TModalResult; override;
     function DoCloseProject: TModalResult; override;
     procedure DoNoProjectWizard(Sender: TObject);
     function DoOpenProjectFile(AFileName: string;
-                               Flags: TOpenFlags): TModalResult; override;
+                               Flags: TOpenFlags;
+                               ABackEndClass: TLazProjectBackendClass=nil): TModalResult; override;
     function DoPublishProject(Flags: TSaveFlags;
                               ShowDialog: boolean): TModalResult; override;
     procedure DoShowProjectInspector(State: TIWGetFormState = iwgfShowOnTop); override;
@@ -6423,12 +6425,12 @@ begin
                            nil,[ofRevert],True); // Reverting one will revert all
 end;
 
-function TMainIDE.CreateProjectObject(ProjectDesc,
-  FallbackProjectDesc: TProjectDescriptor): TProject;
+function TMainIDE.CreateProjectObject(ProjectDesc, FallbackProjectDesc: TProjectDescriptor;
+  ABackEndClass: TLazProjectBackendClass): TProject;
 var
   NeedsEndUpdate, ok: Boolean;
 begin
-  Result:=TProject.Create(ProjectDesc);
+  Result:=TProject.Create(ProjectDesc, ABackEndClass);
   // custom initialization
   Result.BeginUpdate(true);
   NeedsEndUpdate:=true;
@@ -6440,7 +6442,7 @@ begin
       Result.Free;
       Result:=nil;
       if FallbackProjectDesc=nil then exit;
-      Result:=TProject.Create(FallbackProjectDesc);
+      Result:=TProject.Create(FallbackProjectDesc, ABackEndClass);
       Result.BeginUpdate(true);
       NeedsEndUpdate:=true;
       FallbackProjectDesc.InitProject(Result);
@@ -6497,7 +6499,7 @@ begin
   EnvironmentOptions.LastSavedProjectFile:='';
 
   // create new project
-  Project1:=CreateProjectObject(ProjectDesc,ProjectDescriptorProgram);
+  Project1:=CreateProjectObject(ProjectDesc,ProjectDescriptorProgram, ProjectDesc.ProjectBackendClass);
   Result:=InitNewProject(ProjectDesc);
 
   {$push}{$overflowchecks off}
@@ -6548,7 +6550,8 @@ begin
   end;
 end;
 
-function TMainIDE.DoOpenProjectFile(AFileName: string; Flags: TOpenFlags): TModalResult;
+function TMainIDE.DoOpenProjectFile(AFileName: string; Flags: TOpenFlags;
+  ABackEndClass: TLazProjectBackendClass): TModalResult;
 var
   OriginalFilename: string;
 
@@ -6564,6 +6567,11 @@ var
   FileReadable: Boolean;
 begin
   Result:=mrCancel;
+  if ABackEndClass = nil then begin
+    ABackEndClass := LazProjectBackendList.BackendForFile(AFileName);
+    if ABackEndClass = nil then
+      ABackEndClass := TIdeLazarusProjectBackend;
+  end;
 
   if ConsoleVerbosity>=0 then
     debugln('Hint: (lazarus) [TMainIDE.DoOpenProjectFile] "'+AFileName+'"');
@@ -6646,7 +6654,8 @@ begin
     //debugln('TMainIDE.DoOpenProjectFile B');
     {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.DoOpenProjectFile B');{$ENDIF}
     Project1:=CreateProjectObject(ProjectDescriptorProgram,
-                                  ProjectDescriptorProgram);
+                                  ProjectDescriptorProgram,
+                                  ABackEndClass);
     Result:=InitOpenedProjectFile(AFileName, Flags);
   finally
     SourceEditorManager.DecUpdateLock;

@@ -9,7 +9,8 @@ interface
 
 uses
   RunParamOptions, ProjectIcon, W32Manifest, W32VersionInfo, ProjectUserResources, 
-  IdeProjectStrConsts, ProjectResources, Project, ProjectDefs, LazarusPackageIntf;
+  IdeProjectStrConsts, ProjectResources, Project, ProjectDefs, ProjectForPackage, 
+  LazarusPackageIntf;
 
 implementation
 

@@ -18,6 +18,9 @@ resourcestring
   lirsUnit = 'Pascal unit';
   lisCreateANewPascalUnit = 'Create a new pascal unit.';
 
+  dlgFilterLazarusProject = 'Lazarus project';
+
+
 implementation
 
 end.

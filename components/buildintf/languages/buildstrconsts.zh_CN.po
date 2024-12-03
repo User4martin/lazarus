@@ -11,6 +11,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.3.2\n"
 
+#: buildstrconsts.dlgfilterlazarusproject
+msgid "Lazarus project"
+msgstr ""
+
 #: buildstrconsts.lirsunit
 msgid "Pascal unit"
 msgstr "Pascal 单元"

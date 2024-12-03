@@ -50,17 +50,6 @@ uses
 type
   TOnLoadSaveFilename = procedure(var Filename:string; Load:boolean) of object;
 
-  TProjectWriteFlag = (
-    pwfSkipClosedUnits,         // skip history data
-    pwfSaveOnlyProjectUnits,
-    pwfSkipDebuggerSettings,
-    pwfSkipJumpPoints,
-    pwfSkipProjectInfo,         // do not write lpi file
-    pwfSkipSeparateSessionInfo, // do not write lps file
-    pwfIgnoreModified, // write always even if nothing modified (e.g. to upgrade to a newer lpi version)
-    pwfCompatibilityMode // maximize compatibility to open LPI files in legacy Lazarus installations
-    );
-  TProjectWriteFlags = set of TProjectWriteFlag;
 const
   pwfSkipSessionInfo = [pwfSkipSeparateSessionInfo,pwfSaveOnlyProjectUnits,
                         pwfSkipDebuggerSettings,pwfSkipJumpPoints];

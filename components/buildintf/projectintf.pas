@@ -298,6 +298,9 @@ const
   DefaultNewProjectSessionStorage = pssInProjectDir; // value used for new projects
 
 type
+  TLazProjectBackend = class;
+  TLazProjectBackendClass = class of TLazProjectBackend;
+  TLazProjectBackendClassList = class;
   TLazProject = class;
   { TProjectDescriptor
     - to show an option dialog to the user override the DoInitDescriptor
@@ -305,7 +308,7 @@ type
     - to create files on creation override CreateStartFiles
   }
 
-  TProjectDescriptor = class(TPersistent)
+  TProjectDescriptor = class abstract(TPersistent)
   private
     FDefaultExt: string;
     FFlags: TProjectFlags;
@@ -313,6 +316,7 @@ type
     FReferenceCount: integer;
     FVisibleInNewDialog: boolean;
   protected
+    function GetProjectBackendClass: TLazProjectBackendClass; virtual;
     procedure SetName(const AValue: string); virtual;
     procedure SetFlags(const AValue: TProjectFlags); virtual;
     function DoInitDescriptor: TModalResult; virtual;// put here option dialogs
@@ -331,6 +335,7 @@ type
                                          write FVisibleInNewDialog;
     property Flags: TProjectFlags read FFlags write SetFlags;
     property DefaultExt: string read FDefaultExt write FDefaultExt;
+    property ProjectBackendClass: TLazProjectBackendClass read GetProjectBackendClass;
   end;
   TProjectDescriptorClass = class of TProjectDescriptor;
 
@@ -553,6 +558,51 @@ type
     petUnit
     );
 
+  TProjectWriteFlag = (
+    pwfSkipClosedUnits,         // skip history data
+    pwfSaveOnlyProjectUnits,
+    pwfSkipDebuggerSettings,
+    pwfSkipJumpPoints,
+    pwfSkipProjectInfo,         // do not write lpi file
+    pwfSkipSeparateSessionInfo, // do not write lps file
+    pwfIgnoreModified, // write always even if nothing modified (e.g. to upgrade to a newer lpi version)
+    pwfCompatibilityMode // maximize compatibility to open LPI files in legacy Lazarus installations
+    );
+  TProjectWriteFlags = set of TProjectWriteFlag;
+
+  { TLazProjectBackend }
+
+  TLazProjectBackend = class abstract
+  public
+    class function Caption: string; virtual; abstract;
+    class function FileExtension: string; virtual; abstract;
+    class function FileFilter: string; virtual; abstract;
+    class function IsBackendForFile(AFilename: string): boolean; virtual;
+  public
+    constructor Create(AProject: TLazProject); virtual;
+    function ReadProject(const NewProjectInfoFile: string;
+                         LoadAllOptions: Boolean = True): TModalResult;  virtual; abstract;
+    function WriteProject(const OverrideProjectInfoFile: string;
+                          ProjectWriteFlags: TProjectWriteFlags): TModalResult;  virtual; abstract;
+  end;
+
+  { TLazProjectBackendClassList }
+
+  TLazProjectBackendClassList = class abstract
+  public type
+    TLazProjectBackendClassListEnumerator = specialize TFPGListEnumerator<TLazProjectBackendClass>;
+  protected
+    function GetItems(AnIndex: Integer): TLazProjectBackendClass; virtual; abstract;
+  public
+    function Add(const ABackend: TLazProjectBackendClass): integer; virtual; abstract;
+    function Count: integer; virtual; abstract;
+    function IndexOf(const ABackend: TLazProjectBackendClass): integer; virtual; abstract;
+    function BackendForFile(AFilename: string): TLazProjectBackendClass; virtual; abstract;
+    function DefaultBackend: TLazProjectBackendClass; virtual; abstract;
+    function GetEnumerator: TLazProjectBackendClassListEnumerator; virtual; abstract;
+    property Items[AnIndex: Integer]: TLazProjectBackendClass read GetItems; default;
+  end;
+
   TLazProject = class(TIDEProjPackBase)
   private
     FCleanOutputFileMask: string;
@@ -602,8 +652,9 @@ type
     procedure SetSessionStorage(const AValue: TProjectSessionStorage); virtual;
     procedure SetTitle(const AValue: String); virtual;
     procedure SetUseManifest(AValue: boolean); virtual; abstract;
+    function GetProjectBackEnd: TLazProjectBackend; virtual; abstract;
   public
-    constructor Create({%H-}ProjectDescription: TProjectDescriptor); virtual; reintroduce;
+    constructor Create({%H-}ProjectDescription: TProjectDescriptor; ABackEndClass: TLazProjectBackendClass); virtual; reintroduce;
     destructor Destroy; override;
     procedure Clear; virtual;
     procedure IncreaseChangeStamp; inline;
@@ -629,6 +680,7 @@ type
     function GetDefaultTitle: string; // extract name from lpi file name
     function GetTitleOrName: string; // GetTitle, if this is '' then GetDefaultTitle
   public
+    property ProjectBackEnd: TLazProjectBackend read GetProjectBackEnd;
     property ActiveBuildModeID: string read GetActiveBuildModeID
                                        write SetActiveBuildModeID;
     property ChangeStamp: integer read FChangeStamp;
@@ -742,8 +794,12 @@ procedure RegisterProjectDescriptor(ProjDesc: TProjectDescriptor;
   const Category, Caption, Description, Units: string);
 }
 
+procedure RegisterProjectBackendClass(AProjectBackend: TLazProjectBackendClass);
+
 var
   LazProject1: TLazProject = nil; // the main project
+  LazProjectBackendList: TLazProjectBackendClassList; // will be set by IDE
+
 
 implementation
 
@@ -785,6 +841,11 @@ begin
     NewItemProject.Descriptor:=ProjDesc;
     RegisterNewDialogItem(ACategory,NewItemProject);
   end;
+end;
+
+procedure RegisterProjectBackendClass(AProjectBackend: TLazProjectBackendClass);
+begin
+  LazProjectBackendList.Add(AProjectBackend);
 end;
 
 function FileDescriptorUnit: TProjectFileDescriptor;
@@ -1043,6 +1104,18 @@ begin
   Result:=Count-1;
   while (Result>=0) and (CompareText(BuildModes[Result].Identifier,anIdentifier)<>0)
   do dec(Result);
+end;
+
+{ TLazProjectBackend }
+
+constructor TLazProjectBackend.Create(AProject: TLazProject);
+begin
+  //
+end;
+
+class function TLazProjectBackend.IsBackendForFile(AFilename: string): boolean;
+begin
+  Result := FilenameExtIs(AFilename, FileExtension, False);
 end;
 
 { TProjectFileDescriptor }
@@ -1331,6 +1404,11 @@ begin
   Result:=mrOk;
 end;
 
+function TProjectDescriptor.GetProjectBackendClass: TLazProjectBackendClass;
+begin
+  Result := LazProjectBackendList.DefaultBackend;
+end;
+
 procedure TProjectDescriptor.SetName(const AValue: string);
 begin
   if FName=AValue then exit;
@@ -1559,7 +1637,8 @@ begin
   Modified:=true;
 end;
 
-constructor TLazProject.Create(ProjectDescription: TProjectDescriptor);
+constructor TLazProject.Create(ProjectDescription: TProjectDescriptor;
+  ABackEndClass: TLazProjectBackendClass);
 begin
   inherited Create(nil);
   FSessionStorage:=DefaultNewProjectSessionStorage;
@@ -1756,6 +1835,9 @@ end;
 }
 initialization
   ProjectFileDescriptors:=nil;
+
+finalization
+  FreeAndNil(LazProjectBackendList);
 
 end.
 

@@ -45,7 +45,7 @@ uses
   MemCheck,
   {$ENDIF}
   // RTL + FCL
-  Classes, SysUtils, TypInfo, System.UITypes,
+  Classes, SysUtils, TypInfo, fgl, System.UITypes,
   // LCL
   LCLProc, Forms, Dialogs,
   // CodeTools
@@ -56,7 +56,7 @@ uses
   LazLoggerBase, LazTracer, FileReferenceList, LazUTF8, Laz2_XMLCfg, Maps, AvgLvlTree,
   // BuildIntf
   BaseIDEIntf, ProjectIntf, PackageIntf, MacroIntf, MacroDefIntf,
-  CompOptsIntf, IDEOptionsIntf,
+  CompOptsIntf, IDEOptionsIntf, BuildStrConsts,
   // IDEIntf
   PropEdits, UnitResources, EditorSyntaxHighlighterDef, InputHistory, SrcEditorIntf,
   IDEOptEditorIntf, IDEDialogs,
@@ -755,6 +755,45 @@ type
     //destructor Destroy; override;
   end;
 
+  { TIdeProjectBackendClassList }
+
+  TIdeProjectBackendClassList = class(TLazProjectBackendClassList)
+  private type
+    TProjectBackendList = specialize TFPGList<TLazProjectBackendClass>;
+  private
+    FList: TProjectBackendList;
+  protected
+    function GetItems(AnIndex: Integer): TLazProjectBackendClass; override;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function Add(const ABackend: TLazProjectBackendClass): integer; override;
+    function Count: integer; override;
+    function IndexOf(const ABackend: TLazProjectBackendClass): integer; override;
+    function BackendForFile(AFilename: string): TLazProjectBackendClass; override;
+    function DefaultBackend: TLazProjectBackendClass; override;
+    function GetEnumerator: TLazProjectBackendClassListEnumerator; override;
+  end;
+
+  { TIdeProjectBackend }
+
+  { TIdeLazarusProjectBackend }
+
+  TIdeLazarusProjectBackend = class(TLazProjectBackend)
+  private
+    FProject: TProject;
+  public
+    class function Caption: string; override;
+    class function FileExtension: string; override;
+    class function FileFilter: string; override;
+  public
+    constructor Create(AProject: TLazProject); override;
+    function ReadProject(const NewProjectInfoFile: string;
+                         LoadAllOptions: Boolean = True): TModalResult; override;
+    function WriteProject(const OverrideProjectInfoFile: string;
+                          ProjectWriteFlags: TProjectWriteFlags): TModalResult; override;
+  end;
+
   { TProject }
   
   TEndUpdateProjectEvent =
@@ -844,6 +883,8 @@ type
     FNewMainUnitID: LongInt;
     FProjectWriteFlags: TProjectWriteFlags;
     FSaveSessionInLPI: Boolean;
+    FProjectBackEnd: TLazProjectBackend;
+
     procedure ClearBuildModes;
     function GetAllEditorsInfo(Index: Integer): TUnitEditorInfo;
     function GetCompilerOptions: TProjectCompilerOptions;
@@ -922,6 +963,7 @@ type
     procedure SaveToSession;
     function DoWrite(Filename: String; IsLpi: Boolean): TModalResult;
   protected
+    function GetProjectBackEnd: TLazProjectBackend; override;
     function GetDirectory: string; override;
     function GetActiveBuildModeID: string; override;
     function GetDefineTemplates: TProjPackDefineTemplates;
@@ -952,7 +994,7 @@ type
     procedure AddToOrRemoveFromLoadedList(AnUnitInfo: TUnitInfo);
     procedure AddToOrRemoveFromPartOfProjectList(AnUnitInfo: TUnitInfo);
   public
-    constructor Create(ProjectDescription: TProjectDescriptor); override;
+    constructor Create(ProjectDescription: TProjectDescriptor; ABackEndClass: TLazProjectBackendClass); override;
     destructor Destroy; override;
     procedure Clear; override;
     procedure BeginUpdate(Change: boolean);
@@ -2973,6 +3015,124 @@ begin
   Result := dlgProjectOptions;
 end;
 
+{ TIdeProjectBackendClassList }
+
+function TIdeProjectBackendClassList.GetItems(AnIndex: Integer): TLazProjectBackendClass;
+begin
+  Result := FList.Items[AnIndex];
+end;
+
+constructor TIdeProjectBackendClassList.Create;
+begin
+  inherited Create;
+  FList := TProjectBackendList.Create;
+end;
+
+destructor TIdeProjectBackendClassList.Destroy;
+begin
+  FList.Destroy;
+  inherited Destroy;
+end;
+
+function TIdeProjectBackendClassList.Add(const ABackend: TLazProjectBackendClass): integer;
+begin
+  Result := FList.Add(ABackend);
+end;
+
+function TIdeProjectBackendClassList.Count: integer;
+begin
+  Result := FList.Count;
+end;
+
+function TIdeProjectBackendClassList.IndexOf(const ABackend: TLazProjectBackendClass): integer;
+begin
+  Result := FList.IndexOf(ABackend);
+end;
+
+function TIdeProjectBackendClassList.BackendForFile(AFilename: string): TLazProjectBackendClass;
+begin
+  for Result in Self do
+    if Result.IsBackendForFile(AFileName) then
+      exit;
+  Result := nil;
+end;
+
+function TIdeProjectBackendClassList.DefaultBackend: TLazProjectBackendClass;
+begin
+  Result := TIdeLazarusProjectBackend;
+end;
+
+function TIdeProjectBackendClassList.GetEnumerator: TLazProjectBackendClassListEnumerator;
+begin
+  Result := FList.GetEnumerator;
+end;
+
+{ TIdeLazarusProjectBackend }
+
+class function TIdeLazarusProjectBackend.Caption: string;
+begin
+  Result := dlgFilterLazarusProject;
+end;
+
+class function TIdeLazarusProjectBackend.FileExtension: string;
+begin
+  Result := 'lpi';
+end;
+
+class function TIdeLazarusProjectBackend.FileFilter: string;
+begin
+  Result := dlgFilterLazarusProject+' (*.lpi)|*.lpi';
+end;
+
+constructor TIdeLazarusProjectBackend.Create(AProject: TLazProject);
+begin
+  FProject := AProject as TProject;
+  inherited Create(AProject);
+end;
+
+function TIdeLazarusProjectBackend.ReadProject(const NewProjectInfoFile: string;
+  LoadAllOptions: Boolean): TModalResult;
+begin
+  Result := mrCancel;
+  FProject.BeginUpdate(true);
+  try
+    if Assigned(FProject.FDebuggerLink) then
+      FProject.FDebuggerLink.BeforeReadProject;
+    FProject.FLoadAllOptions := LoadAllOptions;
+
+    // load project lpi file
+    Result:=FProject.DoLoadLPI(NewProjectInfoFile);
+    if Result<>mrOK then Exit;
+
+    // load session file (if available)
+    if (FProject.SessionStorage in pssHasSeparateSession)
+    and (CompareFilenames(FProject.ProjectInfoFile,FProject.ProjectSessionFile)<>0)
+    and FProject.FLoadAllOptions then
+    begin
+      Result:=FProject.DoLoadSession(FProject.ProjectSessionFile);
+      if Result<>mrOK then Exit;
+    end;
+
+    // load lpr
+    if (pfMainUnitIsPascalSource in FProject.Flags) and (FProject.MainUnitInfo<>nil) then
+      FProject.DoLoadLPR(false); // ignore errors
+
+  finally
+    FProject.EndUpdate;
+    FProject.FAllEditorsInfoList.SortByPageIndex;
+  end;
+  {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TProject.ReadProject END');{$ENDIF}
+  if Assigned(FProject.FDebuggerLink) then
+    FProject.FDebuggerLink.AfterReadProject;
+  Result := mrOk;
+end;
+
+function TIdeLazarusProjectBackend.WriteProject(const OverrideProjectInfoFile: string;
+  ProjectWriteFlags: TProjectWriteFlags): TModalResult;
+begin
+
+end;
+
 
 {------------------------------------------------------------------------------
                               TProject Class
@@ -2981,9 +3141,11 @@ end;
 {------------------------------------------------------------------------------
   TProject Constructor
  ------------------------------------------------------------------------------}
-constructor TProject.Create(ProjectDescription: TProjectDescriptor);
+constructor TProject.Create(ProjectDescription: TProjectDescriptor;
+  ABackEndClass: TLazProjectBackendClass);
 begin
-  inherited Create(ProjectDescription);
+  inherited Create(ProjectDescription, ABackEndClass);
+  FProjectBackEnd := ABackEndClass.Create(Self);
 
   FActiveWindowIndexAtStart := 0;
   FSkipCheckLCLInterfaces:=false;
@@ -3057,6 +3219,7 @@ begin
   FreeThenNil(FDefineTemplates);
   FreeAndNil(FHistoryLists);
   FreeAndNil(FLastCompilerParams);
+  FreeAndNil(FProjectBackEnd);
   inherited Destroy;
 end;
 
@@ -3443,39 +3606,8 @@ end;
 function TProject.ReadProject(const NewProjectInfoFile: string;
   GlobalMatrixOptions: TBuildMatrixOptions; LoadAllOptions: Boolean): TModalResult;
 begin
-  Result := mrCancel;
-  BeginUpdate(true);
-  try
-    if Assigned(FDebuggerLink) then
-      FDebuggerLink.BeforeReadProject;
-    BuildModes.FGlobalMatrixOptions := GlobalMatrixOptions;
-    FLoadAllOptions := LoadAllOptions;
-
-    // load project lpi file
-    Result:=DoLoadLPI(NewProjectInfoFile);
-    if Result<>mrOK then Exit;
-
-    // load session file (if available)
-    if (SessionStorage in pssHasSeparateSession)
-    and (CompareFilenames(ProjectInfoFile,ProjectSessionFile)<>0)
-    and FLoadAllOptions then
-    begin
-      Result:=DoLoadSession(ProjectSessionFile);
-      if Result<>mrOK then Exit;
-    end;
-
-    // load lpr
-    if (pfMainUnitIsPascalSource in Flags) and (MainUnitInfo<>nil) then
-      DoLoadLPR(false); // ignore errors
-
-  finally
-    EndUpdate;
-    FAllEditorsInfoList.SortByPageIndex;
-  end;
-  {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TProject.ReadProject END');{$ENDIF}
-  if Assigned(FDebuggerLink) then
-    FDebuggerLink.AfterReadProject;
-  Result := mrOk;
+  BuildModes.FGlobalMatrixOptions := GlobalMatrixOptions;
+  Result := FProjectBackEnd.ReadProject(NewProjectInfoFile, LoadAllOptions);
 end;
 
 {------------------------------------------------------------------------------
@@ -3737,6 +3869,11 @@ begin
     end;
     FXMLConfig:=nil;
   until Result<>mrRetry;
+end;
+
+function TProject.GetProjectBackEnd: TLazProjectBackend;
+begin
+  Result := FProjectBackEnd;
 end;
 
 function TProject.GetDirectory: string;
@@ -7881,8 +8018,10 @@ end;
 
 
 initialization
+  LazProjectBackendList := TIdeProjectBackendClassList.Create;
+  RegisterProjectBackendClass(TIdeLazarusProjectBackend);
+
   RegisterIDEOptionsGroup(GroupProject, TProjectIDEOptions);
   RegisterIDEOptionsGroup(GroupCompiler, TProjectCompilerOptions);
-
 end.
 

@@ -12,6 +12,10 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "Language: pt_BR\n"
 
+#: buildstrconsts.dlgfilterlazarusproject
+msgid "Lazarus project"
+msgstr ""
+
 #: buildstrconsts.lirsunit
 msgid "Pascal unit"
 msgstr "Unidade pascal"

@@ -1,6 +1,10 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8"
 
+#: buildstrconsts.dlgfilterlazarusproject
+msgid "Lazarus project"
+msgstr ""
+
 #: buildstrconsts.lirsunit
 msgid "Pascal unit"
 msgstr ""

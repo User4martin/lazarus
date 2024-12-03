@@ -38,7 +38,7 @@ uses
   // LazUtils
   FileUtil, LazFileUtils, LazStringUtils, LazLoggerBase, LazUTF8,
   // BuildIntf
-  ProjPackIntf, CompOptsIntf, PublishModuleIntf,
+  ProjPackIntf, CompOptsIntf, PublishModuleIntf, ProjectIntf,
   // IdeIntf
   IdeIntfStrConsts, IDEWindowIntf, IDEHelpIntf, IDEDialogs, IDEImagesIntf,
   LazIDEIntf, InputHistory,

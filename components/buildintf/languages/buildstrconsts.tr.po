@@ -15,6 +15,10 @@ msgstr ""
 "X-Poedit-Flags-xgettext: --add-comments=\"TRANSLATORS:ONUR ERÇELEN\"\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
+#: buildstrconsts.dlgfilterlazarusproject
+msgid "Lazarus project"
+msgstr ""
+
 #: buildstrconsts.lirsunit
 msgid "Pascal unit"
 msgstr "Pascal birimi"

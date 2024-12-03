@@ -41,7 +41,7 @@ uses
   LazIDEIntf, IDEDialogs,
   // IDE
   LazarusIDEStrConsts, ProjectDefs, LazConf, Project, KeyMapping,
-  KeyMapShortCutDlg, MainIntf, ToolBarIntf;
+  KeyMapShortCutDlg, MainIntf, ToolBarIntf, ProjectIntf;
 
 type
   TSynEditorMacro = class(TSynMacroRecorder)

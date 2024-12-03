@@ -374,7 +374,8 @@ type
     function DoSaveProject(Flags: TSaveFlags): TModalResult; virtual; abstract;
     function DoCloseProject: TModalResult; virtual; abstract;
     function DoOpenProjectFile(AFileName: string;
-                               Flags: TOpenFlags): TModalResult; virtual; abstract;
+                               Flags: TOpenFlags;
+                               ABackEndClass: TLazProjectBackendClass=nil): TModalResult; virtual; abstract;
     function DoPublishProject(Flags: TSaveFlags;
                               ShowDialog: boolean): TModalResult; virtual; abstract;
     function DoBuildProject(const AReason: TCompileReason;
