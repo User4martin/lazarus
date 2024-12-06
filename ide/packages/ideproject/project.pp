@@ -518,7 +518,6 @@ type
     end;
   protected
     function GetFilesBelongingToProject: TLazProjectFileListEnumeration; override;
-    function GetFilesLoaded: TLazProjectFileListEnumeration; override;
     function GetFilesWithComponent: TLazProjectFileListEnumeration; override;
     function GetFilesWithEditorIndex: TLazProjectFileListEnumeration; override;
     function GetFilesWithRevertLock: TLazProjectFileListEnumeration; override;
@@ -849,7 +848,6 @@ type
     function GetCompilerOptions: TProjectCompilerOptions;
     function GetBaseCompilerOptions: TBaseCompilerOptions;
     function GetFilesBelongingToProject: TIdeLazProjectFileList.TLazProjectFileListEnumeration;
-    function GetFilesLoaded: TIdeLazProjectFileList.TLazProjectFileListEnumeration;
     function GetFilesWithComponent: TIdeLazProjectFileList.TLazProjectFileListEnumeration;
     function GetFilesWithEditorIndex: TIdeLazProjectFileList.TLazProjectFileListEnumeration;
     function GetFilesWithRevertLock: TIdeLazProjectFileList.TLazProjectFileListEnumeration;
@@ -949,7 +947,6 @@ type
 
     procedure AddToOrRemoveFromAutoRevertLockedList(AnUnitInfo: TUnitInfo);
     procedure AddToOrRemoveFromComponentList(AnUnitInfo: TUnitInfo);
-    procedure AddToOrRemoveFromLoadedList(AnUnitInfo: TUnitInfo);
     procedure AddToOrRemoveFromPartOfProjectList(AnUnitInfo: TUnitInfo);
   public
     constructor Create(ProjectDescription: TProjectDescriptor); override;
@@ -1199,7 +1196,6 @@ type
     property UnitsBelongingToProject: TIdeLazProjectFileList.TLazProjectFileListEnumeration read GetFilesBelongingToProject;
     property UnitsWithEditorIndex: TIdeLazProjectFileList.TLazProjectFileListEnumeration read GetFilesWithEditorIndex;
     property UnitsWithComponent: TIdeLazProjectFileList.TLazProjectFileListEnumeration read GetFilesWithComponent;
-    property UnitsLoaded: TIdeLazProjectFileList.TLazProjectFileListEnumeration read GetFilesLoaded;
     property UnitsWithRevertLock: TIdeLazProjectFileList.TLazProjectFileListEnumeration read GetFilesWithRevertLock;
   end;
 
@@ -2910,11 +2906,6 @@ begin
   TIdeLazProjectFileListEnumeration(Result).Create(Self, uilPartOfProject);
 end;
 
-function TIdeLazProjectFileList.GetFilesLoaded: TLazProjectFileListEnumeration;
-begin
-  TIdeLazProjectFileListEnumeration(Result).Create(Self, uilLoaded);
-end;
-
 function TIdeLazProjectFileList.GetFilesWithComponent: TLazProjectFileListEnumeration;
 begin
   TIdeLazProjectFileListEnumeration(Result).Create(Self, uilWithComponent);
@@ -4520,15 +4511,6 @@ begin
   end;
 end;
 
-procedure TProject.AddToOrRemoveFromLoadedList(AnUnitInfo: TUnitInfo);
-begin
-  if not AnUnitInfo.Loaded then begin
-    RemoveFromList(AnUnitInfo,uilLoaded);
-  end else begin
-    AddToList(AnUnitInfo,uilLoaded);
-  end;
-end;
-
 procedure TProject.AddToOrRemoveFromAutoRevertLockedList(AnUnitInfo: TUnitInfo);
 begin
   if not AnUnitInfo.IsAutoRevertLocked then begin
@@ -4611,11 +4593,6 @@ end;
 function TProject.GetFilesBelongingToProject: TIdeLazProjectFileList.TLazProjectFileListEnumeration;
 begin
   Result := FUnitList.FilesBelongingToProject;
-end;
-
-function TProject.GetFilesLoaded: TIdeLazProjectFileList.TLazProjectFileListEnumeration;
-begin
-  Result := FUnitList.FilesLoaded;
 end;
 
 function TProject.GetFilesWithComponent: TIdeLazProjectFileList.TLazProjectFileListEnumeration;

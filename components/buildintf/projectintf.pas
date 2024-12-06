@@ -522,7 +522,6 @@ type
   protected
     FOwner: TLazProject;
     function GetFilesBelongingToProject: TLazProjectFileListEnumeration; virtual; abstract;
-    function GetFilesLoaded: TLazProjectFileListEnumeration; virtual; abstract;
     function GetFilesWithComponent: TLazProjectFileListEnumeration; virtual; abstract;
     function GetFilesWithEditorIndex: TLazProjectFileListEnumeration; virtual; abstract;
     function GetFilesWithRevertLock: TLazProjectFileListEnumeration; virtual; abstract;
@@ -531,7 +530,6 @@ type
     property FilesBelongingToProject: TLazProjectFileListEnumeration read GetFilesBelongingToProject;
     property FilesWithEditorIndex: TLazProjectFileListEnumeration read GetFilesWithEditorIndex;
     property FilesWithComponent: TLazProjectFileListEnumeration read GetFilesWithComponent;
-    property FilesLoaded: TLazProjectFileListEnumeration read GetFilesLoaded;
     property FilesWithRevertLock: TLazProjectFileListEnumeration read GetFilesWithRevertLock;
   end;
 
