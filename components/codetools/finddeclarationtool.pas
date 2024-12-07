@@ -6562,10 +6562,10 @@ var
   
   procedure ReadIdentifier(IsComment: boolean);
   var
-    IdentStartPos: Integer;
+    IdentStartPos, TmpPos: Integer;
     IdentEndPos: integer;
     UnitNamePos, UnitInFilePos: TAtomPosition;
-    NewCodeTool: TFindDeclarationTool;
+    NewCodeTool, Tool: TFindDeclarationTool;
     AnUnitName: String;
     UnitInFilename: AnsiString;
     Node: TCodeTreeNode;
@@ -6616,55 +6616,80 @@ var
       //debugln(copy(Src,Params.ContextNode.StartPos,200));
       Params.SetIdentifier(Self,@Src[IdentStartPos],@CheckSrcIdentifier);
 
-      // search identifier in comment -> if not found, this is no bug
-      // => silently ignore
-      try
-        Found:=FindDeclarationOfIdentAtParam(Params);
-      except
-        on E: ECodeToolError do begin
-          if E.Sender<>Self then begin
-            // there is an error in another unit, which prevents searching
-            // stop further searching in this unit
-            raise;
+      Tool := Self;
+      repeat
+        // search identifier in comment -> if not found, this is no bug
+        // => silently ignore
+        try
+          Found:=Tool.FindDeclarationOfIdentAtParam(Params);
+          //Found:=Tool.FindIdentifierInContext(Params);
+        except
+          on E: ECodeToolError do begin
+            if E.Sender<>Self then begin
+              // there is an error in another unit, which prevents searching
+              // stop further searching in this unit
+              raise;
+            end;
+            // continue
           end;
-          // continue
+          on E: Exception do
+            raise;
         end;
-        on E: Exception do
-          raise;
-      end;
 
-      //debugln(' Found=',dbgs(Found));
-      Node:=Params.NewNode;
-      if Found and (Node<>nil) then begin
-        if ((Node.Desc=ctnUseUnit) or ((Node.Parent<>nil) and (Node.Parent.Desc=ctnUseUnit)))
-            and (Params.NewCodeTool=Self) then begin
-          // identifier is a unit reference
-          if (DeclarationNode.Desc=ctnSrcName)
-              or ((DeclarationNode.Parent<>nil) and (DeclarationNode.Parent.Desc=ctnSrcName)) then begin
-            // searching a unit reference -> check if it is the same
-            MoveCursorToNodeStart(Node);
-            if ReadNextUsedUnit(UnitNamePos,UnitInFilePos) then begin
-              // cursor is on an used unit -> try to locate it
-              MoveCursorToCleanPos(UnitNamePos.StartPos);
-              ReadNextAtom;
-              AnUnitName:=ExtractUsedUnitNameAtCursor(@UnitInFilename);
-              NewCodeTool:=FindCodeToolForUsedUnit(AnUnitName,UnitInFilename,false);
-              if NewCodeTool=DeclarationTool then begin
-                AddReference(IdentStartPos);
-                exit;
+        //debugln(' Found=',dbgs(Found));
+        Node:=Params.NewNode;
+        if Found and (Node<>nil) then begin
+          if ((Node.Desc=ctnUseUnit) or ((Node.Parent<>nil) and (Node.Parent.Desc=ctnUseUnit)))
+              and (Params.NewCodeTool=Self) then begin
+            // identifier is a unit reference
+            if (DeclarationNode.Desc=ctnSrcName)
+                or ((DeclarationNode.Parent<>nil) and (DeclarationNode.Parent.Desc=ctnSrcName)) then begin
+              // searching a unit reference -> check if it is the same
+              MoveCursorToNodeStart(Node);
+              if ReadNextUsedUnit(UnitNamePos,UnitInFilePos) then begin
+                // cursor is on an used unit -> try to locate it
+                MoveCursorToCleanPos(UnitNamePos.StartPos);
+                ReadNextAtom;
+                AnUnitName:=ExtractUsedUnitNameAtCursor(@UnitInFilename);
+                NewCodeTool:=FindCodeToolForUsedUnit(AnUnitName,UnitInFilename,false);
+                if NewCodeTool=DeclarationTool then begin
+                  AddReference(IdentStartPos);
+                  exit;
+                end;
               end;
             end;
           end;
-        end;
 
-        UseProcHead(Node);
-        //debugln('Context=',NodePathAsString(Params.NewNode),' FoundPos=',Params.NewCodeTool.CleanPosToStr(Params.NewNode.StartPos,true),' SearchPos=',DeclarationTool.CleanPosToStr(DeclarationNode.StartPos,true));
-        if (Params.NewNode=DeclarationNode)
-        or (Params.NewNode=AliasDeclarationNode) then begin
-          //debugln(['ReadIdentifier reference found, adding ...']);
-          AddReference(IdentStartPos);
+          UseProcHead(Node);
+          //debugln('Context=',NodePathAsString(Params.NewNode),' FoundPos=',Params.NewCodeTool.CleanPosToStr(Params.NewNode.StartPos,true),' SearchPos=',DeclarationTool.CleanPosToStr(DeclarationNode.StartPos,true));
+          if (Params.NewNode=DeclarationNode)
+          or (Params.NewNode=AliasDeclarationNode) then begin
+            //debugln(['ReadIdentifier reference found, adding ...']);
+            AddReference(IdentStartPos);
+          end;
+
+          //(*
+          //if "override" then begin
+          if True then begin
+            Tool:=Params.NewCodeTool;
+            TmpPos:=Node.StartPos;
+            if (Node.Desc=ctnProcedureHead) and
+               Tool.MoveCursorToProcSpecifier(Node.Parent, psOverride)
+            then begin
+              //search up from Params.NewNode.StartPos;
+              Params.Clear;
+              Params.Flags:=[fdfSearchInParentNodes,fdfSearchInAncestors, fdfIgnoreCurContextNode];
+              Params.StartNode:=Node;
+              Params.ContextNode:=Node;
+              Params.SetIdentifier(Tool,@Tool.Src[TmpPos],@Tool.CheckSrcIdentifier);
+              Continue;
+            end;
+          end;
+          //*)
         end;
-      end;
+        break;
+      until false;
+
     end;
   end;
   
