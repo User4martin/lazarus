@@ -1488,8 +1488,10 @@ var
   FilesBranch: TTreeFilterBranch;
   Filename: String;
   ANodeData : TPENodeData;
+  ttt: QWord;
 begin
   if not CanUpdate(pefNeedUpdateFiles,Immediately) then exit;
+ttt:= GetTickCount64;
   FilesBranch:=FilterEdit.GetCleanBranch(FFilesNode);
   FilesBranch.ClearNodeData;
   FPropGui.FreeNodeData(penFile);
@@ -1507,7 +1509,9 @@ begin
       end;
     end;
   end;
+writeln('list: ', GetTickCount64-ttt);
   FilterEdit.InvalidateFilter;            // Data is shown by FilterEdit.
+writeln('list: ', GetTickCount64-ttt);
   UpdateProperties;
   UpdateButtons;
 end;

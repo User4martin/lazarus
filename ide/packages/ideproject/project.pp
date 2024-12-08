@@ -4648,12 +4648,16 @@ var
   i: Integer;
   n: String;
   NewUnit: TUnitInfo;
+  ttt: QWord;
 begin
   if not FWorkSpace.Enabled then
     exit;
 
+ttt := GetTickCount64;
   FWorkSpace.Scan;
+writeln('scan: ', GetTickCount64-ttt, '   ',FWorkSpace.Files.Count);
   BeginUpdate(true);
+ttt := GetTickCount64;
   try
     for i := 0 to FWorkSpace.Files.Count - 1 do begin
       n := FWorkSpace.Files[i].FileName;
@@ -4668,6 +4672,7 @@ begin
 //TMainIDE.ProjInspectorAddUnitToProject
     end;
   finally
+writeln('add: ', GetTickCount64-ttt);
     EndUpdate;
   end;
 end;
