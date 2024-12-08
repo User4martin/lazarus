@@ -292,6 +292,7 @@ type
     FComponentLastLRSStreamSize: TStreamSeekType;
     FDirectives: TStrings;
     fFileName: string; // with path = saved, without path = not yet saved
+    FFilenameHash: LongWord;
     FFirstRequiredComponent: TUnitComponentDependency;
     FFirstUsedByComponent: TUnitComponentDependency;
     FFlags: TUnitInfoFlags;
@@ -1290,6 +1291,12 @@ begin
   Result:='['+Result+']';
 end;
 
+function GetFilenameHash(AName: String): LongWord;
+begin
+  AName := UTF8UpperCase(AName);
+  Result := HashName(PChar(AName));
+end;
+
 { TUnitEditorInfo }
 
 procedure TUnitEditorInfo.SetEditorComponent(const AValue: TSourceEditorInterface);
@@ -1616,8 +1623,10 @@ begin
   FBookmarks:=TFileBookmarks.Create;
   Clear;
   Source := ACodeBuffer;
-  if Source=nil then
+  if Source=nil then begin
     FFileName:='';
+    FFilenameHash := 0;
+  end;
 end;
 
 {------------------------------------------------------------------------------
@@ -1792,6 +1801,7 @@ begin
   CustomDefaultHighlighter := False;
   FEditorInfoList.ClearEachInfo;
   fFilename := '';
+  FFilenameHash := 0;
   FileReadOnly := false;
   HasResources := false;
   AutoReferenceSourceDir := true;
@@ -1949,6 +1959,7 @@ begin
     if Assigned(fOnLoadSaveFilename) then
       fOnLoadSaveFilename(AFilename,true);
     fFilename:=AFilename;
+    FFilenameHash := GetFilenameHash(fFileName);
 
     fComponentName:=XMLConfig.GetValue(Path+'ComponentName/Value','');
     if fComponentName='' then
@@ -2067,6 +2078,7 @@ begin
   end;
   
   fFileName:=NewFilename;
+  FFilenameHash := GetFilenameHash(fFileName);
   if IDEEditorOptions<>nil then
     UpdateDefaultHighlighter(FilenameToLazSyntaxHighlighter(FFilename));
   UpdateSourceDirectoryReference;
@@ -5934,12 +5946,18 @@ function TProject.UnitInfoWithFilename(const AFilename: string;
   var
     BaseFilename: String;
     CurBaseFilename: String;
+    h: LongWord;
   begin
+    h := 0;
+    if not (pfsfResolveFileLinks in SearchFlags) then
+      h := GetFilenameHash(AFilename);
     BaseFilename:=MakeFilenameComparable(AFilename);
     Result:=fFirst[ListType];
     while Result<>nil do begin
-      CurBaseFilename:=MakeFilenameComparable(Result.Filename);
-      if CompareFilenames(BaseFilename,CurBaseFilename)=0 then exit;
+      if (h=0) or (h=Result.FFilenameHash) then begin
+        CurBaseFilename:=MakeFilenameComparable(Result.Filename);
+        if (CompareFilenames(BaseFilename,CurBaseFilename)=0) then exit;
+      end;
       Result:=Result.fNext[ListType];
     end;
   end;
@@ -6140,10 +6158,18 @@ begin
 end;
 
 function TProject.IndexOfFilename(const AFilename: string): integer;
+var
+  h: LongWord;
+  u: TUnitInfo;
 begin
+  h := GetFilenameHash(AFilename);
   Result:=UnitCount-1;
   while (Result>=0) do begin
-    if CompareFilenames(AFilename,Units[Result].Filename)=0 then exit;
+    u := Units[Result];
+    if (u.FFilenameHash = h) and
+       (CompareFilenames(AFilename,u.Filename)=0)
+    then
+      exit;
     dec(Result);
   end;
 end;
