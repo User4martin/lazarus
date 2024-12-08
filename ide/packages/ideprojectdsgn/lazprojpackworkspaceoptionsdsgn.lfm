@@ -1,0 +1,41 @@
+object LazProjPackWorkSpaceOptionsFrame: TLazProjPackWorkSpaceOptionsFrame
+  Left = 0
+  Height = 240
+  Top = 0
+  Width = 320
+  ClientHeight = 240
+  ClientWidth = 320
+  TabOrder = 0
+  DesignLeft = 504
+  DesignTop = 204
+  object lbFolder: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 3
+    Height = 15
+    Top = 3
+    Width = 43
+    BorderSpacing.Around = 3
+    Caption = 'lbFolder'
+  end
+  object edFolder: TDirectoryEdit
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = lbFolder
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 3
+    Height = 23
+    Top = 21
+    Width = 314
+    Directory = 'edFolder'
+    ShowHidden = False
+    ButtonWidth = 23
+    NumGlyphs = 1
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 3
+    MaxLength = 0
+    TabOrder = 0
+    Text = 'edFolder'
+  end
+end

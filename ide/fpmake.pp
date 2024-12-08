@@ -138,6 +138,7 @@ begin
     P.Dependencies.Add('ideconfig');
     P.Dependencies.Add('idepackager');
     P.Dependencies.Add('ideproject');
+    P.Dependencies.Add('ideprojectdsgn');
     P.Dependencies.Add('idedebugger');
 
     P.Options.Add('-MObjFPC');

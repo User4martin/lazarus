@@ -2,14 +2,13 @@
   This source is only used to compile and install the package.
  }
 
-unit IdePackager;
+unit IdeProjectDsgn;
 
 {$warn 5023 off : no warning about unused units}
 interface
 
 uses
-  PackageDefs, PackageLinks, PackageSystem, PkgSysBasePkgs, IdePackagerStrConsts, 
-  LazProjPackWorkSpace, LazarusPackageIntf;
+  LazProjPackWorkSpaceOptionsDsgn, project_workspace_options, LazarusPackageIntf;
 
 implementation
 
@@ -18,5 +17,5 @@ begin
 end;
 
 initialization
-  RegisterPackage('IdePackager', @Register);
+  RegisterPackage('IdeProjectDsgn', @Register);
 end.

@@ -199,6 +199,7 @@ type
     FDebuggerIntfPackage: TLazPackage;
     FIdePackagerPackage: TLazPackage;
     FIdeProjectPackage: TLazPackage;
+    FIdeProjectDsgnPackage: TLazPackage;
     FIdeUtilsPkgPackage: TLazPackage;
     FLazDebuggerIntfPackage: TLazPackage;
     FLazDebuggerGdbmiPackage: TLazPackage;
@@ -511,6 +512,7 @@ type
     property IdeConfigPackage: TLazPackage read FIdeConfigPackage;
     property IdePackagerPackage: TLazPackage read FIdePackagerPackage;
     property IdeProjectPackage: TLazPackage read FIdeProjectPackage;
+    property IdeProjectDsgnPackage: TLazPackage read FIdeProjectDsgnPackage;
     property LazarusBasePackages: TFPList read FLazarusBasePackages;
 
     // events
@@ -1289,6 +1291,8 @@ begin
     FIdePackagerPackage:=nil
   else if CurPkg=IdeProjectPackage then
     FIdeProjectPackage:=nil
+  else if CurPkg=IdeProjectDsgnPackage then
+    FIdeProjectDsgnPackage:=nil
   else if CurPkg=IdeDebuggerPackage then
     FIdeDebuggerPackage:=nil
   else if CurPkg=SynEditPackage then
@@ -2328,6 +2332,8 @@ begin
         SetBasePackage(FIdePackagerPackage)
       else if SysUtils.CompareText(APackage.Name,'IdeProject')=0 then
         SetBasePackage(FIdeProjectPackage)
+      else if SysUtils.CompareText(APackage.Name,'IdeProjectDsgn')=0 then
+        SetBasePackage(FIdeProjectDsgnPackage)
       else if SysUtils.CompareText(APackage.Name,'SynEdit')=0 then
         SetBasePackage(FSynEditPackage)
       else if SysUtils.CompareText(APackage.Name,'LazControls')=0 then

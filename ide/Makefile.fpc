@@ -114,6 +114,7 @@ DEFAULT_IDE_OPTIONS=  \
   -Fupackages/ideutils/lib/$(CPU_TARGET)-$(OS_TARGET)/$(LCL_PLATFORM) \
   -Fupackages/idepackager/lib/$(CPU_TARGET)-$(OS_TARGET)/$(LCL_PLATFORM) \
   -Fupackages/ideproject/lib/$(CPU_TARGET)-$(OS_TARGET)/$(LCL_PLATFORM) \
+  -Fupackages/ideprojectdsgn/lib/$(CPU_TARGET)-$(OS_TARGET)/$(LCL_PLATFORM) \
   -Fupackages/idedebugger/lib/$(CPU_TARGET)-$(OS_TARGET)/$(LCL_PLATFORM)
 
 #
@@ -189,6 +190,7 @@ idepackages:
         $(MAKE) -C packages/ideutils
         $(MAKE) -C packages/idepackager
         $(MAKE) -C packages/ideproject
+        $(MAKE) -C packages/ideprojectdsgn
         $(MAKE) -C packages/idedebugger
 
 #-----------------------------------------------------------------------------
@@ -244,6 +246,7 @@ cleanlaz: clean cleanide
         $(MAKE) -C packages/ideutils clean
         $(MAKE) -C packages/idepackager clean
         $(MAKE) -C packages/ideproject clean
+        $(MAKE) -C packages/ideprojectdsgn clean
         $(MAKE) -C packages/idedebugger clean
         ${DELTREE} ../units/*
 

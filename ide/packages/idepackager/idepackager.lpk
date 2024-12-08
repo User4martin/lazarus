@@ -42,6 +42,10 @@ Files in this package are for the main configuration of the IDE."/>
         <Filename Value="idepackagerstrconsts.pas"/>
         <UnitName Value="IdePackagerStrConsts"/>
       </Item>
+      <Item>
+        <Filename Value="lazprojpackworkspace.pas"/>
+        <UnitName Value="LazProjPackWorkSpace"/>
+      </Item>
     </Files>
     <i18n>
       <EnableI18N Value="True"/>

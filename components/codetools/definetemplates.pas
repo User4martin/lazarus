@@ -6835,6 +6835,7 @@ begin
        +LazarusSrcDir+'/ide/packages/ideconfig;'
        +LazarusSrcDir+'/ide/packages/idepackager;'
        +LazarusSrcDir+'/ide/packages/ideproject;'
+       +LazarusSrcDir+'/ide/packages/ideprojectdsgn;'
        +LazarusSrcDir+'/ide/packages/idedebugger;'
        +LazarusSrcDir+'/ide/packages/idedebugger/frames;'
        +LazarusSrcDir+'/debugger;'
@@ -6883,6 +6884,7 @@ begin
        +';../ide/packages/ideconfig;'
        +';../ide/packages/idepackager;'
        +';../ide/packages/ideproject;'
+       +';../ide/packages/ideprojectdsgn;'
        +';../lcl'
        +';../lcl/interfaces'
        +';../lcl/interfaces/'+WidgetType
@@ -6924,6 +6926,7 @@ begin
        +LazarusSrcDir+'/ide/packages/ideutils;'
        +LazarusSrcDir+'/ide/packages/ideconfig;'
        +LazarusSrcDir+'/ide/packages/ideproject;'
+       +LazarusSrcDir+'/ide/packages/ideprojectdsgn;'
        +LazarusSrcDir+'/ide/packages/idepackager;'
        +LazarusSrcDir+'/ide/packages/idedebugger;'
        +LazarusSrcDir+'/ide/packages/idedebugger/frames;'
@@ -6956,6 +6959,7 @@ begin
        +';../ide/packages/ideconfig;'
        +';../ide/packages/idepackager;'
        +';../ide/packages/ideproject;'
+       +';../ide/packages/ideprojectdsgn;'
        +';../components/buildintf'
        +';../components/ideintf'
        +';../components/lazutils'
@@ -6987,6 +6991,7 @@ begin
       +';'+LazarusSrcDir+'/ide/packages/ideconfig'
       +';'+LazarusSrcDir+'/ide/packages/idepackager'
       +';'+LazarusSrcDir+'/ide/packages/ideproject'
+      +';'+LazarusSrcDir+'/ide/packages/ideprojectdsgn'
       +';'+LazarusSrcDir+'/components/buildintf'
       +';'+LazarusSrcDir+'/components/ideintf'
       +';'+LazarusSrcDir+'/components/synedit'
@@ -7014,6 +7019,7 @@ begin
      +LazarusSrcDir+'/ide/packages/ideconfig;'
      +LazarusSrcDir+'/ide/packages/idepackager;'
      +LazarusSrcDir+'/ide/packages/ideproject;'
+     +LazarusSrcDir+'/ide/packages/ideprojectdsgn;'
      +LazarusSrcDir+'/packager;'
      +SrcPath)
     ,da_Define));

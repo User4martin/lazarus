@@ -336,6 +336,10 @@
         <Filename Value="idedebuggervalueformatterintf.pas"/>
         <UnitName Value="IdeDebuggerValueFormatterIntf"/>
       </Item>
+      <Item>
+        <Filename Value="projpackworkspaceintf.pas"/>
+        <UnitName Value="ProjPackWorkSpaceIntf"/>
+      </Item>
     </Files>
     <LazDoc Paths="docs"/>
     <i18n>

@@ -1,0 +1,22 @@
+object ProjectWorkspaceOptionsFrame: TProjectWorkspaceOptionsFrame
+  Left = 0
+  Height = 240
+  Top = 0
+  Width = 320
+  ClientHeight = 240
+  ClientWidth = 320
+  TabOrder = 0
+  DesignLeft = 519
+  DesignTop = 78
+  inline LazProjPackWorkSpaceOptionsFrame1: TLazProjPackWorkSpaceOptionsFrame
+    Align = alClient
+    inherited lbFolder: TLabel
+      AnchorSideLeft.Control = LazProjPackWorkSpaceOptionsFrame1
+      AnchorSideTop.Control = LazProjPackWorkSpaceOptionsFrame1
+    end
+    inherited edFolder: TDirectoryEdit
+      AnchorSideLeft.Control = LazProjPackWorkSpaceOptionsFrame1
+      AnchorSideRight.Control = LazProjPackWorkSpaceOptionsFrame1
+    end
+  end
+end

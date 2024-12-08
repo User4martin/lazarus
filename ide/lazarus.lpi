@@ -38,6 +38,9 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="IdeProjectDsgn"/>
+      </Item>
+      <Item>
         <PackageName Value="IdePackager"/>
       </Item>
       <Item>

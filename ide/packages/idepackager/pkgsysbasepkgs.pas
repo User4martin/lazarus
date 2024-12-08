@@ -33,6 +33,7 @@ type
     libpIdeConfig,
     libpIdePackager,
     libpIdeProject,
+    libpIdeProjectDsgn,
     libpIdeDebugger
     );
 const
@@ -63,6 +64,7 @@ const
     'IdeConfig',
     'IdePackager',
     'IdeProject',
+    'IdeProjectDsgn',
     'IdeDebugger'
     );
 

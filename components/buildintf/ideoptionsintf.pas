@@ -217,6 +217,7 @@ const
   GroupProject      = 100100;
     ProjectOptionsApplication = 100;
     ProjectOptionsForms       = 200;
+    ProjectOptionsWorkspace   = 250;
     ProjectOptionsLazDoc      = 300;
     ProjectOptionsSave        = 400;
     ProjectOptionsVersionInfo = 500;

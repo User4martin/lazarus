@@ -59,7 +59,7 @@ uses
   CompOptsIntf, IDEOptionsIntf,
   // IDEIntf
   PropEdits, UnitResources, EditorSyntaxHighlighterDef, InputHistory, SrcEditorIntf,
-  IDEOptEditorIntf, IDEDialogs,
+  IDEOptEditorIntf, IDEDialogs, ProjPackWorkSpaceIntf,
   // IdeUtils
   IdeUtilsPkgStrConsts,
   // IdeConfig
@@ -67,7 +67,7 @@ uses
   IDECmdLine, IDEProcs, CompOptsModes, ModeMatrixOpts,
   ParsedCompilerOpts, CompilerOptions, EditDefineTree, ProjPackCommon,
   // IdePackager
-  IdePackagerStrConsts, PackageDefs, PackageSystem,
+  IdePackagerStrConsts, PackageDefs, PackageSystem, LazProjPackWorkSpace,
   // IdeProject,
   RunParamOptions,
   // IdeProject
@@ -834,6 +834,7 @@ type
     FOtherDefines: TStrings; // list of user selectable defines for custom options
     FUpdateLock: integer;
     FUseAsDefault: Boolean;
+    FWorkSpace: TProjPackWorkSpace;
     // Variables used by ReadProject / WriteProject
     FXMLConfig: TRttiXMLConfig;
     FLoadAllOptions: Boolean; // All options / just options used as default for new projects
@@ -842,6 +843,7 @@ type
     FProjectWriteFlags: TProjectWriteFlags;
     FSaveSessionInLPI: Boolean;
     procedure ClearBuildModes;
+    procedure DoWorkspaceSettingsChanged(Sender: TObject);
     function GetAllEditorsInfo(Index: Integer): TUnitEditorInfo;
     function GetCompilerOptions: TProjectCompilerOptions;
     function GetBaseCompilerOptions: TBaseCompilerOptions;
@@ -1198,6 +1200,7 @@ type
     property UnitsWithComponent: TIdeLazProjectFileList.TLazProjectFileListEnumeration read GetFilesWithComponent;
     property UnitsLoaded: TIdeLazProjectFileList.TLazProjectFileListEnumeration read GetFilesLoaded;
     property UnitsWithRevertLock: TIdeLazProjectFileList.TLazProjectFileListEnumeration read GetFilesWithRevertLock;
+    property WorkSpace: TProjPackWorkSpace read FWorkSpace;
   end;
 
 
@@ -2975,6 +2978,8 @@ begin
   FAllEditorsInfoList := TUnitEditorInfoList.Create(nil);
   FAllEditorsInfoMap := TMap.Create(ituPtrSize, SizeOf(TObject));
   FBookmarks := TProjectBookmarkList.Create;
+  FWorkSpace := TProjPackWorkSpace.CreateInstance;
+  FWorkSpace.OnSettingsChanged := @DoWorkspaceSettingsChanged;
 
   FMacroEngine:=TTransferMacroList.Create;
   FMacroEngine.OnSubstitution:=@MacroEngineSubstitution;
@@ -3041,6 +3046,7 @@ begin
   FreeThenNil(FDefineTemplates);
   FreeAndNil(FHistoryLists);
   FreeAndNil(FLastCompilerParams);
+  FreeAndNil(FWorkSpace);
   inherited Destroy;
 end;
 
@@ -4623,6 +4629,35 @@ begin
   FBuildModes.Clear;
   if not fDestroying then
     ActiveBuildMode:=FBuildModes.Add('default');
+end;
+
+procedure TProject.DoWorkspaceSettingsChanged(Sender: TObject);
+var
+  i: Integer;
+  n: String;
+  NewUnit: TUnitInfo;
+begin
+  if not FWorkSpace.Enabled then
+    exit;
+
+  FWorkSpace.Scan;
+  BeginUpdate(true);
+  try
+    for i := 0 to FWorkSpace.Files.Count - 1 do begin
+      n := FWorkSpace.Files[i].FileName;
+      if UnitInfoWithFilename(n) <> nil then
+        continue;
+
+      NewUnit:=TUnitInfo.Create(nil);
+      NewUnit.Filename:=n;
+      NewUnit.IsPartOfProject := True;
+      // check for lfm file => see UpdateUnitInfoResourceBaseClass in ProjectInspector
+      AddFile(NewUnit,false);
+//TMainIDE.ProjInspectorAddUnitToProject
+    end;
+  finally
+    EndUpdate;
+  end;
 end;
 
 function TProject.GetActiveBuildModeID: string;

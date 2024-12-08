@@ -156,6 +156,8 @@ uses
   // package option frames
   package_usage_options, package_description_options, package_integration_options,
   package_provides_options, package_i18n_options,
+  // IdeProjectDsgn
+  project_workspace_options,
   // rest of the ide
   IdeDebuggerStringConstants,
   Splash, IDEDefs, LazarusIDEStrConsts, SearchResultView,
