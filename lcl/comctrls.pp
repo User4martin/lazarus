@@ -2257,6 +2257,26 @@ type
   
   TToolBar = class(TToolWindow)
   private
+    type
+      { TTMPObserver }
+
+      TTMPObserver = class(TObject, IFPObserver)
+      private
+        FDoOnChange: TNotifyEvent;
+        FDoOnFree: TNotifyEvent;
+        procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
+        procedure SetDoOnChange(AValue: TNotifyEvent);
+        procedure SetDoOnFree(AValue: TNotifyEvent);
+      public
+        property DoOnChange: TNotifyEvent read FDoOnChange write SetDoOnChange;
+        property DoOnFree: TNotifyEvent read FDoOnFree write SetDoOnFree;
+      end;
+  private
+    FMenuObserver: TTMPObserver;
+    FMenu: TMainMenu;
+    FSubMenu: TPopupMenu;
+    FSubMenuItems: TList;
+    FMenuButtons: TList;
     FOnPaint: TNotifyEvent;
     FOnPaintButton: TToolBarOnPaintButton;
     FButtonHeight: Integer;
@@ -2308,6 +2328,7 @@ type
     procedure SetImagesWidth(const aImagesWidth: Integer);
     procedure SetIndent(const AValue: Integer);
     procedure SetList(const AValue: Boolean);
+    procedure SetMenu(AValue: TMainMenu);
     procedure SetShowCaptions(const AValue: Boolean);
     procedure SetTransparent(const AValue: Boolean);
     procedure SetWrapable(const AValue: Boolean);
@@ -2318,6 +2339,10 @@ type
     procedure MoveSubMenuItems(SrcMenuItem, DestMenuItem: TMenuItem);
     procedure AddButton(Button: TToolButton);
     procedure RemoveButton(Button: TToolButton);
+    procedure UpdateMenuItem(Sender: TObject);
+    procedure RemoveMenu(Sender: TObject);
+    procedure SubMenuItemClick(Sender: TObject);
+    procedure MenuButtonClick(Sender: TObject);
   protected const
     cDefButtonWidth = 23;
     cDefButtonHeight = 22;
@@ -2393,6 +2418,7 @@ type
     property ImagesWidth: Integer read FImagesWidth write SetImagesWidth default 0;
     property Indent: Integer read FIndent write SetIndent default 1;
     property List: Boolean read FList write SetList default False;
+    property Menu: TMainMenu read FMenu write SetMenu;
     property ParentColor;
     property ParentFont;
     property ParentShowHint;
@@ -4086,7 +4112,7 @@ type
     function GetSectionAt(P: TPoint): Integer;
     procedure Paint; override;
     procedure PaintSection(Index: Integer); virtual;
-    procedure ChangeScale(M, D: Integer); override;
+    procedure ChangeScale(M, D: Integer);override;
   published
     property DragReorder: boolean read FDragReorder write FDragReorder;
     property Images: TCustomImageList read FImages write SetImages;
