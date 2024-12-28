@@ -73,6 +73,25 @@ begin
   end;
 end;
 
+type
+
+  { TToolBarMenuItem }
+
+  TToolBarMenuItem = class(TMenuItem)
+  private
+    FOrigItem: TMenuItem;
+  protected
+    procedure DoClicked(var msg); message LM_ACTIVATE;
+  end;
+
+{ TToolBarMenuItem }
+
+procedure TToolBarMenuItem.DoClicked(var msg);
+begin
+  if FOrigItem <> nil then
+    FOrigItem.Dispatch(msg);
+end;
+
 {------------------------------------------------------------------------------
   Method: TToolbar.Create
   Params:  AOwner: the owner of the class
@@ -318,19 +337,26 @@ begin
   FMenu := nil;
 end;
 
-procedure TToolBar.SubMenuItemClick(Sender: TObject);
-var
-  tmpMI: TMenuItem;
-begin
-  tmpMI := TMenuItem(FSubMenuItems.Items[TMenuItem(Sender).Tag]);
-  if Assigned(tmpMI) then tmpMI.Click;
-end;
-
 procedure TToolBar.MenuButtonClick(Sender: TObject);
 var
   MenuButton: TSpeedButton;
   SubMenuPos: TPoint;
   tmpMI: TMenuItem;
+
+  function NewItem(const ACaption: string; AShortCut: TShortCut; AChecked,
+    TheEnabled: Boolean; hCtx: THelpContext;
+    const AName: string): TMenuItem;
+  begin
+    Result:=TToolBarMenuItem.Create(nil);
+    with Result do begin
+      Caption:=ACaption;
+      ShortCut:=AShortCut;
+      HelpContext:=hCtx;
+      Checked:=AChecked;
+      Enabled:=TheEnabled;
+      Name:=AName;
+    end;
+  end;
 
   procedure PrepSubMenuItem(SubMenuItemIn, SubMenuItemOut: TMenuItem);
   var
@@ -342,7 +368,6 @@ var
                                  SubMenuItemIn.Items[i].ShortCut,
                                  SubMenuItemIn.Items[i].Checked,
                                  SubMenuItemIn.Items[i].Visible,
-                                 @SubMenuItemClick,
                                  SubMenuItemIn.Items[i].HelpContext,
                                  ''));
       SubMenuItemOut.Items[i].AutoCheck := SubMenuItemIn.Items[i].AutoCheck;
@@ -358,7 +383,7 @@ var
       SubMenuItemOut.Items[i].ShowAlwaysCheckable := SubMenuItemIn.Items[i].ShowAlwaysCheckable;
       SubMenuItemOut.Items[i].SubMenuImages := SubMenuItemIn.Items[i].SubMenuImages;
       SubMenuItemOut.Items[i].SubMenuImagesWidth := SubMenuItemIn.Items[i].SubMenuImagesWidth;
-      SubMenuItemOut.Items[i].Tag := PtrInt(Pointer(SubMenuItemIn.Items[i]));
+      TToolBarMenuItem(SubMenuItemOut.Items[i]).FOrigItem := SubMenuItemIn.Items[i];
       if SubMenuItemIn.Items[i].Count > 0 then PrepSubMenuItem(SubMenuItemIn.Items[i], SubMenuItemOut.Items[i]);
     end;
   end;
