@@ -606,9 +606,12 @@ begin
   FResizeBars.Parent := Parent;
 
   FFakeMenu := TToolBar.Create(Parent);
+  FFakeMenu.ParentFont := False;
+  FFakeMenu.EdgeBorders := [];
   FFakeMenu.Height := 0;
   FFakeMenu.Parent := Parent;
-  FFakeMenu.Align := alNone;
+  FFakeMenu.Align := alTop;
+  FFakeMenu.AutoSize := True;
   FFakeMenu.Indent := 0;
 
   FFormClient := TWinControl.Create(Parent);
@@ -651,7 +654,9 @@ begin
   FBoundsRect := Rect(ALeft, ATop, ALeft + AWidth, ATop + AHeight);
   FResizeGrips.SetBounds(FBoundsRect);
   FResizeBars.SetBounds(FBoundsRect);
-  FFakeMenu.SetBounds(ALeft + FResizeBars.BarSize, ATop + FResizeBars.BarSize, AWidth - FResizeBars.BarSize * 2, FFakeMenu.Height);
+  FFakeMenu.BorderSpacing.Top := FResizeBars.BarSize;
+  FFakeMenu.BorderSpacing.Left:= FResizeBars.BarSize;
+  FFakeMenu.BorderSpacing.Right := Parent.Width - AWidth + FResizeBars.BarSize;
   FFormClient.SetBounds(ALeft + FResizeBars.BarSize, ATop + FResizeBars.BarSize + FFakeMenu.Height, AWidth - FResizeBars.BarSize * 2, AHeight - FResizeBars.BarSize * 2 - FFakeMenu.Height);
   FAnchorContainer.SetBounds(ALeft + FResizeBars.BarSize, ATop + FResizeBars.BarSize + FFakeMenu.Height, AWidth - FResizeBars.BarSize * 2, AHeight - FResizeBars.BarSize * 2 - FFakeMenu.Height);
 end;
