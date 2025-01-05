@@ -1299,6 +1299,7 @@ end;
 procedure TLibraryMap.Add(const AId, AData);
 begin
   inherited Add(AId, AData);
+  debugln(['added - add: ', TDbgLibrary(AData).Name]);
   FLibrariesAdded := Concat(FLibrariesAdded, [TDbgLibrary(AData)]);
 end;
 
@@ -1366,6 +1367,7 @@ var
 begin
   for lib in FLibrariesRemoved do
     lib.Free;
+  debugln('added - clear');
   FLibrariesAdded := [];
   FLibrariesRemoved := [];
 end;
@@ -3317,6 +3319,7 @@ end;
 
 procedure TDbgProcess.AddLibrary(ALib: TDbgLibrary; AnID: TDbgPtr);
 begin
+  debugln(['AddLibrary']);
   if FLibMap.HasId(AnID) then begin
     debugln(DBG_VERBOSE or DBG_WARNINGS, ['Error: Attempt to add duplicate library ', AnID]);
     exit;

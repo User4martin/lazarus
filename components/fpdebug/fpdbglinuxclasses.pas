@@ -434,6 +434,8 @@ begin
   // formatted libraries.
   // So it is reasonable likely that the loaded 'library' can not be handled
   // by the default readers from the loader.
+  debugln(['InitializeLoaders ', Name, ' // ', dbgs(Loader<>nil)]);
+  if Loader<> nil then debugln(['InitializeLoaders ',dbgs(Loader.IsValid)]);
   if Loader.IsValid then
     Loader.AddToLoaderList(LoaderList)
   else
@@ -447,6 +449,8 @@ begin
   SetFileName(AFileName);
 
   LoadInfo;
+  debugln(['lib create has info ', Name, ' // ', dbgs(DbgInfo<>nil)]);
+  if DbgInfo<>nil then debugln(['lib create has info ', dbgs(DbgInfo.HasInfo)]);
 end;
 
 { TFpDbgLinuxSignal }
@@ -1093,8 +1097,11 @@ begin
     //if SOLibBreakpointFound then
     //  FAwaitingLibSOEventsPresent:=True;
     end
-  else if SOLibBreakpointFound then
+  else if SOLibBreakpointFound then begin
+    DebugLnEnter('>>> AT SO');
     Result := SynchronizeProcMapsWithLibraryList();
+    DebugLnExit('<<< AT SO');
+  end;
 end;
 
 function TDbgLinuxProcess.SynchronizeProcMapsWithLibraryList: TFPDEvent;
@@ -1158,6 +1165,7 @@ function TDbgLinuxProcess.ObtainProcMaps: TDbgLinuxMemoryMappingList;
       else
         Mapping.FileName:='';
 
+debugln(['@@@ ', Mapping.AddressFrom, ' - ', Mapping.AddressTill, ' - ', dbgs( Mapping.Offset), ' - ', dbgs( mapping.Inode), ' - ', Mapping.Rights, ' - ', Mapping.DeviceId, ' - ', Mapping.FileName]);
       Result.Add(Mapping);
       Mapping := nil;
     finally
@@ -1181,7 +1189,6 @@ begin
   FN := '/proc/'+IntToStr(ProcessID)+'/maps';
 
   // First read the contents of /proc/<ps>/maps and place it in a buffer
-
   // In principle the file should be read in one read-operation, or the file
   // might be changed while reading it. So we use a relatively large buffer.
   // (In principle it is still possible that the file isn't
@@ -1214,6 +1221,7 @@ end;
 
 procedure TDbgLinuxProcess.AddLib(const ALibrary: tDbgLinuxLibrary);
 begin
+  debugln(['AddLib()']);
   AddLibrary(ALibrary, ALibrary.FLoadedTargetImageAddr);
 end;
 
@@ -1618,6 +1626,7 @@ var
 
 begin
   inherited LoadInfo;
+  DebugLnEnter(['>>> LoadInfo']);
 
   // This would be strange, but you never know.
   if Assigned(FSOLibEventBreakpoint) then
@@ -1642,12 +1651,14 @@ begin
           // Set a breakpoint at _dl_debug_state. This procedure is called after
           // one or more libraries have been loaded. This breakpoint is used to
           // detect the (un)loading of libraries.
+          debugln(['Add so break !!!']);
           FSOLibEventBreakpoint := AddBreak('_dl_debug_state', False, ALib);
           TFpDbgBreakpoint(FSOLibEventBreakpoint).FreeByDbgProcess := True;
           end
         end;
       end;
     end;
+  DebugLnExit(['<<< LoadInfo']);
 end;
 
 function TDbgLinuxProcess.CanContinueForWatchEval(ACurrentThread: TDbgThread

@@ -3618,6 +3618,7 @@ begin
   for i := 0 to High(ALibraries) do begin
     ALib := ALibraries[i];
     n := ExtractFileName(ALib.Name);
+    debugln(['-- loaded lib ', ALib.Name]);
     DoDbgEvent(ecModule, etModuleLoad, 'Loaded: ' + n + ' (' + ALib.Name +')');
 
     if ALib.DbgInfo <> nil then begin
