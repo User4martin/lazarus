@@ -3184,6 +3184,7 @@ var
   SharedEdit: TSourceEditor;
   ETChanges: TETSingleSrcChanges;
 begin
+  debuglnEnter(['> TSourceEditorSharedValues.SetCodeBuffer ',dbgsName(Self),dbgs(self),' ', DbgSTime ]); try
   if FCodeBuffer = AValue then exit;
   if FCodeBuffer<>nil then begin
     for i := 0 to FSharedEditorList.Count - 1 do begin
@@ -3271,6 +3272,7 @@ begin
       DebugBoss.UnLockCommandProcessing;
     end;
   end;
+  finally debuglnExit(['< TSourceEditorSharedValues.SetCodeBuffer ',DbgSTime ]); end;
 end;
 
 function TSourceEditorSharedValues.GetModified: Boolean;
@@ -5141,6 +5143,7 @@ var
   ExecutionMark: TSourceMark;
   BrkMark: TSourceMark;
 begin
+  debuglnEnter(['> TSourceEditor.UpdateExecutionSourceMark ',dbgsName(Self),dbgs(self),' ',DbgSTime ]); try
   if FSharedValues.UpdatingExecutionMark > 0 then exit;
   ExecutionMark := FSharedValues.ExecutionMark;
   if ExecutionMark = nil then exit;
@@ -5164,6 +5167,7 @@ begin
   finally
     dec(FSharedValues.UpdatingExecutionMark);
   end;
+  finally debuglnExit(['< TSourceEditor.UpdateExecutionSourceMark ',DbgSTime ]); end;
 end;
 
 procedure TSourceEditor.SetExecutionLine(NewLine: integer);
@@ -6507,7 +6511,9 @@ end;
 
 procedure TSourceEditor.DoRequestExecutionMarks(Data: PtrInt);
 begin
+  debuglnEnter(['> TSourceEditor.DoRequestExecutionMarks ',dbgsName(Self),dbgs(self),' ',DbgSTime ]); try
   DebugBoss.LineInfo.Request(FSharedValues.MarksRequestedForFile);
+  finally debuglnExit(['< TSourceEditor.DoRequestExecutionMarks ',DbgSTime ]); end;
 end;
 
 procedure TSourceEditor.FillExecutionMarks;
@@ -6517,6 +6523,7 @@ var
   HasAddr: Boolean;
   j: Integer;
 begin
+debuglnEnter(['> TSourceEditor.FillExecutionMarks ',dbgsName(Self),dbgs(self),' ',DbgSTime ]); try
   if EditorComponent.IDEGutterMarks.HasDebugMarks then Exit;
 
   ASource := FileName;
@@ -6535,6 +6542,7 @@ begin
 
   FSharedValues.MarksRequestedForFile := '';
   j := -1;
+  debugln(['#### ',DbgSTime,' ', EditorComponent.Lines.Count]);
   EditorComponent.IDEGutterMarks.BeginSetDebugMarks;
   try
     for i := 1 to EditorComponent.Lines.Count do
@@ -6556,12 +6564,14 @@ begin
   // TODO: move to SourceSyneditor
   for i := 0 to SharedEditorCount - 1 do
     SharedEditors[i].EditorComponent.IDEGutterMarks.HasDebugMarks; // update all shared editors
+  finally debuglnExit(['< TSourceEditor.FillExecutionMarks ',DbgSTime ]); end;
 end;
 
 procedure TSourceEditor.ClearExecutionMarks;
 var
   i: Integer;
 begin
+  debuglnEnter(['> TSourceEditor.ClearExecutionMarks ',dbgsName(Self),dbgs(self),' ',DbgSTime ]); try
   if FSharedValues.MarksRequested and (FSharedValues.MarksRequestedForFile <> '') then
     DebugBoss.LineInfo.Cancel(FSharedValues.MarksRequestedForFile);
   FSharedValues.MarksRequestedForFile := '';
@@ -6572,6 +6582,7 @@ begin
     SharedEditors[i].EditorComponent.IDEGutterMarks.ClearDebugMarks; // update all shared editors
   if (FLineInfoNotification <> nil) and (DebugBoss <> nil) and (DebugBoss.LineInfo <> nil) then
     DebugBoss.LineInfo.RemoveNotification(FLineInfoNotification);
+  finally debuglnExit(['< TSourceEditor.ClearExecutionMarks ',DbgSTime ]); end;
 end;
 
 procedure TSourceEditor.CopyToWindow(AWindowIndex: Integer);

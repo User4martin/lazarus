@@ -2608,6 +2608,7 @@ begin
     lmap := TFpDwarfInfo(FpDebugger.DebugInfo).GetLineAddressMap(ASource);
 
   if (lmap = nil) and (FpDebugger.DbgController <> nil) and (FpDebugger.DbgController.CurrentProcess <> nil) then begin
+debugln(['~~~ libmap cnt ', FpDebugger.DbgController.CurrentProcess.LibMap.Count, ' ',DbgSTime]);
     for lib in FpDebugger.DbgController.CurrentProcess.LibMap do begin
       if (lib.DbgInfo <> nil) and  (lib.DbgInfo is TFpDwarfInfo) then begin
         lmap := TFpDwarfInfo(lib.DbgInfo).GetLineAddressMap(ASource);

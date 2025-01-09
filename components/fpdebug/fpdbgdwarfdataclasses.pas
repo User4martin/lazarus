@@ -4429,6 +4429,7 @@ begin
   if FLineNumberMap.TryGetValue(BaseName, Result) then
     exit;
 
+debugln(['!!!!!!!!!!!! search by name ',FLineNumberMap.Count, ' ',BaseName, '  ',DbgSTime]);
   for k in FLineNumberMap.Keys do begin
     if AnsiCompareText(BaseName, ExtractFileName(k)) = 0 then begin
       Result := FLineNumberMap[k];
