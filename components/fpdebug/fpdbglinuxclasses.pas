@@ -1891,6 +1891,7 @@ begin
     else
       begin
       // Thread stopped, just continue
+debugln(['######### LINUX (a) remove threads ', dbgs(PtrUInt(TDbgThread(AThread))), ' ', dbgs(PtrUInt(TDbgThread(AThread).id))]);
       RemoveThread(AThread.Id);
       result := deInternalContinue;
       end;
@@ -2049,6 +2050,7 @@ begin
   while not it.EOM do begin
     TDbgThread(ThreadToPause) := it.Current;
     if ThreadToPause.FHasExited then begin
+debugln(['######### LINUX (b) remove threads ', dbgs(PtrUInt(TDbgThread(ThreadToPause))), ' ', dbgs(PtrUInt(TDbgThread(ThreadToPause).id))]);
       Process.RemoveThread(ThreadToPause.ID); // TODO: postpone ?
       if ThreadToPause <> AThread then
         ThreadToPause.Free;

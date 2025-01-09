@@ -1246,6 +1246,7 @@ end;
 function TThreadMapEnumerator.GetCurrent: TDbgThread;
 begin
   GetData(Result);
+debugln(['######### +++ Iterate threads ', dbgs(PtrUInt(TDbgThread(Result))), ' ', dbgs(PtrUInt(TDbgThread(Result).id))]);
 end;
 
 function TThreadMapEnumerator.MoveNext: Boolean;
@@ -1267,6 +1268,8 @@ end;
 
 procedure TThreadMap.Add(const AId, AData);
 begin
+debugln(['######### +++ ADD threads ', dbgs(PtrUInt(TDbgThread(AData)))]);
+debugln(['######### +++ ADD threads id ', dbgs((TDbgThread(AData).ID))]);
   inc(FNumCounter);
   TDbgThread(AData).FNum := FNumCounter;
   inherited Add(AId, AData);
@@ -2618,9 +2621,13 @@ begin
   FreeAndNil(FWatchPointList);
   //Assert(FBreakMap.Count=0, 'No breakpoints left');
   //FreeItemsInMap(FBreakMap);
+  debugln('######### Free threads');
   FreeItemsInMap(FThreadMap);
+  debugln('######### Free libs');
   FreeItemsInMap(FLibMap);
+  debugln('######### Free done');
   FLibMap.ClearAddedAndRemovedLibraries;
+  debugln('######### Clear done');
 
   FGlobalCache.Free;
   FreeAndNil(FWatchPointData);
@@ -3126,6 +3133,7 @@ end;
 procedure TDbgProcess.RemoveThread(const AID: DWord);
 begin
   if FThreadMap = nil then Exit;
+debugln(['######### --- DEL threads ', dbgs(AID)]);
   FThreadMap.Delete(AID);
 end;
 
@@ -4028,6 +4036,7 @@ end;
 
 destructor TDbgThread.Destroy;
 begin
+debugln(['######### DESTROY threads ', dbgs(PtrUInt(TDbgThread(Self))), ' ', dbgs(PtrUInt(TDbgThread(Self).id))]);
   FProcess.ThreadDestroyed(Self);
   FreeAndNil(FRegisterValueList);
   FreeAndNil(FPreviousRegisterValueList);
