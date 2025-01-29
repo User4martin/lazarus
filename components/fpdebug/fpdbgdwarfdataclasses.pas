@@ -4387,6 +4387,7 @@ function TFpDwarfInfo.GetLineAddresses(const AFileName: String; ALine: Cardinal;
   AFoundFilename: PBoolean; AMaxSiblingDistance: integer): Boolean;
 var
   Map: PDWarfLineMap;
+  BaseName: String;
 begin
   Result := False;
   if AFoundLine <> nil then
@@ -4399,6 +4400,14 @@ begin
   if AFoundFilename <> nil then
     AFoundFilename^ := True;
   Result := Map^.GetAddressesForLine(ALine, AResultList, False, AFindSibling, AFoundLine, AMaxSiblingDistance, Self);
+
+  BaseName := ExtractFileName(AFileName);
+  if AFileName <> BaseName then begin
+    if FLineNumberMap.TryGetValue(BaseName, Map) then begin
+      if Map^.GetAddressesForLine(ALine, AResultList, False, AFindSibling, AFoundLine, AMaxSiblingDistance, Self) then
+        Result := True;
+    end;
+  end;
 end;
 
 function TFpDwarfInfo.GetLineAddressMap(const AFileName: String): PDWarfLineMap;
