@@ -59,6 +59,14 @@ function Deduplicate(AStrings: TStrings): Integer;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function Deduplicate(AStrings: TStrings): Integer;
 // Removes duplicate strings (case sensitive) from AStrings.
 // Returns the number of duplicates removed.
@@ -145,6 +153,8 @@ begin
         DupIgnore : Exit;
         DupError : raise Exception.Create('TLookupStringList.InsertItem:'
                                          +' Duplicates are not allowed.');
+      else
+        NoOp
       end;
   inherited InsertItem(Index, S);
   FMap.Add(S);     // Insert string to map, too.

@@ -23,7 +23,7 @@ uses
   // RTL
   Gtk2, Glib2, Gdk2, Gdk2Pixbuf,
   {$IFDEF HASX}
-  Gdk2x, X, XLib,
+  Gdk2x, X, {XLib,}
   {$ENDIF}
   Math, types, Classes,
   // LCL
@@ -152,6 +152,7 @@ var
 
 begin
   Result := CallBackDefaultReturn;
+  Mess := Default(TLMessage); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
   case event^._type of
     GDK_CONFIGURE:
       begin

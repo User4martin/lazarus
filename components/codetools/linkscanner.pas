@@ -910,6 +910,14 @@ function dbgs(s: TLSDirectiveKind): string; overload;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 // useful procs ----------------------------------------------------------------
 
 function IndexOfCodeInUniqueList(ACode: Pointer;
@@ -3561,6 +3569,8 @@ begin
       end;
       case ModeSwitch of
       cmsObjectiveC2: Include(Switches,cmsObjectiveC1);
+      else
+        NoOp
       end;
       if Enable then begin
         FCompilerModeSwitches:=FCompilerModeSwitches+Switches;
@@ -3569,7 +3579,9 @@ begin
           begin
             Values.Variables['FPC_UNICODESTRINGS'] := '1';
             Values.Variables['UNICODE'] := '1';
-          end;
+          end
+        else
+          NoOp
         end;
       end else begin
         FCompilerModeSwitches:=FCompilerModeSwitches-Switches;
@@ -3578,7 +3590,9 @@ begin
           begin
             Values.Undefine('FPC_UNICODESTRINGS');
             Values.Undefine('UNICODE');
-          end;
+          end
+        else
+          NoOp
         end;
       end;
       exit;
@@ -3789,6 +3803,8 @@ begin
       {$ENDIF}
       EndSkipping;
     end;
+  else
+    NoOp
   end;
   Result:=true;
 end;
@@ -3818,6 +3834,8 @@ begin
       {$ENDIF}
       EndSkipping;
     end;
+  else
+    NoOp
   end;
   Result:=true;
 end;
@@ -3842,6 +3860,8 @@ begin
   lssdTillElse:
     if IfLevel=FSkipIfLevel then
       exit(InternalIfDirective);
+  else
+    NoOp
   end;
   Result:=true;
 end;
@@ -3867,6 +3887,8 @@ begin
   lssdTillElse:
     if IfLevel=FSkipIfLevel then
       exit(InternalIfDirective);
+  else
+    NoOp
   end;
   Result:=true;
 end;
@@ -4730,6 +4752,8 @@ begin
   FCompilerModeSwitches:=DefaultCompilerModeSwitches[CompilerMode];
   case FPascalCompiler of
   pcPas2js: FCompilerModeSwitches:=FCompilerModeSwitches+Pas2jsFixedModeswitches;
+  else
+    NoOp
   end;
   FNestedComments:=cmsNested_comment in CompilerModeSwitches;
   Values.Variables[CompilerModeVars[FCompilerMode]]:='1';
@@ -4753,6 +4777,8 @@ begin
   case PascalCompiler of
   pcDelphi: FIsDelphiMode:=true;
   pcPas2js: ;
+  else
+    NoOp
   end;
 end;
 

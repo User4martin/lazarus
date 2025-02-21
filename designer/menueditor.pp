@@ -295,6 +295,14 @@ var
 
   MenuDesignerSingleton: TMenuDesigner = nil;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure ShowMenuEditor(aMenu: TMenu);
 begin
   Assert(Assigned(aMenu), 'ShowMenuEditor: aMenu parameter is nil');
@@ -1745,6 +1753,8 @@ begin
       popSaveAsTemplate:      ac.Enabled:=levelZeroOr1;
       popAddFromTemplate:     ac.Enabled:=levelZero;
       popDeleteTemplate:      ac.Enabled:=FDesigner.TemplatesSaved;
+    else
+     NoOp
     end; // case
   end; // for
   ac:=GetActionForEnum(popShortcuts_);
@@ -2436,8 +2446,10 @@ var
   end;
 
   procedure DrawChevron;
+  type
+    TPointsArray = array of TPoint;
   var
-    pts: array of TPoint;
+    pts: TPointsArray;
     oldBrushColor, oldPenColor: TColor;
   begin
     { ToDo: This should be done by theme services
@@ -2445,6 +2457,7 @@ var
     dets:=ThemeServices.GetElementDetails(tmPopupSubmenuNormal);
     ThemeServices.DrawElement(Canvas.Handle, dets, r);
     }
+    pts:= Default(TPointsArray); //fixes Hint: (5091) Local variable "pts" of a managed type does not seem to be initialized
     r.Right:=ClientWidth;
     r.Left:=r.Right - MenuBar_Height;
     SetLength(pts{%H-}, 4);
@@ -2470,6 +2483,7 @@ var
 var
   alygn: TAlignment;
 begin
+  tStyle:= Default(TTextStyle); //fixes Hint: (5057) Local variable "tStyle" does not seem to be initialized
   if FParentBox.Updating then Exit;
   r:=ClientRect;
   if FRealItem.RightJustify then

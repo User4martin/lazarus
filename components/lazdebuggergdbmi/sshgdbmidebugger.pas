@@ -193,6 +193,7 @@ procedure TSSHGDBMINotePropertyEditor.PropDrawValue(ACanvas: TCanvas;
 var
   Style : TTextStyle;
 begin
+  Style := Default(TTextStyle); //fixes Hint: (5057) Local variable "Style" does not seem to be initialized
   FillChar(Style{%H-},SizeOf(Style),0);
   With Style do begin
     Alignment := taLeftJustify;

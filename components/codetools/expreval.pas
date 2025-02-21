@@ -1375,7 +1375,7 @@ var
   procedure StrExpectedAtPos(NewErrorPos, ExpectedStr: PChar);
   var
     s: string;
-    f: string;
+    f: string = '';
   begin
     s:=ExpectedStr;
     if ExprEnd>NewErrorPos then begin
@@ -2056,6 +2056,7 @@ function TExpressionEvaluator.AsString: string;
 var TxtLen, i, p: integer;
   s: String;
 begin
+  Result:= '';
   TxtLen:=0;
   for i:=0 to FCount-1 do begin
     inc(TxtLen,length(FNames[i])+2);

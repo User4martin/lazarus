@@ -438,6 +438,14 @@ const
     (Value: ecPluginMultiCaretModeMoveAll;      Name: 'ecPluginMultiCaretModeMoveAll')
   );
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function IdentToKeyCommand(const Ident: string; var Cmd: longint): boolean;
 begin
   Result := IdentToInt(Ident, Cmd, EditorKeyCommandStrs);
@@ -838,11 +846,14 @@ end;
 
 function TSynPluginMultiCaretList.AddCaret(X, Y, Offs: Integer; flags: TCaretFlags;
   PhysX: Integer): Integer;
+type
+  TCaretDataArray = Array of TCaretData;
 var
-  NewCarets: Array of TCaretData;
+  NewCarets: TCaretDataArray;
   Len, AddLen, i, Middle: Integer;
 begin
   assert(FIteratoreMode=mciNone, 'TSynPluginMultiCaretList.AddCaret: FIteratoreMode=mciNone');
+  NewCarets:= Default(TCaretDataArray); //fixes Hint: (5091) Local variable "NewCarets" of a managed type does not seem to be initialized
   Result := FindEqOrNextCaretRawIdx(x, y, Offs);
   if Result < FLowIndex then
     Result := FLowIndex;
@@ -1214,6 +1225,8 @@ begin
               Include(FCurrenCaret^.Flags, cfIterationDone);
               inc(FIterationDoneCount);
             end;
+          else
+            NoOp
           end;
 
           exit;
@@ -1280,6 +1293,8 @@ begin
               Include(FCurrenCaret^.Flags, cfIterationDone);
               inc(FIterationDoneCount);
             end;
+          else
+            NoOp
           end;
         end;
       end;
@@ -2660,6 +2675,8 @@ begin
         Include(FStateFlags, sfProcessingCmd);
         exit;
       end;
+  else
+    NoOp
   end;
 
   case Command of

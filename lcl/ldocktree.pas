@@ -297,6 +297,14 @@ implementation
 
 {$R lcl_dock_images.res}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 const
   DockHeaderImageNames: array[TDockHeaderImageKind] of String =
   (
@@ -384,6 +392,8 @@ begin
       Result.Top := Min(Result.Bottom, Result.Top + d + 1);
       InflateRect(Result, 0, -4);
     end;
+    else
+      NoOp
   end;
 end;
 
@@ -482,6 +492,8 @@ begin
         if OldFont <> 0 then
           DeleteObject(SelectObject(ACanvas.Handle, OldFont));
       end;
+    else
+      NoOp
   end;
   SetBkMode(ACanvas.Handle, OldMode);
 end;
@@ -498,6 +510,8 @@ begin
       else
         // not a form => doesnot have close => just hide
         AControl.Visible := False;
+    else
+      NoOp
   end;
 end;
 
@@ -508,6 +522,8 @@ begin
     ldhpAll, ldhpCaption:
       // mouse down on not buttons => start drag
       AControl.BeginDrag(False);
+    else
+      NoOp
   end;
 end;
 
@@ -1026,6 +1042,8 @@ begin
               Child.Left := NewPos;
               Child.Width := NewSize;
             end;
+          else
+            NoOp
         end;
         ResetSizes(Child);
         inc(NewPos, NewSize);
@@ -1043,6 +1061,8 @@ begin
       Inc(ARect.Top, DefaultDockGrabberSize);
     doVertical:
       Inc(ARect.Left, DefaultDockGrabberSize);
+    else
+      NoOp
   end;
 end;
 
@@ -1131,6 +1151,8 @@ begin
       case CurControl.DockOrientation of
         doHorizontal: CurControl.BorderSpacing.Top := DefaultDockGrabberSize;
         doVertical: CurControl.BorderSpacing.Left := DefaultDockGrabberSize;
+        else
+          NoOp
       end;
     end;
   end;
@@ -1515,6 +1537,8 @@ begin
         Result:=GetAnchorControl(Zone.Parent as TLazDockZone,Side,false);
     doPages:
       Result:=GetAnchorControl(Zone.Parent as TLazDockZone,Side,false);
+    else
+      NoOp
   end;
 end;
 
@@ -1547,6 +1571,8 @@ begin
                 ARect.Right := ARect.Left;
                 Dec(ARect.Left, DefaultDockGrabberSize);
               end;
+            else
+              NoOp
           end;
           PaintDockFrame(ACanvas, DockSite.Controls[i], ARect);
         end;

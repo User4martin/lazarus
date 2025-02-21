@@ -136,6 +136,14 @@ implementation
 
 {$I gtk2stdpixmaps.inc}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function GetColumnButtonFromTreeView(AWidget: PGtkWidget; Part: Integer): PGtkWidget;
 var
   AColumn: PGtkTreeViewColumn;
@@ -230,6 +238,7 @@ var
   DevCtx: TGtkDeviceContext absolute DC;
   ClientWidget: PGtkWidget;
 begin
+  Result:= Default(TGtkStyleParams); //fixes Warning: (5093) Function result variable of a managed type does not seem to be initialized
   FillByte(Result{%H-}, SizeOf(Result), 0);
   if not Gtk2WidgetSet.IsValidDC(DC) then Exit;
 
@@ -545,6 +554,8 @@ begin
           end;
         end;
       end;
+    else
+      NoOp
   end;
   if Result.Style = nil then
     Result.Style := gtk_widget_get_default_style();
@@ -565,6 +576,7 @@ function TGtk2ThemeServices.GetDetailSize(Details: TThemedElementDetails): TSize
 var
   AValue: TGValue;
 begin
+  AValue:= Default(TGValue); //fixes Hint: (5057) Local variable "AValue" does not seem to be initialized
   case Details.Element of
     teTreeView:
       if (Byte(Details.Part) in [TVP_GLYPH, TVP_HOTGLYPH]) then
@@ -940,6 +952,8 @@ begin
              Area.x, Area.y, Area.width, Area.height
            );
           gptPixmap: DrawPixmap(DC, @Area, Ord(Detail[1]));
+          else
+            NoOp
         end;
       end;
     end;

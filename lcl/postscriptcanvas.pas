@@ -579,6 +579,14 @@ type
     property MaxWidth: Integer read FMaxWidth write FMaxWidth;
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TAscii85Encoder }
 
 procedure TAscii85Encoder.EmitData;
@@ -722,6 +730,8 @@ begin
          h:=round(PaperHeight*72/XDPI);
          Write(format('%d %d translate 90 neg rotate',[w,h]));
        end;
+  else
+    NoOp
   end;
 end;
 
@@ -2857,12 +2867,16 @@ begin
       Options := DT_RIGHT;
     taCenter:
       Options := DT_CENTER;
+  else
+    NoOp
   end;
   case Style.Layout of
     tlCenter:
       Options := Options or DT_VCENTER;
     tlBottom:
       Options := Options or DT_BOTTOM;
+  else
+    NoOp
   end;
   if Style.EndEllipsis then
     Options := Options or DT_END_ELLIPSIS;
@@ -2916,6 +2930,8 @@ begin
         Offset :=  (ARect.Right - fRect.Right) div 2;
         Types.OffsetRect(fRect, offset, 0);
       end;
+    else
+      NoOp
     end;
     case Style.Layout of
       tlCenter:
@@ -2928,6 +2944,8 @@ begin
         Offset :=  ARect.Bottom - fRect.Bottom;
         Types.OffsetRect(fRect, 0, offset);
       end;
+    else
+      NoOp
     end;
   end;
 

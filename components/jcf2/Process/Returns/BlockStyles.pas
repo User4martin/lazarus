@@ -245,8 +245,8 @@ begin
           end;
         end;
       end;
-      else
-        Assert(False);
+      //else       //Warning: (6018) Unreachable code
+      //  Assert(False);
     end;
   end;
 end;

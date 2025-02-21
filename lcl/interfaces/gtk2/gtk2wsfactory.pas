@@ -22,7 +22,7 @@ uses
   Gtk2WSExtDlgs,
   Gtk2WSForms,
   Gtk2WSGrids,
-  {%H-}Gtk2WSImgList,
+  //{%H-}Gtk2WSImgList,
   Gtk2WSMenus,
   Gtk2WSSpin,
   Gtk2WSStdCtrls,

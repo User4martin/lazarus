@@ -2100,6 +2100,8 @@ begin
     toShowMenuImages:
       if ShowMenuGlyphs = sbgSystem then
         NotifyCustomForms(CM_APPSHOWMENUGLYPHCHANGED);
+    else
+      NoOp
   end;
 end;
 

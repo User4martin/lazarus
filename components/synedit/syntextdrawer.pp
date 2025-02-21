@@ -582,6 +582,9 @@ Procedure TheFontStock.CalcFontAdvance(DC: HDC; FontData: PheFontData;
     Size1, Size2, Size3: TSize;
     w2, w3: Integer;
   begin
+    Size1:= Default(TSize);
+    Size2:= Default(TSize);
+    Size3:= Default(TSize);
     s1 := s;
     s2 := s1 + s;
     s3 := s2 + s;
@@ -667,6 +670,8 @@ var
   Size1: TSize;
   tmw: Integer;
 begin
+  TM:= Default(TTextMetric);
+  Size1:= Default(TSize);
   // Calculate advance of a character.
 
   // TextMetric may fail, because:

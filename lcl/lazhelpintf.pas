@@ -1437,6 +1437,7 @@ procedure THelpDatabases.ShowError(ShowResult: TShowHelpResult;
 var
   ErrorCaption: String;
 begin
+  ErrorCaption:=rsUnknownErrorPleaseReportThisBug; //fixes Warning: (6018) Unreachable code
   case ShowResult of
   shrNone: ErrorCaption:=rsHelpError;
   shrSuccess: exit;
@@ -1447,7 +1448,7 @@ begin
   shrHelpNotFound: ErrorCaption:=rsHelpNotFound;
   shrViewerError: ErrorCaption:=rsHelpViewerError;
   shrSelectorError: ErrorCaption:=rsHelpSelectorError;
-  else ErrorCaption:=rsUnknownErrorPleaseReportThisBug;
+  //else ErrorCaption:=rsUnknownErrorPleaseReportThisBug; //Unreachable code
   end;
   MessageDlg(ErrorCaption,ErrMsg,mtError,[mbCancel],0);
 end;

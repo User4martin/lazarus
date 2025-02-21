@@ -601,7 +601,7 @@ end;
 function dbgMemStream(MemStream: TCustomMemoryStream; Count: integer): string;
 {$IFnDEF USED_BY_LAZLOGGER_DUMMY}
 var
-  s: string;
+  s: String = ''; //fixes Hint: (5091) Local variable "s" of a managed type does not seem to be initialized
 {$ENDIF}
 begin
   {$IFnDEF USED_BY_LAZLOGGER_DUMMY}

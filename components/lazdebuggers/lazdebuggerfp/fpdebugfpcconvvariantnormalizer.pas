@@ -124,7 +124,7 @@ function TFpDbgValueConverterVariantNormalizer.ConvertValue(
     Addr: TFpDbgMemLocation;
     sz: Integer;
     SLen: Int64;
-    Str: string;
+    Str: String = ''; //fixes Hint: (5091) Local variable "Str" of a managed type does not seem to be initialized
   begin
     if (Result = nil) then begin
       ReturnSourceValue;

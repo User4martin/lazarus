@@ -642,9 +642,12 @@ const
  *
  ******************************************************************)
  function TFreeTypeStream.GET_Tag4 : ULong;
+ type
+   TByteArray = array[0..3] of Byte;
  var
-   C : array[0..3] of Byte;
+   C : TByteArray;
  begin
+   C := Default(TByteArray);
    move ( FCurrentFrame^[FFrameCursor], c{%H-}, 4 );
    inc( FFrameCursor, 4 );
 

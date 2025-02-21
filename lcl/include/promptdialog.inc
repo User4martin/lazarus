@@ -45,6 +45,13 @@ type
     function GetMessageText: string; override;
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 procedure TPromptDialog.CreateButtons;
 var
@@ -179,6 +186,8 @@ begin
         bkCancel: FCancelKind := bkCancel;
         bkNo: if (FCancelKind <> bkCancel) then FCancelKind := bkNo;
         bkOk: if not (FCancelKind in [bkCancel, bkNo]) then FCancelkind := bkOk;
+      else
+        NoOp
       end;
     end;
   end;

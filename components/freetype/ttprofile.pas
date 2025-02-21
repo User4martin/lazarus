@@ -136,6 +136,14 @@ procedure ProfileList_Split( List : TProfile; out Part1, Part2: TProfile);
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 (************************************************)
 (*                                              *)
 (*  ProfileList_Init                            *)
@@ -1081,6 +1089,8 @@ begin
   Case CurveDir of
     GoingUp  : if not Line_Up  ( LastX, LastY, X, Y, BoundsMiny, BoundsMaxy ) then exit;
     GoingDown : if not Line_Down( LastX, LastY, X, Y, BoundsMiny, BoundsMaxy ) then exit;
+   else
+     NoOp
    end;
 
   LastX := x;
@@ -1181,6 +1191,8 @@ begin
       case CurveDir of
         GoingUp   : if not Bezier_Up( BoundsMiny, BoundsMaxy ) then exit;
         GoingDown : if not Bezier_Down( BoundsMiny, BoundsMaxy ) then exit;
+        else
+         NoOp
       end;
 
     end;

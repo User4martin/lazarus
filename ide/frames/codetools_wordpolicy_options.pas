@@ -68,6 +68,7 @@ end;
 procedure TCodetoolsWordPolicyOptionsFrame.Setup(
   ADialog: TAbstractOptionsEditorDialog);
 begin
+  ADialog:= ADialog; //fixes Hint: (5024) Parameter "ADialog" not used
   with KeyWordPolicyRadioGroup do begin
     Caption:=dlgKeywordPolicy ;
     with Items do begin

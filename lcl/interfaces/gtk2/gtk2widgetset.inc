@@ -21,6 +21,14 @@
 var
   Gtk2MPF: TGPollFunc;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function Gtk2PollFunction(ufds:PGPollFD; nfsd:guint; timeout:gint):gint;cdecl;
 begin
   Result := nfsd;
@@ -117,8 +125,10 @@ function gtk2PopupMenuCB(Widget: PGtkWidget; data: gPointer): gboolean; cdecl;
 var
   Msg: TLMContextMenu;
 begin
+  Msg:= Default(TLMContextMenu); //fixes Hint: (5057) Local variable "Msg" does not seem to be initialized
   FillChar(Msg{%H-}, SizeOf(Msg), #0);
 
+  Msg := Default(TLMContextMenu);
   Msg.Msg := LM_CONTEXTMENU;
   Msg.hWnd := {%H-}HWND(Widget); // todo: true keystate
 
@@ -2011,9 +2021,12 @@ end;
 
 function threadsync_iocallback({%H-}source: PGIOChannel; {%H-}condition: TGIOCondition;
   data: gpointer): gboolean; cdecl;
+type
+  TByteArray = array[1..1024] of byte;
 var
-  thrashspace: array[1..1024] of byte;
+  thrashspace: TByteArray;
 begin
+  thrashspace:= Default(TByteArray);
   // read the sent bytes
   fpread(threadsync_pipein, {%H-}thrashspace[1], 1);
 
@@ -2673,6 +2686,7 @@ var
   i: integer;
   LogBrush: TLogBrush;
 begin
+  LogBrush:= Default(TLogBrush); //fixes Hint: (5057) Local variable "LogBrush" does not seem to be initialized
   FillChar(LogBrush{%H-}, SizeOf(TLogBrush), 0);
   for i := Low(FSysColorBrushes) to High(FSysColorBrushes) do
   begin
@@ -2810,6 +2824,7 @@ var
   LogBrush: TLogBrush;
   logPen : TLogPen;
 begin
+  LogBrush:= Default(TLogBrush);
   FillChar(LogBrush{%H-}, SizeOf(TLogBrush), 0);
   LogBrush.lbStyle := BS_NULL;
   FStockNullBrush := CreateBrushIndirect(LogBrush);
@@ -3021,6 +3036,7 @@ begin
   //DebugLn('trace:[TGtk2WidgetSet.InternalGetDIBits]');
 
   Result := 0;
+  FDIB:= Default(TDIBSection);
   FillByte(BitInfo{%H-},SizeOf(BitInfo),0);
 
   if (DC=0) or (Usage=0) then ;
@@ -3201,10 +3217,10 @@ begin
       GDK_VISUAL_PSEUDO_COLOR: ADesc.Format:=ricfGray;
       GDK_VISUAL_TRUE_COLOR:   ADesc.Format:=ricfRGBA;
       GDK_VISUAL_DIRECT_COLOR: ADesc.Format:=ricfRGBA;
-    else
-      DebugLn('TGtk2WidgetSet.GetWindowRawImageDescription unknown Visual type ',
-              dbgs(Integer(Visual^.thetype)));
-      Exit(False);
+    //else         //Warning: (6018) Unreachable code
+    //  DebugLn('TGtk2WidgetSet.GetWindowRawImageDescription unknown Visual type ',
+    //          dbgs(Integer(Visual^.thetype)));
+    //  Exit(False);
     end;
   end;
 
@@ -3445,6 +3461,7 @@ var
   UseAlpha: Boolean;
 begin
   Result := False;
+  R1 := Default(TRect); //fixes Hint: (5057) Local variable "R1" does not seem to be initialized
   if ADrawable = nil then
     RaiseGDBException('TGtk2WidgetSet.RawImage_FromDrawable');
 
@@ -3497,6 +3514,7 @@ var
   SourceStride, DestStride: PtrUInt;
 begin
   Result := False;
+  R1 := Default(TRect);
   if APixbuf = nil then
     RaiseGDBException('TGtk2WidgetSet.RawImage_FromPixbuf');
 
@@ -4246,12 +4264,18 @@ var
         case DstDevContext.CurrentBitmap^.GDIBitmapType of
           gbBitmap: Result:=DrawableToDrawable;
           gbPixmap: Result:=BitmapToPixmap;
+          else
+            NoOp
         end;
       gbPixmap:
         case DstDevContext.CurrentBitmap^.GDIBitmapType of
           gbBitmap: Result:=PixmapToBitmap;
           gbPixmap: Result:=DrawableToDrawable;
+        else
+          NoOp
         end;
+      else
+        NoOp
     end;
   end;
 
@@ -4263,6 +4287,8 @@ var
     case SrcDevContext.CurrentBitmap^.GDIBitmapType of
       gbBitmap: Result:=PixmapToDrawable;
       gbPixmap: Result:=PixmapToDrawable;
+    else
+      NoOp
     end;
   end;
 
@@ -4274,6 +4300,8 @@ var
     case DstDevContext.CurrentBitmap^.GDIBitmapType of
       gbBitmap: Result:=Unsupported;
       gbPixmap: Result:=Unsupported;
+    else
+      NoOp
     end;
   end;
 
@@ -5042,7 +5070,8 @@ var
   WidgetInfo: PWidgetInfo;
 begin
   Widget := GTKAPIWidget_New;
-  Result := THandle({%H-}PtrUInt(Widget));
+  //Result := THandle({%H-}PtrUInt(Widget));
+  Result := TLCLHandle({%H-}PtrUInt(Widget)); //fixes Warning: (5066) Symbol "THandle" is deprecated: "Use TLCLHandle instead of this redefined THandle"
   if Result = 0 then Exit;
   WidgetInfo := GetOrCreateWidgetInfo(Widget);
   WidgetInfo^.CoreWidget := PGTKAPIWidget(Widget)^.Client;
@@ -5376,6 +5405,8 @@ begin
         end;
         wsMaximized: gtk_window_maximize(PGtkWindow(SenderWidget));
         wsMinimized: gtk_window_iconify(PGtkWindow(SenderWidget));
+        else
+          NoOp
       end;
     end;
   end
@@ -5580,6 +5611,7 @@ var
   Pixel: LongWord;
 begin
   Result := clNone;
+  GDKColor:= Default(TGDKColor);
   if (DC = nil) or (DC.Drawable = nil) then Exit;
 
   DCOrigin := DC.TransfPointIndirect(DC.Offset);
@@ -5976,11 +6008,11 @@ begin
           FreeAndNil(RGBTable);
           FreeAndNil(IndexTable);
         end;
-      else begin
-        Result:= false;
-        DebugLn('[TGtk2WidgetSet.DeleteObject] TODO : Unimplemented GDI type');
-        //DebugLn('Trace:TODO : Unimplemented GDI object in delete object');
-      end;
+      //else begin    //Warning: (6018) Unreachable code
+      //  Result:= false;
+      //  DebugLn('[TGtk2WidgetSet.DeleteObject] TODO : Unimplemented GDI type');
+      //  //DebugLn('Trace:TODO : Unimplemented GDI object in delete object');
+      //end;
     end;
   end;
 

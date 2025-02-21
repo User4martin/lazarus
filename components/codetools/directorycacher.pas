@@ -838,7 +838,7 @@ begin
           WorkingListingCapacity:=NewCapacity;
         end;
         WorkingItem:=@WorkingListing[WorkingListingCount];
-        WorkingItem^.Header.Time:=FileInfo.Time;
+        WorkingItem^.Header.Time:=SysUtils.FileAge(TimeToStr(FileInfo.TimeStamp));
         WorkingItem^.Header.Attr:=FileInfo.Attr;
         WorkingItem^.Header.Size:=FileInfo.Size;
         WorkingItem^.FileName:=FileInfo.Name;
@@ -2529,6 +2529,7 @@ var
   Dir: String;
   Cache: TCTDirectoryCache;
 begin
+  Sender:= Sender;  //fixes Hint: (5024) Parameter "Sender" not used
   if AFilename='' then
     IncreaseFileTimeStamp
   else if FilenameIsAbsolute(AFilename) then begin

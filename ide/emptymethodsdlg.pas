@@ -162,6 +162,7 @@ var
   AncestorMethod: TMethod;
   Comp: TComponent;
 begin
+  Result:= Default(TMethod); //fixes Hint: (5060) Function result variable does not seem to be initialized
   FillByte(Result{%H-}, SizeOf(Result), 0);
   if APersistent is TComponent then
   begin

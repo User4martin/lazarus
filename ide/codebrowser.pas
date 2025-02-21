@@ -2045,6 +2045,7 @@ var
     const Identifier: string): boolean;
   begin
     //DebugLn(['IdentifierFitsFilter Identifier=',Identifier,' Filter=',LevelFilterText[LvlType]]);
+    Result:= True; //fixes Warning: (6018) Unreachable code
     if (LevelFilterText[LvlType]='') then exit(true);
     if Identifier='' then exit(false);
 
@@ -2059,8 +2060,8 @@ var
       //if Result then
       //  debugln(['IdentifierFitsFilter Identifier="',Identifier,'" Filter="',LevelFilterText[LvlType],'"']);
       end
-    else
-      Result:=true{%H-};
+    //else    //Warning: (6018) Unreachable code
+    //  Result:=true{%H-};
     end;
   end;
 

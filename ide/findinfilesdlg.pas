@@ -104,6 +104,14 @@ implementation
 var
   FindInFilesDialogSingleton: TLazFindInFilesDialog = nil;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function FindInFilesDialog: TLazFindInFilesDialog;
 begin
   if FindInFilesDialogSingleton = nil then
@@ -307,6 +315,8 @@ begin
           fifWholeWord: Include(Result, ssoWholeWord       );
           fifRegExpr  : Include(Result, ssoRegExpr         );
           fifMultiLine: Include(Result, ssoRegExprMultiLine);
+        else
+          NoOp
         end;
 end;
 
@@ -327,6 +337,8 @@ begin
         fifWholeWord: Buttons[i].Checked := ssoWholeWord        in NewOptions;
         fifRegExpr  : Buttons[i].Checked := ssoRegExpr          in NewOptions;
         fifMultiLine: Buttons[i].Checked := ssoRegExprMultiLine in NewOptions;
+      else
+        NoOp
       end;
 
   UpdateReplaceCheck;
@@ -594,6 +606,8 @@ begin
             SearchForm.SearchOptions:=SearchForm.SearchOptions-[fifIncludeSubDirs];
             SearchForm.DoSearchProjectGroup;
           end;
+        else
+          NoOp
         end;
   finally
     FreeAndNil(SearchForm);

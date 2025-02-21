@@ -287,6 +287,14 @@ implementation
 uses
   LResources;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TWSCustomUpDown }
 
 class procedure TWSCustomUpDown.SetUseArrowKeys(const AUpDown: TCustomUpDown;
@@ -852,6 +860,8 @@ begin
         if States <= ALV.Items[AIndex].GetStates then
           Exit(ALV.Items[AIndex]);
       end;
+    else
+      NoOp
   end;
 end;
 

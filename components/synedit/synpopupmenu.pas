@@ -31,6 +31,14 @@ type
   TMenuEntry = (meNone, meUndo, meRedo, meCut, meCopy, mePaste,
                 meDelete, meSelectAll);
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TSynPopupMenu }
 
 constructor TSynPopupMenu.Create(AOwner: TComponent);
@@ -100,6 +108,8 @@ begin
       mePaste:     PasteFromClipboard;
       meDelete:    SelText := '';
       meSelectAll: SelectAll;
+    else
+      NoOp
     end;
 end;
 
@@ -122,6 +132,8 @@ begin
             mePaste:     Items[i].Enabled := CanPaste;
             meDelete:    Items[i].Enabled := SelAvail and not ReadOnly;
             meSelectAll: Items[i].Enabled := HasText([shtIncludeVirtual]);
+          else
+            NoOp
           end;
   end;
   inherited;

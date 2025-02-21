@@ -747,6 +747,8 @@ function IsIdentifierToken(const pt: TSourceToken; const peStrictness: TIdentifi
 const
   DIRECTIVE_IDENTIFIER_NAMES = [ttOut, ttOperator, ttHelper, ttSealed, ttStatic, ttUnsafe, ttAbstract];
 begin
+  Result := False; //fixes Warning: (6018) Unreachable code
+
   if pt = nil then
   begin
     Result := False;
@@ -769,11 +771,11 @@ begin
     idAny:
       // accept any textual token
       Result := StrIsAlpha(pt.SourceCode);
-    else
-    begin
-      Result := False;
-      Assert(false);
-    end;
+    //else      //Warning: (6018) Unreachable code
+    //begin
+    //  Result := False;
+    //  Assert(false);
+    //end;
   end;
 
 end;

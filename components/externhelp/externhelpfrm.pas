@@ -276,6 +276,14 @@ implementation
 
 {$R *.lfm}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure Register;
 begin
   ExternHelpOptions:=TExternHelpOptions.Create;
@@ -1447,6 +1455,8 @@ begin
               Identifier := Identifier + Context;
             end;
 
+          else
+            NoOp
           end;
         end;
 

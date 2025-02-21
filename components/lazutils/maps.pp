@@ -352,6 +352,7 @@ function TBaseMap.FindNode(const AId): TAvlTreeNode;
 var
   Item: TMapItem;
 begin
+  Item:= Default(TMapItem);//Hint: (5057) Local variable "Item" does not seem to be initialized
   Move(AID, {%H-}Item.ID, ID_LENGTH[FIdType]);
   Result := FTree.Find(@Item);
 end;
@@ -371,7 +372,7 @@ procedure TBaseMap.InternalAdd(const AId, AData);
     a: PChar =  '0123456789ABCDEF';
   var
     n: Integer;
-    S: String;
+    S: String = '';  //fixes Hint: (5091) Local variable "S" of a managed type does not seem to be initialized
     p: PByte;
   begin
     SetLength(S{%H-}, ID_LENGTH[FIdType] * 2);
@@ -594,6 +595,7 @@ var
   Node, LastNext: TAvlTreeNode;
   Item: TMapItem;
 begin
+  Item:= Default(TMapItem); //fixes Hint: (5057) Local variable "Item" does not seem to be initialized
   ValidateMap;
   
   FInvalid := True;

@@ -1004,6 +1004,7 @@ var
   OldCode: LongWord;
   NewCode: LongWord;
 begin
+  Result:= EmptyStr;  //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   // first compute needed length
   SrcPos:=1;
   DstPos:=1;

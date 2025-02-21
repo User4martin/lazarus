@@ -1476,14 +1476,20 @@ begin
 end;
 
 procedure TLazSynEditNestedFoldsList.InitOpeningOnLine;
+type
+  TIntegerArrayOfArray = Array of Array of Integer;
+  TIntegerArray = Array of Integer;
 var
   nd: TSynFoldNodeInfo;
-  OpenIdx: Array of Array of Integer; // List of open-node-index, for each FoldCroup
-  OpenCnt: Array of Integer; // List of open-node-index, for each FoldCroup
+  OpenIdx: TIntegerArrayOfArray; // List of open-node-index, for each FoldCroup
+  OpenCnt: TIntegerArray; // List of open-node-index, for each FoldCroup
   Grp, c, i, j, GrpLow, GrpHigh, ListCnt: Integer;
   oc: LongInt;
 begin
   Assert((FOpeningLineEndIndex < 0) or (sfbIncludeDisabled in FoldFlags), 'OpeningLineEndIndex only implemented for sfbIncludeDisabled');
+  nd:= Default(TSynFoldNodeInfo); //fixes Hint: (5057) Local variable "nd" does not seem to be initialized
+  OpenIdx:= Default(TIntegerArrayOfArray); //fixes Hint: (5091) Local variable "OpenCnt" of a managed type does not seem to be initialized
+  OpenCnt:= Default(TIntegerArray); //fixes Hint: (5091) Local variable "OpenIdx" of a managed type does not seem to be initialized
 
   FOpeningOnLineCount := 0;
   if FCount < 0 then
@@ -2169,6 +2175,7 @@ var
   act: TSynFoldActions;
   nd: TSynFoldNodeInfo;
 begin
+  nd:= Default(TSynFoldNodeInfo); //fixes Hint: (5057) Local variable "nd" does not seem to be initialized
   if not IsCollectingNodeInfo then exit;
 
   BlockConfExists := (PtrUInt(ABlockType) < FoldConfigCount);  // how about pascal that has blocktype > foldconfigcount?

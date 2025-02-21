@@ -156,6 +156,14 @@ function ReverseRTTIParamList: boolean;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function ReverseRTTIParamList: boolean;
 begin
   Result:=false;
@@ -174,7 +182,8 @@ type
 
 var i, ParamCount, Len, Offset: integer;
   ParamType: TParamType;
-  s, ParamString, ResultType: string;
+  s, ParamString: string;
+  ResultType: string = '';
   Reverse: Boolean;
 begin
   Result:='';
@@ -187,6 +196,8 @@ begin
     mkDestructor: Result:=Result+'destructor ';
     mkClassProcedure: Result:=Result+'class procedure ';
     mkClassFunction: Result:=Result+'class function ';
+    else
+      NoOp
     end;
   end;
   // transform TypeData into a ProcHead String
@@ -1224,12 +1235,12 @@ function TEventsCodeTool.CreateExprListFromMethodTypeData(
   TypeData: PTypeData; Params: TFindDeclarationParams;
   out List: TExprTypeList): boolean;
 var i, ParamCount, Len, Offset: integer;
-  CurTypeIdentifier: string;
+  CurTypeIdentifier: string = '';
   OldInput: TFindDeclarationInput;
   CurExprType: TExpressionType;
   Reverse: Boolean;
   {$IFDEF VerboseTypeData}
-  CurParamName: string;
+  CurParamName: string = '';
   {$ENDIF}
 begin
   {$IFDEF VerboseTypeData}

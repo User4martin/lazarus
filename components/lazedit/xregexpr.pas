@@ -1041,6 +1041,14 @@ const
 type
   PtrPair = {$IFDEF UnicodeRE} ^LongInt; {$ELSE} ^Word; {$ENDIF}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function GroupDataArraySize(ARequired, ACurrent: Integer): Integer;
 begin
   Result := ARequired;
@@ -1526,6 +1534,7 @@ var
   StackIdx, StackSz: Integer;
 begin
   Result := 0; // no unbalanced brackets found at this very moment
+  Modif:= Default(TRegExprModifiers);
   FillChar(Modif, SizeOf(Modif), 0);
   ASubExprs.Clear; // I don't think that adding to non empty list
   // can be useful, so I simplified algorithm to work only with empty list
@@ -3149,11 +3158,14 @@ function TRegExpr.CompileRegExpr(ARegExp: PRegExprChar): Boolean;
 // of the structure of the compiled regexp.
 var
   scan, scanTemp, longest, longestTemp: PRegExprChar;
-  Len, LenTemp: Integer;
-  FlagTemp, MaxMatchLen: integer;
+  Len: Integer = 0;
+  LenTemp: Integer = 0;
+  FlagTemp: Integer = 0;
+  MaxMatchLen: Integer = 0;
   op: TREOp;
 begin
   Result := False;
+  op:= Default(TREOp);
   FlagTemp := 0;
   regParse := nil; // for correct error handling
   regExactlyLen := nil;
@@ -3712,6 +3724,8 @@ var
     savedRegParse: PRegExprChar;
   begin
     Result := False;
+    dummyBracesMin:= Default(TREBracesArg);
+    dummyBracesMax:= Default(TREBracesArg);
     if not FAllowLiteralBraceWithoutRange then
       exit;
     savedRegParse := regParse;
@@ -3728,6 +3742,8 @@ var
   savedRegParse: PRegExprChar;
 begin
   FlagTemp := 0;
+  BracesMin:= Default(TREBracesArg); //fixes Hint: (5057) Local variable "BracesMin" does not seem to be initialized
+  BracesMax:= Default(TREBracesArg); //fixes Hint: (5057) Local variable "BracesMax" does not seem to be initialized
   Result := ParseAtom(FlagTemp);
   if Result = nil then
     Exit;
@@ -4178,12 +4194,16 @@ var
   DashForRange: Boolean;
   GrpKind: TREGroupKind;
   GrpName: RegExprString;
-  GrpIndex, ALen, RegGrpCountBefore, AMaxLen: integer;
+  GrpIndex: Integer = 0;
+  ALen: Integer = 0;
+  RegGrpCountBefore: Integer = 0;
+  AMaxLen: Integer = 0;
   NextCh: REChar;
   op: TREOp;
   SavedModifiers: TRegExprModifiers;
 begin
   Result := nil;
+  op:= Default(TREOp);
   FlagTemp := 0;
   FlagParse := FLAG_WORST;
   AddrOfLen := nil;
@@ -4601,6 +4621,8 @@ begin
               case GrpKind of
                 gkLookahead: ret := EmitNode(OP_LOOKAHEAD);
                 gkLookaheadNeg: ret := EmitNode(OP_LOOKAHEAD_NEG);
+              else
+                NoOp
               end;
 
               Result := DoParseReg(True, nil, FlagTemp, OP_NONE, OP_LOOKAHEAD_END);
@@ -4617,6 +4639,8 @@ begin
               case GrpKind of
                 gkLookbehind: ret := EmitNode(OP_LOOKBEHIND);
                 gkLookbehindNeg: ret := EmitNode(OP_LOOKBEHIND_NEG);
+              else
+                NoOp
               end;
               regLookBehindOption := regCode;
               if (regCode <> @regDummy[0]) then
@@ -6762,6 +6786,8 @@ begin
     case regAnchored of
       raBOL: if AOffset > 1 then Exit; // can't match the BOL
       raEOL: Ptr := fInputEnd;
+    else
+      NoOp
     end;
     {$IFDEF UseFirstCharSet}
     if (Ptr < fInputEnd)
@@ -7855,17 +7881,21 @@ end;
 
 function TRegExpr.Dump(Indent: Integer): RegExprString;
 // dump a regexp in vaguely comprehensible form
+type
+  TPRegExprCharArray = Array of PRegExprChar;
 var
   s: PRegExprChar;
   op: TREOp; // Arbitrary non-END op.
   next, BranchEnd: PRegExprChar;
-  BranchEndStack: Array of PRegExprChar;
+  BranchEndStack: TPRegExprCharArray;
   i, NLen, CurIndent: Integer;
   Diff: PtrInt;
   iByte: Byte;
   ch, ch2: REChar;
 begin
   Result := '';
+  BranchEnd:= Default(PRegExprChar);
+  BranchEndStack:= Default(TPRegExprCharArray); //fixes Hint: (5091) Local variable "BranchEndStack" of a managed type does not seem to be initialized
   if not IsProgrammOk then
     Exit;
 
@@ -8076,6 +8106,8 @@ begin
     raEOL:      Result := Result + 'Anchored(EOL); ';
     raContinue: Result := Result + 'Anchored(\G); ';
     raOnlyOnce: Result := Result + 'Anchored(start); ';
+  else
+    NoOp
   end;
 
   if regMustString <> '' then
@@ -8102,7 +8134,7 @@ end; { of function TRegExpr.Dump
 function TRegExpr.IsFixedLength(var op: TREOp; var ALen: Integer): Boolean;
 var
   s: PRegExprChar;
-  ADummyMaxLen: integer;
+  ADummyMaxLen: Integer = 0; //fixes Hint: (5057) Local variable "ADummyMaxLen" does not seem to be initialized
 begin
   Result := False;
   if not IsCompiled then Exit;
@@ -8150,7 +8182,13 @@ function TRegExpr.IsPartFixedLength(var prog: PRegExprChar; var op: TREOp;
 
 var
   s, next: PRegExprChar;
-  N, N2, FndMaxLen, ASubLen, ABranchLen, ABranchMaxLen, ASubMaxLen: integer;
+  N: Integer = 0;
+  N2: Integer = 0;
+  FndMaxLen: Integer = 0;
+  ASubLen: Integer = 0;
+  ABranchLen: Integer = 0;
+  ABranchMaxLen: Integer = 0;
+  ASubMaxLen: Integer = 0;
   NotFixedLen, r, NextIsNil: Boolean;
   FirstVarLenOp: TREOp;
 begin

@@ -156,6 +156,14 @@ var
   IsSpaceChars: array[char] of boolean;
   UpperCaseChars: array[char] of char;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function TextToLine(const s: string): string;
 var
   i: integer;
@@ -733,6 +741,8 @@ procedure TDiffOutput.FinishDiff;
 begin
   case fOutputType of
     tdoContext: FinishOldContextBlock;
+  else
+    NoOp
   end;
 end;
 

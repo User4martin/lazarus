@@ -75,6 +75,13 @@ const
   WE_HAVE_INSTR       = $100;
   USE_MY_METRICS      = $200;
 
+  //NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+  procedure NoOp;
+  begin
+    asm
+      NOP
+    end;
+  end;
 
  (********************************************************)
  (* return horizontal or vertical metrics in font units  *)
@@ -122,6 +129,8 @@ const
  var
    left_bearing, advance : TT_Pos;
  begin
+   left_bearing := Default(TT_Pos);
+   advance := Default(TT_Pos);
    TT_Get_Metrics( face^.horizontalHeader, index, left_bearing{%H-}, advance{%H-});
 
    lsb := Int(left_bearing);
@@ -1210,7 +1219,8 @@ const
            end
          else
            phase := Load_Exit;
-
+     else
+      NoOp
      end;
    end;
 

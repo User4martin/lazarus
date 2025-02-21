@@ -135,6 +135,7 @@ var
   DFMFilename: String;
 begin
   Result := ChangeFileExt(AUnitFilename,'.lfm');
+  Loading:= Loading; //fixes Hint: (5024) Parameter "Loading" not used
   if not FileExistsCached(Result)
   and (SourceEditorManagerIntf.SourceEditorIntfWithFilename(Result)=nil)
   then begin

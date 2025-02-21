@@ -330,6 +330,8 @@ begin
     case FCharCase of
       ecUpperCase: Text := UTF8UpperCase(Text);
       ecLowerCase: Text := UTF8LowerCase(Text);
+    else
+      NoOp
     end;
   end;
 end;

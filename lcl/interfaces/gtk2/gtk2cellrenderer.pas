@@ -422,6 +422,7 @@ var
   ListItem: TListItem;
   Value: TGValue;
 begin
+  Value:= Default(TGValue); //fixes Hint: (5057) Local variable "Value" does not seem to be initialized
   if G_IS_OBJECT(cell) = false then
     exit;
 

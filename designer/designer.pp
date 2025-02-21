@@ -1217,7 +1217,7 @@ end;
 function TDesigner.DoCopySelectionToClipboard: boolean;
 var
   AllComponentsStream: TMemoryStream;
-  AllComponentText: string;
+  AllComponentText: String = ''; //fixes Hint: (5091) Local variable "AllComponentText" of a managed type does not seem to be initialized
 begin
   Result := false;
   if Selection.Count = 0 then exit;
@@ -2796,6 +2796,7 @@ begin
   {$IFDEF VerboseDesigner}
   DebugLn(['TDesigner.KEYDOWN ',TheMessage.CharCode,' ',TheMessage.KeyData]);
   {$ENDIF}
+  UTF8Char:= Default(TUTF8Char); //fixes Hint: (5057) Local variable "UTF8Char" does not seem to be initialized
   Shift := KeyDataToShiftState(TheMessage.KeyData);
   Handled := False;
   if Mediator<>nil then
@@ -3552,6 +3553,8 @@ var
   Icon: TBitmap;
   ScaleFactor: Double;
 begin
+  IL:= Default(TCustomImageList); //fixes Hint: (5057) Local variable "IL" does not seem to be initialized
+  II:= Default(TImageIndex); //fixes Hint: (5057) Local variable "II" does not seem to be initialized
   if (AComponent is TControl)
   and (csNoDesignVisible in TControl(AComponent).ControlStyle) then
     exit;

@@ -76,6 +76,7 @@ uses
 
 procedure TCodetoolsSpaceOptionsFrame.UpdateExample(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   UpdateSpaceExample;
   UpdatePreviewSettings;
 end;
@@ -159,6 +160,7 @@ const
     atKeyword, atIdentifier, atColon, atSemicolon, atComma,
     atPoint, atAt, atNumber, atStringConstant, atSymbol, atBracket, atCaret];
 begin
+  ADialog:= ADialog; //fixes Hint: (5024) Parameter "ADialog" not used
   with DoInsertSpaceInFrontGroupBox do begin
     Caption:=dlgInsSpaceFront;
     CreateAtomCheckBoxes(

@@ -8,6 +8,14 @@
  *****************************************************************************
 }
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TIconOptions }
 
 procedure TIconOptions.SetArrangement(Value: TIconArrangement);
@@ -1412,6 +1420,8 @@ begin
       sdAbove: if AIndex - 1 >= 0 then Result := Items[AIndex - 1];
       sdBelow: if AIndex - 1 < Items.Count then
         Result := Items[AIndex + 1];
+      else
+        NoOp
     end;
   end;
 end;

@@ -454,7 +454,7 @@ var
 
   procedure CheckIfFPCUnit;
   var
-    BaseDir: String;
+    BaseDir: String = ''; //Warning: (5089) Local variable "BaseDir" of a managed type does not seem to be initialized
     UnitSetID: String;
     Cache: TFPCUnitSetCache;
     CfgCache: TPCTargetConfigCache;

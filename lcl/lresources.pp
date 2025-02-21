@@ -640,6 +640,14 @@ type
                         var Name: string);
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TPropertiesToSkip }
 
 function TPropertiesToSkip.GetItem(AIndex: Integer): PRemovedProperty;
@@ -1864,6 +1872,8 @@ begin
     dvaWString: SkipBinary(Sizeof(WideChar));
     dvaInt64: SkipBytes(Sizeof(Int64));
     dvaUTF8String: SkipBinary(1);
+  else
+    NoOp
   end;
 end;
 
@@ -3977,6 +3987,8 @@ begin
           Inc(FStack[FStackPointer-1].ItemNr);
         Push(lrsitList);
       end;
+    else
+      NoOp
   end;
 end;
 
@@ -4553,6 +4565,8 @@ begin
         // flush header(s) from stack to stream
         FlushStackToStream;
       end;
+    else
+      NoOp
     end;
   end;
   // write data to stream
@@ -5240,6 +5254,8 @@ begin
       ReadBytes(v64);
       ComponentSize:=v64;
     end;
+  else
+    NoOp
   end;
   inc(SizeLength);
   if ComponentSize<0 then

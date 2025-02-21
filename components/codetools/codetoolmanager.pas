@@ -1640,6 +1640,7 @@ end;
 function TCodeToolManager.GetCompiledSrcPathForDirectory(
   const Directory: string; UseCache: boolean): string;
 begin
+  UseCache:= UseCache; //fixes Hint: (5024) Parameter "UseCache" not used
   Result:=DefineTree.GetCompiledSrcPathForDirectory(Directory);
 end;
 
@@ -1684,6 +1685,7 @@ end;
 function TCodeToolManager.GetCompiledSrcExtForDirectory(const Directory: string
   ): string;
 begin
+  Result:= Directory; //fixes Hint: (5024) Parameter "Directory" not used
   Result:='.ppu';
 end;
 
@@ -3185,7 +3187,8 @@ var
   i: Integer;
   Param: TSrcNameRefs;
   Tool: TChangeDeclarationTool;
-  NewTargetSrcName, OldTargetUnitName: string;
+  //NewTargetSrcName: string;
+  OldTargetUnitName: string;
 begin
   Result:=true;
   if (ListOfSrcNameRefs=nil) or (ListOfSrcNameRefs.Count=0) then exit;
@@ -6024,6 +6027,8 @@ var
   PersistentClassName: String;
   AncestorClassName: String;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
+  LFMNode:= LFMNode; //fixes Hint: (5024) Parameter "LFMNode" not used
   if Assigned(OnFindDefineProperty) then begin
     PersistentClassName:=ClassContext.Tool.ExtractClassName(
                                                        ClassContext.Node,false);
@@ -6419,6 +6424,7 @@ end;
 function TCodeToolManager.DoOnGetSrcPathForCompiledUnit(Sender: TObject;
   const AFilename: string): string;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if FilenameExtIs(AFilename,'ppu',true) then
     Result:=GetPPUSrcPathForDirectory(ExtractFilePath(AFilename))
   else if FilenameExtIs(AFilename,'dcu') then
@@ -6453,6 +6459,7 @@ end;
 function TCodeToolManager.DoOnParserProgress(Tool: TCustomCodeTool): boolean;
 begin
   Result:=true;
+  Tool:= Tool; //fixes (5024) Parameter "Tool" not used
   if not FAbortable then exit;
   if not Assigned(OnCheckAbort) then exit;
   Result:=not OnCheckAbort();
@@ -6506,6 +6513,7 @@ end;
 function TCodeToolManager.DoOnScannerProgress(Sender: TLinkScanner): boolean;
 begin
   Result:=true;
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if not FAbortable then exit;
   if not Assigned(OnCheckAbort) then exit;
   Result:=not OnCheckAbort();
@@ -6514,6 +6522,7 @@ end;
 procedure TCodeToolManager.DoOnFABGetNestedComments(Sender: TObject;
   Code: TCodeBuffer; out NestedComments: boolean);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   NestedComments:=GetNestedCommentsFlagForFile(Code.Filename);
 end;
 
@@ -6527,6 +6536,8 @@ end;
 procedure TCodeToolManager.DoOnLoadFileForTool(Sender: TObject;
   const ExpandedFilename: string; out Code: TCodeBuffer; var Abort: boolean);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
+  Abort:= Abort; //fixes Hint: (5024) Parameter "Abort" not used
   Code:=LoadFile(ExpandedFilename,true,false);
 end;
 
@@ -6549,6 +6560,7 @@ end;
 procedure TCodeToolManager.DoOnDefineTreeReadValue(Sender: TObject;
   const VariableName: string; var Value: string; var Handled: boolean);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   Handled:=GlobalValues.IsDefined(VariableName);
   if Handled then
     Value:=GlobalValues[VariableName];
@@ -6852,6 +6864,7 @@ end;
 function TCodeToolManager.DoOnGetCodeToolForBuffer(Sender: TObject;
   Code: TCodeBuffer; GoToMainCode: boolean): TFindDeclarationTool;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   {$IFDEF CTDEBUG}
   DbgOut('[TCodeToolManager.OnGetCodeToolForBuffer]');
   if Sender is TCustomCodeTool then
@@ -6984,7 +6997,7 @@ begin
   ctdcsFPCUnitPath: Result:=GetFPCUnitPathForDirectory(ADirectory,false);
   ctdcsNamespaces: Result:=GetNamespacesForDirectory(ADirectory,false);
   ctdcsNamespacedIncludes: Result:=GetNamespacedIncludesForDirectory(ADirectory,false);
-  else RaiseCatchableException(''){%H-};
+  //else RaiseCatchableException(''){%H-}; //Warning: (6018) Unreachable code
   end;
 end;
 

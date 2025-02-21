@@ -44,6 +44,14 @@ function RegisterFPDocHTMLHelpForPackage(const DBName, DBTitle, BaseURL,
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function RegisterFPDocHTMLHelpForPackage(const DBName, DBTitle, BaseURL,
   PackageName: string; AdditionalDirectories: string
   ): TFPDocHTMLHelpDatabase;
@@ -135,7 +143,8 @@ begin
                 Context:=copy(Context,1,p-1);
               Filename:=Filename+Context+'.';
             end;
-
+          else
+            NoOp
           end;
         end;
         

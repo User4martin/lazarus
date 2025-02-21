@@ -4311,6 +4311,7 @@ var
   l: Integer;
   p: PChar;
 begin
+  Result:= EmptyStr;
   SetLength(Result{%H-},length(Src));
   SrcPos:=1;
   ResultPos:=1;
@@ -5164,6 +5165,7 @@ var
   SpaceCnt: Integer;
   i: Integer;
 begin
+  Result:= EmptyStr;
   if TabWidth<=0 then begin
     SetLength(Result{%H-},Indent);
     if Indent>0 then
@@ -5329,7 +5331,6 @@ end;
 function DottedIdentifierLength(Identifier: PChar): integer;
 var
   p: PChar;
-  c: Char;
 begin
   Result:=0;
   if Identifier=nil then exit;
@@ -5351,6 +5352,7 @@ function GetDottedIdentifier(Identifier: PChar): string;
 var
   l: Integer;
 begin
+  Result:= EmptyStr;
   l:=DottedIdentifierLength(Identifier);
   SetLength(Result{%H-},l);
   if l>0 then
@@ -5686,6 +5688,7 @@ function TrimCodeSpace(const ACode: string): string;
 var CodePos, ResultPos, CodeLen, SpaceEndPos: integer;
   c1, c2: char;
 begin
+  Result:= EmptyStr;
   CodeLen:=length(ACode);
   SetLength(Result{%H-},CodeLen);
   CodePos:=1;

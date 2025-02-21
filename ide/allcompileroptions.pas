@@ -375,8 +375,8 @@ var
           cb.OnChange := @ComboChange;
           MakeDescrLabel(Cntrl, CalcLeft(Cntrl, nil));
         end
-        else
-          raise Exception.Create('TCompilerOptsRenderer.Render: Unknown EditKind.');
+        //else    //Warning: (6018) Unreachable code
+        //  raise Exception.Create('TCompilerOptsRenderer.Render: Unknown EditKind.');
       end;
       Inc(yLoc, Cntrl.Height+2);
       if Opt is TCompilerOptGroup then

@@ -55,6 +55,14 @@ procedure DiffMergeEditor(aEdit: TSourceEditorInterface; const aNewText: string;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function HashLine(const line: string; aIgnoreFinalSpaces: boolean = False): cardinal;
 var
   lLen: integer;
@@ -183,6 +191,8 @@ begin
           begin
             EditorReplaceLine(aEdit, lStartLine + oldIndex2 + 1, lNewText[oldIndex2]);
           end;
+        else
+          NoOp
         end;
       end;
     end;

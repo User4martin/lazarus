@@ -171,6 +171,13 @@ function ShowViewUnitsDlg(Entries: TViewUnitEntries; CheckMultiSelect: Boolean;
 implementation
 
 {$R *.lfm}
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 function ShowViewUnitsDlg(Entries: TViewUnitEntries; CheckMultiSelect: Boolean;
   const aCaption: string; ItemType: TIDEProjectItem; StartFilename: string): TModalResult;
@@ -434,6 +441,8 @@ procedure TViewUnitDialog.OnIdle(Sender: TObject; var Done: Boolean);
         CompClass:=FindLFMBaseClass(aFilename);
         if CompClass<>pfcbcFrame then exit;
       end;
+    else
+      NoOp
     end;
     fFoundFiles[aFilename]:=ExtractFileName(aFilename);
   end;

@@ -76,6 +76,7 @@ end;
 procedure TCodetoolsCodeCreationOptionsFrame.Setup(
   ADialog: TAbstractOptionsEditorDialog);
 begin
+  ADialog:= ADialog; //fixes Hint: (5024) Parameter "ADialog" not used
   ForwardProcsInsertPolicyLabel.Caption:=dlgForwardProcsInsertPolicy;
   with ForwardProcsInsertPolicyComboBox do begin
     with Items do begin

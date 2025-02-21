@@ -471,12 +471,13 @@ begin
   if lazMessages = nil then
     exit;
 
+  Urgency:=mluNone; //fixes Warning: (6018) Unreachable code
   case peMessageType of
     mtException,mtInputError,mtParseError: Urgency:=mluError;
     mtCodeWarning: Urgency:=mluWarning;
     mtFinalSummary: Urgency:=mluImportant;
     mtProgress: Urgency:=mluProgress;
-    else Urgency:=mluNone; // Suppress compiler warning.
+    //else Urgency:=mluNone; // Suppress compiler warning. //unreachable code
   end;
   lazMessages.AddCustomMessage(Urgency, psMessage, psFile, piY, piX, 'JCF')
 end;

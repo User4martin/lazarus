@@ -237,6 +237,7 @@ end;
 
 procedure TLazFindReplaceDialog.SaveState(out AState: TLazFindReplaceState);
 begin
+  AState:= Default(TLazFindReplaceState);// fixes Hint: (5092) Variable "AState" of a managed type does not seem to be initialized
   FillChar(AState{%H-}, SizeOf(TLazFindReplaceState), 0);
   AState.Options:=Options;
   AState.FindText:=FindText;

@@ -87,6 +87,8 @@ begin
       Params.Style := Params.Style or WS_VSCROLL;
     ssBoth, ssAutoBoth:
       Params.Style := Params.Style or WS_HSCROLL or WS_VSCROLL;
+    else
+      NoOp
   end;
   if WordWrap then
     Params.Style := Params.Style and not WS_HSCROLL

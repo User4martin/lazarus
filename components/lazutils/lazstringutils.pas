@@ -114,6 +114,14 @@ const
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function LazStartsStr(const ASubText, AText: string): Boolean;
 // A fixed version of StartsStr from StrUtils.
 // Returns True for empty ASubText which is compatible with Delphi.
@@ -539,6 +547,8 @@ begin
     comtCPP: DoCommentBlock('/* ',' * ',' */');
     comtPerl: DoCommentBlock('# ','# ','');
     comtHtml: DoCommentBlock('<!-- ','  ','-->');
+  else
+    NoOp
   end;
 end;
 {
@@ -1057,7 +1067,7 @@ var
   LineStartPos: PtrInt;
   Size: PtrInt;
   DstPos: PtrInt;
-  Line: string;
+  Line: String = '';  //fixes Hint: (5091) Local variable "Line" of a managed type does not seem to be initialized
 begin
   if s='' then exit;
   p:=1;
@@ -1422,6 +1432,7 @@ function LoadStringFromFile(const aFileName: String): String;
 var
   fs: TFileStream;
 begin
+  Result:= EmptyStr; //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   fs:=TFileStream.Create(aFileName, fmOpenRead);
   try
     SetLength(Result, fs.Size);

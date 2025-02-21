@@ -136,6 +136,14 @@ type
     constructor Create(ACompTV: TComponentTreeView; ALookupRoot: TComponent);
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function CollectionCaption(ACollection: TCollection; DefaultName: string): string;
 var
   PropList: PPropList;
@@ -433,6 +441,8 @@ begin
           NewIndex := TCollectionItem(Node.Data).Index + 1;
         tvimAsPrevSibling:
           NewIndex := TCollectionItem(Node.Data).Index;
+        else
+          NoOp
       end;
       SelNode := GetLastMultiSelected;
       while Assigned(SelNode) do

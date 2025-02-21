@@ -137,6 +137,7 @@ procedure ExplodeAWithBlockCmd(Sender: TObject);
 var
   SrcEdit: TSourceEditorInterface;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   // commit changes form source editor to codetools
   if not LazarusIDE.BeginCodeTools then exit;
   // check context at cursor
@@ -165,6 +166,7 @@ var
   Code: TCodeBuffer;
   SrcEdit: TSourceEditorInterface;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   SrcEdit:=SourceEditorManagerIntf.ActiveEditor;
   if SrcEdit=nil then exit;
 
@@ -227,6 +229,7 @@ var
   ToPos: Integer;
   NewXY: TPoint;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if (ParseTilCursor(Tool,CleanPos,CursorNode,Handled,true)<>cupeSuccess)
   and not Handled then begin
     ErrorNotInMethod;
@@ -323,6 +326,7 @@ procedure InsertInt64ID(Sender: TObject);
 var
   SrcEdit: TSourceEditorInterface;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   SrcEdit:=SourceEditorManagerIntf.ActiveEditor;
   if SrcEdit=nil then exit;
 
@@ -495,6 +499,8 @@ end;
 procedure TCodyClipboardData.Execute(SrcEdit: TSourceEditorInterface;
   LogXY: TPoint);
 begin
+  SrcEdit:= SrcEdit; //fixes Hint: (5024) Parameter "SrcEdit" not used
+  LogXY:= LogXY; //fixes Hint: (5024) Parameter "LogXY" not used
   raise Exception.Create('not implemented yet: '+ClassName+'.Execute');
 end;
 
@@ -633,6 +639,7 @@ procedure TCody.SrcEditCopyPaste(SrcEdit: TSourceEditorInterface;
 var
   AClipBoard: TClipboard;
 begin
+  AMode:= AMode; //fixes Hint: (5024) Parameter "AMode" not used
   // ToDo: use the right clipboard
   AClipBoard:=Clipboard;
   try

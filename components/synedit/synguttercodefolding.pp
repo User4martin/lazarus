@@ -27,7 +27,7 @@ unit SynGutterCodeFolding;
 interface
 
 uses
-  SysUtils, Classes, StrUtils, Controls, Graphics, Menus, LCLIntf,
+  SysUtils, Classes, {StrUtils,} Controls, Graphics, Menus, LCLIntf,
   SynGutterBase, SynEditMiscProcs, SynEditFoldedView, SynEditMouseCmds,
   SynEditHighlighterFoldBase, SynEditMiscClasses, LazSynEditText, LCLType,
   ImgList, Forms;
@@ -146,6 +146,13 @@ implementation
 var
   GlobalPopUpImageList: TSynGutterImageList = nil;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 { TSynGutterCodeFolding }
 
@@ -543,6 +550,8 @@ begin
       Result := HandleActionProc(FMouseActionsCollapsed.GetActionsForOptions(SynEdit.MouseOptions), AnInfo);
     cfFoldStart, cfHideStart:
       Result := HandleActionProc(FMouseActionsExpanded.GetActionsForOptions(SynEdit.MouseOptions), AnInfo);
+  else
+    NoOp
   end;
 
   if not Result then
@@ -719,6 +728,8 @@ begin
         end;
         Canvas.Polygon(Points);
       end;
+    else
+      NoOp
   end;
   Canvas.AntialiasingMode := AliasMode;
 end;

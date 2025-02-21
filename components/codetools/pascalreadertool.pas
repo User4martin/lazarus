@@ -650,6 +650,7 @@ const
 
 begin
   Result:='';
+  SemiColon:= SemiColon; //fixes Note: (5027) Local variable "SemiColon" is assigned but never used
   ExtractProcHeadPos:=phepNone;
   if (ProcNode=nil) or (ProcNode.StartPos<1) then exit;
   if ProcNode.Desc=ctnProcedureHead then begin
@@ -1674,7 +1675,7 @@ function TPascalReaderTool.ExtractIdentifierWithPointsOutEndPos(
 //result = "dotted.ident.unit1" and comment = "{but contaminated}{comment}"
 var
   beforePos, aLen: integer;
-  CommentAtom: string;
+  CommentAtom: string = '';
 begin
   Result:='';
   Comment:='';

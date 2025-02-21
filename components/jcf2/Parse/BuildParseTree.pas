@@ -304,6 +304,14 @@ uses
 const
   UPDATE_INTERVAL = 512;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
   {------------------------------------------------------------------------------
     standard overrides }
 
@@ -2349,6 +2357,8 @@ begin
     begin
       RecogniseVarSection(true);
     end;
+  else
+    NoOp
   end;
 end;
 
@@ -6022,6 +6032,8 @@ begin
           Recognise(ttEnumerator);
           RecogniseIdentifier(False, idStrict);
         end;
+      else
+        NoOp
       end;
       PopNode;
       CheckEnumeratorToken();
@@ -6280,6 +6292,8 @@ begin
         Recognise(ttHash);
         Recognise(ttNumber);
       end;
+      else
+        NoOp
     end;
   end;
 

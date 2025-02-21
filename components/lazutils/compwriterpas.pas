@@ -222,6 +222,14 @@ type
 var
   DefinePropertiesEvents: TObjectList = nil;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure WriteComponentToPasStream(AComponent: TComponent; AStream: TStream);
 var
   Writer: TCompWriterPas;
@@ -661,6 +669,8 @@ begin
             tkEnumeration:
               // ToDo: store needed unit
               WriteAssign(PropName,GetEnumExpr(PropType, Int32Value,true));
+            else
+              NoOp
           end;
         end;
       end;

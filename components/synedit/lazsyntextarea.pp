@@ -1582,7 +1582,7 @@ var
   ScreenRow1, ScreenRow2, TextColumn1, TextColumn2: integer;
   dc: HDC;
 begin
-
+  PadRect:= Default(TRect); //Hint: (5057) Local variable "PadRect" does not seem to be initialized
   // paint padding
   FCanvas := ACanvas;
   dc := ACanvas.Handle;

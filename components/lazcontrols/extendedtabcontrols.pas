@@ -258,6 +258,14 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TExtendedInternalCustomPage }
 
 destructor TExtendedInternalCustomPage.Destroy;
@@ -679,6 +687,8 @@ begin
             NewWidth := Max(TabControl.ClientWidth div 2, TabControl.ClientWidth - FToolBar.Width);
             FToolBar.SetBounds(NewWidth, NewTop+TBOffs, FToolBar.Width, NewHeight - 2 + TBOffs);
           end;
+      else
+        NoOp
       end;
       NoteBook.SetBounds(NewLeft, NewTop, NewWidth ,NewHeight);
     end;
@@ -719,6 +729,8 @@ begin
             NewHeight := Max(TabControl.ClientHeight div 2, TabControl.ClientWidth - FToolBar.Height);
             FToolBar.SetBounds(NewLeft+TBOffs, NewHeight, NewWidth - 2 + TBOffs, FToolBar.Height);
           end;
+      else
+        NoOp
       end;
 
       NoteBook.SetBounds(NewLeft, NewTop, NewWidth ,NewHeight);

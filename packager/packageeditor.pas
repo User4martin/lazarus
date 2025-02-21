@@ -524,6 +524,14 @@ var
   ImageIndexBinary: integer;
   ImageIndexDirectory: integer;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure RegisterStandardPackageEditorMenuItems;
 var
   AParent: TIDEMenuSection;
@@ -832,6 +840,8 @@ begin
               //OpenItemCapt := lisUENotFound;
               OpenItemEnable := False;
             end;
+        else
+          NoOp
         end;
       SetItem(PkgEditMenuRemoveDependency, @RemoveBitBtnClick,
               pstdep in UserSelection, Writable);
@@ -2380,8 +2390,8 @@ begin
       pftIssues: Result:=ImageIndexIssues;
       pftText: Result:=ImageIndexText;
       pftBinary: Result:=ImageIndexBinary;
-      else
-        Result:=-1{%H-};
+      //else    //Warning: (6018) Unreachable code
+      //  Result:=-1{%H-};
     end;
   end
   else if Item is TPkgDependency then

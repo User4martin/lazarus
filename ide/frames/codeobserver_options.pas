@@ -78,12 +78,13 @@ const
 
 function GroupName(AGroup: TCEObserverCategoryGroup): String;
 begin
+  Result := '?'; //fixes Warning: (6018) Unreachable code
   case AGroup of
     ocgComplexity: Result := lisCEComplexityGroup;
     ocgEmpty: Result := lisCEEmptyGroup;
     ocgStyle: Result := lisCEStyleGroup;
     ocgOther: Result := lisCEOtherGroup;
-    else Result := '?';
+    //else Result := '?';  //Warning: (6018) Unreachable code
   end;
 end;
 
@@ -142,6 +143,7 @@ var
   end;
 
 begin
+  ADialog:= ADialog; //fixes Hint: (5024) Parameter "ADialog" not used
   CodeObsCategoriesCheckGroup.Caption := lisCEShowCodeObserver;
   CodeObsCategoriesCheckGroup.OnItemClick := nil;
   try

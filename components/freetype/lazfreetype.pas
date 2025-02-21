@@ -1725,6 +1725,7 @@ uses
     str: pointer;
     len: integer;
   begin
+    Result:= '';
     TT_Get_Name_String(face, nameIndex, str, len);
     setlength(result{%H-},len);
     if len <> 0 then move(str^, result[1], len);

@@ -50,6 +50,7 @@ function GetTextExtentPoint32W(DC: HDC; Str: PWideChar; Count: Integer; out Size
 var
   TempStr: UTF8String;
 begin
+  Size:= Default(TSize);
   TempStr := UTF8Encode(WideString(Str));
   Result := GetTextExtentPoint(DC, PChar(TempStr),
     GetUTF8ByteCount(TempStr, Count), {%H-}Size);
@@ -69,6 +70,7 @@ function GetTextExtentPointW(DC: HDC; Str: PWideChar; Count: Integer; out Size: 
 var
   TempStr: UTF8String;
 begin
+  Size:= Default(TSize);
   TempStr := UTF8Encode(WideString(Str));
   Result := GetTextExtentPoint(DC, PChar(TempStr),
     GetUTF8ByteCount(TempStr, Count), {%H-}Size);

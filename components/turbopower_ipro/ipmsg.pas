@@ -740,6 +740,14 @@ type
     RFLong   : Longint;
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function IsSameString (Str1          : string;
                        Str2          : string;
                        CaseSensitive : Boolean) : Boolean;
@@ -1749,6 +1757,8 @@ begin
     emBinHex   : EncodeSingleHeader(strContentTransferEncoding, RawHeaders, strBinHex);
     emQuoted   : EncodeSingleHeader(strContentTransferEncoding, RawHeaders, strQuoted);
     emUUEncode : EncodeSingleHeader(strContentTransferEncoding, RawHeaders, strUUEncode);
+  else
+    NoOp
   end;
 end;
 

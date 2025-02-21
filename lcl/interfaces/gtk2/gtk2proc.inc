@@ -25,6 +25,14 @@
   //{$DEFINE ASSERT_IS_ON}
 {$ENDIF}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function gtk_widget_get_xthickness(Style : PGTKStyle) : gint;
 begin  
   If (Style <> nil) then begin
@@ -465,6 +473,7 @@ begin
   
   // window type
   WindowType := gdk_window_get_type(AWindow);
+  TypeAsStr := 'Unknown'; //fixes Warning: (6018) Unreachable code
   case WindowType of
     GDK_WINDOW_ROOT: TypeAsStr := 'Root';
     GDK_WINDOW_TOPLEVEL: TypeAsStr := 'TopLvl';
@@ -472,8 +481,8 @@ begin
     GDK_WINDOW_DIALOG: TypeAsStr := 'Dialog';
     GDK_WINDOW_TEMP: TypeAsStr := 'Temp';
     GDK_WINDOW_FOREIGN: TypeAsStr := 'Foreign';
-  else
-    TypeAsStr := 'Unknown';
+  //else   //Warning: (6018) Unreachable code
+  //  TypeAsStr := 'Unknown';
   end;
   Result:=Result + ' Type=' + TypeAsStr;
   
@@ -819,6 +828,7 @@ var
   PS : PPaintStruct;
   Widget: PGtkWidget;
 begin
+  Result:= Default(TLMPaint); //fixes Hint: (5060) Function result variable does not seem to be initialized
   FillByte(Result{%H-},SizeOf(Result),0);
   Result.Msg := LM_PAINT;
   New(PS);
@@ -1325,6 +1335,7 @@ var
 begin
   Result:=nil;
   if Bitmap=nil then exit;
+  SourceRect:= Default(TRect); //fixes Hint: (5057) Local variable "SourceRect" does not seem to be initialized
   MaxRect:=Rect(0,0,0,0);
   gdk_window_get_size(Bitmap,@MaxRect.Right,@MaxRect.Bottom);
   IntersectRect(SourceRect{%H-},SrcRect,MaxRect);
@@ -1858,8 +1869,8 @@ const
 var
   Msg: TLMKey;
   EventStopped: Boolean;
-  EventString: PChar; // GTK1 and GTK2 workaround
-                      // (and easy access to bytes)
+  EventString: PChar = nil; // GTK1 and GTK2 workaround
+                            // (and easy access to bytes)
   KeyCode: Word;
   KCInfo: TKeyCodeInfo;
   VKey: Byte;
@@ -3324,14 +3335,17 @@ type
 const
   // first OEM specific VK
   VK_FIRST_OEM = $92;
+type
+  TguintArray = array of guint;
+  TCharsArray = array[0..16] of Char;
 var
-  KeySyms: array of guint;
+  KeySyms: TguintArray;
   KeyVals: Pguint = nil;
   KeymapKeys: PGdkKeymapKey = nil;
   UniChar: gunichar;
 
   KeySymCount: Integer;
-  KeySymChars: array[0..16] of Char;
+  KeySymChars: TCharsArray;
   KeySymCharLen: Integer;
   NewKeyMap: PGdkKeymap;
 
@@ -3350,6 +3364,10 @@ var
   VKey, FreeVK: Byte;
   HasMultiVK, DummyBool, Extended, SecondKey, HasKey, ComputeVK: Boolean;
 begin
+  ModMap:= Default(TModMap); //fixes Hint: (5057) Local variable "ModMap" does not seem to be initialized
+  KeySyms:= Default(TguintArray); //fixes Hint: (5091) Local variable "KeySyms" of a managed type does not seem to be initialized
+  KeySymChars:= Default(TCharsArray); //fixes Hint: (5091) Local variable "KeySymChars" of a managed type does not seem to be initialized
+
 {$ifdef HasX}
   XDisplay := gdk_display;
   if XDisplay = nil then Exit;
@@ -4248,6 +4266,7 @@ var
   Mess: TLMessage;
 begin
   //DebugLn(['DestroyWidget A ',GetWidgetDebugReport(Widget)]);
+  Mess:= Default(TLMessage); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
   {$IFDEF DebugLCLComponents}
   if DebugGtkWidgets.FindInfo(Widget)=nil then
     DebugLn(['DestroyWidget ',GetWidgetDebugReport(Widget)]);
@@ -6236,6 +6255,10 @@ var
   ItemID: Integer;
 begin
   Result := CallBackDefaultReturn;
+  Msg := Default(TLMDrawItems); //fixes Hint: (5057) Local variable "Msg" does not seem to be initialized
+  PS := Default(TPaintStruct); //fixes Hint: (5057) Local variable does not seem to be initialized
+  ItemStruct := Default(PDrawItemStruct); //fixes Hint: (5057) Local variable does not seem to be initialized
+
   if (Event^.Count > 0) then exit;
 
   if (csDesigning in TComponent(Data).ComponentState) then
@@ -7358,6 +7381,7 @@ function TColortoTGDKColor(const value : TColor) : TGDKColor;
 var
   newColor : TGDKColor;
 begin
+  Result:= Default(TGDKColor); //Hint: (5060) Function result variable does not seem to be initialized
   if Value<0 then begin
     FillChar(Result{%H-},SizeOf(Result),0);
     exit;
@@ -7537,6 +7561,8 @@ begin
           SysColorMap[COLOR_INFOTEXT] := TGDKColorToTColor(fg[GTK_STATE_NORMAL]);
           SysColorMap[COLOR_INFOBK] := TGDKColorToTColor(bg[GTK_STATE_NORMAL]);
         end;
+      else
+        NoOp
     end;
     {$ENDIF}
   end;
@@ -7667,6 +7693,7 @@ begin
   {$IFDEF DEBUG_CLIPBOARD}
   DebugLn('[RequestSelectionData] FormatID=',dbgs(FormatID));
   {$ENDIF}
+  Result:= Default(TGtkSelectionData); //fixes Hint: (5060) Function result variable does not seem to be initialized
   FillChar(Result{%H-},SizeOf(TGtkSelectionData),0);
   if (ClipboardWidget=nil) or (FormatID=0) 
   or (ClipboardTypeAtoms[ClipboardType]=0) then exit;
@@ -8034,7 +8061,8 @@ begin
   {$IFDEF NoStyle}
   exit;
   {$ENDIF}
-  
+  Requisition:= Default(TGtkRequisition); //fixes Hint: (5057) Local variable "Requisition" does not seem to be initialized
+
   if (WName='') then exit;
   l:=IndexOfStyleWithName(WName);
   //DebugLn(['GetStyleWithName START ',WName,' ',l]);
@@ -8518,6 +8546,7 @@ var
   Red, Green, Blue: byte;
 begin
   // Set defaults in case something goes wrong
+  Result:= Default(TGDKGCValues); //fixes Hint: (5060) Function result variable does not seem to be initialized
   FillChar(Result{%H-}, SizeOf(Result), 0);
   Style := nil;
   GC := nil;
@@ -9342,6 +9371,7 @@ function GDKPixel2GDIRGB(Pixel: Longint; Visual: PGDKVisual;
 var
   Color: TGDKColor;
 begin
+  Result:= Default(TGDIRGB); //fixes Hint: (5060) Function result variable does not seem to be initialized
   FillChar(Result{%H-}, SizeOf(TGDIRGB),0);
 
   If (Visual = nil) or (Colormap = nil) then begin

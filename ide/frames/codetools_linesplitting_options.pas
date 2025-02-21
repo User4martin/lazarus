@@ -77,6 +77,7 @@ uses
 
 procedure TCodetoolsLineSplittingOptionsFrame.UpdateExample(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   UpdateSplitLineExample;
   UpdatePreviewSettings;
 end;
@@ -158,6 +159,7 @@ const
     atKeyword, atIdentifier, atColon, atSemicolon, atComma,
     atPoint, atAt, atNumber, atStringConstant, atSpace, atSymbol, atBracket];
 begin
+  ADialog:= ADialog; //fixes Hint: (5024) Parameter "ADialog" not used
   with LineLengthLabel do
     Caption:=dlgMaxLineLength;
 

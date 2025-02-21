@@ -45,8 +45,8 @@ end;
 function CompareFilenames(Filename1: PChar; Len1: integer;
   Filename2: PChar; Len2: integer; ResolveLinks: boolean): integer;
 var
-  File1: string;
-  File2: string;
+  File1: String = ''; //fixes Hint: (5091) Local variable "File1" of a managed type does not seem to be initialized
+  File2: String = ''; //fixes Hint: (5091) Local variable "File2" of a managed type does not seem to be initialized
   {$IFNDEF NotLiteralFilenames}
   i: Integer;
   {$ENDIF}

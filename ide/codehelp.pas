@@ -1092,6 +1092,7 @@ end;
 procedure TCodeHelpManager.AddHandler(HandlerType: TCodeHelpManagerHandler;
   const AMethod: TMethod; AsLast: boolean);
 begin
+  AsLast:= AsLast; //fixes Hint: (5024) Parameter "AsLast" not used
   if FHandlers[HandlerType]=nil then
     FHandlers[HandlerType]:=TMethodList.Create;
   FHandlers[HandlerType].Add(AMethod);
@@ -1311,7 +1312,7 @@ var
   Doc: TXMLDocument;
   DescrNode: TDOMElement;
   ms: TMemoryStream;
-  s: string;
+  s: String = '';
   ModuleNode: TDOMElement;
   PackageNode: TDOMElement;
 begin
@@ -1490,7 +1491,7 @@ end;
 function TCodeHelpManager.SaveFPDocFile(ADocFile: TLazFPDocFile): TModalResult;
 var
   ms: TMemoryStream;
-  s: string;
+  s: String = '';
 begin
   if (not ADocFile.DocModified)
   and (ADocFile.CodeBufferChangeStep=ADocFile.CodeBuffer.ChangeStep)
@@ -2283,6 +2284,7 @@ var
   Node: TCodeTreeNode;
 begin
   Result:=chprFailed;
+  Complete:= Complete; //fixes Hint: (5024) Parameter "Complete" not used
   FindContext:=CleanFindContext;
   CacheWasUsed:=true;
 

@@ -101,6 +101,8 @@ var
   ChildWidget: PGtkWidget;
 begin
   Result := CallBackDefaultReturn;
+  Mess:= Default(TLMNotify); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
+  NMHdr:= Default(tagNMHDR); //fixes Hint: (5057) Local variable "NMHdr" does not seem to be initialized
   // then send the new page
   FillChar(Mess{%H-}, SizeOf(Mess), 0);
   Mess.Msg := LM_NOTIFY;
@@ -183,6 +185,8 @@ var
   IsManual: Boolean;
 begin
   Result := CallBackDefaultReturn;
+  Mess:= Default(TLMNotify); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
+  NMHdr:= Default(tagNMHDR); //fixes Hint: (5057) Local variable "NMHdr" does not seem to be initialized
   EventTrace('switch-page', data);
   UpdateNoteBookClientWidget(TObject(Data));
 

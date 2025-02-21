@@ -282,24 +282,28 @@ end;
 procedure TCodeToolsDefinesEditor.CodeToolsDefinesEditorKeyDown(
   Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if (Shift=[]) and (Key=VK_ESCAPE) then ModalResult:=mrCancel;
 end;
 
 procedure TCodeToolsDefinesEditor.CodeToolsDefinesEditorKeyUp(Sender: TObject;
   var Key: Word; Shift: TShiftState);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if (Key=VK_ESCAPE) and (Shift=[]) then
     ModalResult:=mrCancel;
 end;
 
 procedure TCodeToolsDefinesEditor.DefineTreeViewSelectionChanged(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   ShowSelectedValues;
 end;
 
 procedure TCodeToolsDefinesEditor.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if CloseAction=caNone then ;
   CodeToolsOpts.DefinesEditMainSplitterTop:=MainSplitter.Top;
   CodeToolsOpts.Save;
@@ -308,12 +312,14 @@ end;
 
 procedure TCodeToolsDefinesEditor.FormCreate(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   ButtonPanel1.OKButton.Caption:= lisOk;
   ButtonPanel1.CancelButton.Caption:= lisCancel;
 end;
 
 procedure TCodeToolsDefinesEditor.OKButtonClick(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   SaveSelectedValues;
   FLastSelectedNode:=nil;
   ModalResult:=mrOk;
@@ -321,6 +327,7 @@ end;
 
 procedure TCodeToolsDefinesEditor.ValueNoteBookPageChanged(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if ValueNoteBook.PageIndex=0 then
     ValueAsPathToValueAsText
   else
@@ -330,6 +337,7 @@ end;
 procedure TCodeToolsDefinesEditor.MoveFilePathUpBitBtnClick(Sender: TObject);
 var y: integer;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if ValueAsFilePathsSynEdit.ReadOnly then exit;
   y:=ValueAsFilePathsSynEdit.CaretY-1;
   if (y>0) and (y<ValueAsFilePathsSynEdit.Lines.Count) then
@@ -339,6 +347,7 @@ end;
 procedure TCodeToolsDefinesEditor.MoveFilePathDownBitBtnClick(Sender: TObject);
 var y: integer;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if ValueAsFilePathsSynEdit.ReadOnly then exit;
   y:=ValueAsFilePathsSynEdit.CaretY-1;
   if (y>=0) and (y<ValueAsFilePathsSynEdit.Lines.Count-1) then
@@ -348,6 +357,7 @@ end;
 procedure TCodeToolsDefinesEditor.DeleteFilePathBitBtnClick(Sender: TObject);
 var y: integer;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if ValueAsFilePathsSynEdit.ReadOnly then exit;
   y:=ValueAsFilePathsSynEdit.CaretY-1;
   if (y>=0) and (y<ValueAsFilePathsSynEdit.Lines.Count) then
@@ -357,6 +367,7 @@ end;
 procedure TCodeToolsDefinesEditor.InsertFilePathBitBtnClick(Sender: TObject);
 var y: integer;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if ValueAsFilePathsSynEdit.ReadOnly then exit;
   y:=ValueAsFilePathsSynEdit.CaretY-1;
   if (y>=0) and (y<ValueAsFilePathsSynEdit.Lines.Count) then
@@ -401,6 +412,7 @@ var
   SelTreeNode: TTreeNode;
   SelDefNode, PrevDefNode: TDefineTemplate;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   SelTreeNode:=DefineTreeView.Selected;
   SaveSelectedValues;
   if (SelTreeNode=nil) or (SelTreeNode.GetPrevSibling=nil) then exit;
@@ -419,6 +431,7 @@ var
   SelTreeNode: TTreeNode;
   SelDefNode, NextDefNode: TDefineTemplate;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   SelTreeNode:=DefineTreeView.Selected;
   SaveSelectedValues;
   if (SelTreeNode=nil) or (SelTreeNode.GetNextSibling=nil) then exit;
@@ -440,6 +453,7 @@ var
   SelTreeNode: TTreeNode;
   SelDefNode, PrevDefNode: TDefineTemplate;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   SelTreeNode:=DefineTreeView.Selected;
   SaveSelectedValues;
   if (SelTreeNode=nil) or (SelTreeNode.Parent=nil) then exit;
@@ -468,6 +482,7 @@ var
   SelTreeNode: TTreeNode;
   SelDefNode, PrevDefNode: TDefineTemplate;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   SelTreeNode:=DefineTreeView.Selected;
   SaveSelectedValues;
   if (SelTreeNode=nil) or (SelTreeNode.GetPrevSibling=nil) then exit;
@@ -499,6 +514,7 @@ var
   SelTreeNode: TTreeNode;
   SelDefNode: TDefineTemplate;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   SelTreeNode:=DefineTreeView.Selected;
   SaveSelectedValues;
   if (SelTreeNode=nil) then exit;
@@ -553,6 +569,7 @@ end;
 
 procedure TCodeToolsDefinesEditor.OpenPreviewMenuItemClick(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   // apply changed tree
   CodeToolBoss.DefineTree.AssignNonAutoCreated(DefineTree);
   try
@@ -573,6 +590,7 @@ var InputFileDlg: TInputFileDialog;
   TargetOS, TargetProcessor: string;
   UnitSetCache: TFPCUnitSetCache;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   InputFileDlg:=GetInputFileDialog;
   InputFileDlg.Macros:=Macros;
   with InputFileDlg do begin
@@ -648,6 +666,7 @@ var InputFileDlg: TInputFileDialog;
   FPCTemplate: TDefineTemplate;
   UnitSearchPath, TargetOS, TargetProcessor: string;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   InputFileDlg:=GetInputFileDialog;
   InputFileDlg.Macros:=Macros;
   with InputFileDlg do begin
@@ -692,6 +711,7 @@ var InputFileDlg: TInputFileDialog;
   FPCSrcTemplate: TDefineTemplate;
   UnitSetCache: TFPCUnitSetCache;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   InputFileDlg:=GetInputFileDialog;
   InputFileDlg.Macros:=Macros;
   with InputFileDlg do begin
@@ -846,6 +866,7 @@ procedure TCodeToolsDefinesEditor.InsertKylixCompilerDefinesTemplateMenuItemClic
   (Sender: TObject);
 var KylixVersion: integer;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   KylixVersion:=3;
   InsertTemplate(Boss.DefinePool.CreateKylixCompilerDefinesTemplate(
                                                    KylixVersion,CodeToolsOpts));
@@ -860,6 +881,7 @@ var
   KylixName: string;
   UserName: String;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   KylixVersion:=3;
   KylixName:='Kylix'+IntToStr(KylixVersion);
 
@@ -897,6 +919,7 @@ var
   KylixName: string;
   UserName: String;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   KylixVersion:=3;
   KylixName:='Kylix'+IntToStr(KylixVersion);
 

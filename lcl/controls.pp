@@ -2825,6 +2825,14 @@ var
   // what child control of this TWinControl has actually the capture.
   CaptureControl: TControl=nil;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 operator := (AVariant: Variant): TCaption;
 begin
   Result := string(AVariant);
@@ -2974,6 +2982,8 @@ begin
   case Alignment of
     taLeftJustify: Alignment := taRightJustify;
     taRightJustify: Alignment := taLeftJustify;
+  else
+    NoOp
   end;
 end;
 
@@ -3004,11 +3014,12 @@ end;
 
 function DbgS(a: TAnchorKind; Side: TAnchorSideReference): string;
 begin
+  Result:='asr???'; //fixes Warning: (6018) Unreachable code
   case Side of
   asrTop: if a in [akLeft,akRight] then Result:='asrLeft' else Result:='asrTop';
   asrBottom: if a in [akLeft,akRight] then Result:='asrRight' else Result:='asrBottom';
   asrCenter: Result:='asrCenter';
-  else Result:='asr???'{%H-};
+  //else Result:='asr???'{%H-};   //Warning: (6018) Unreachable code
   end;
 end;
 
@@ -4406,8 +4417,8 @@ begin
               inc(Position,FOwner.Height div 2);
           end;
 
-        else
-          RaiseInvalidSide;
+        //else               //Warning: (6018) Unreachable code
+        //  RaiseInvalidSide;
         end;
       end;
       // side found

@@ -36,7 +36,7 @@ procedure PopulateFontDirList(AList: TStrings);
 const
   CSIDL_FONTS = 20;
 var
-  s: String;
+  s: String = ''; //Note: (5025) Local variable "s" not used
 begin
   if AList = nil then
     raise Exception.Create('PopulateFontDirList: list not allocated.');

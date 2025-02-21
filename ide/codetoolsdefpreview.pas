@@ -206,6 +206,7 @@ end;
 
 procedure TCodeToolsDefinesDialog.FormDestroy(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if FNodeValues<>nil then begin
     FNodeValues.FreeAndClear;
     FreeAndNil(FNodeValues);
@@ -214,18 +215,23 @@ end;
 
 procedure TCodeToolsDefinesDialog.HelpButtonClick(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   LazarusHelp.ShowHelpForIDEControl(Self);
 end;
 
 procedure TCodeToolsDefinesDialog.ParsedTemplatesTreeViewSelectionChanged(
   Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   UpdateTemplateValues;
 end;
 
 procedure TCodeToolsDefinesDialog.ValuesListviewSELECTITEM(Sender: TObject;
   Item: TListItem; Selected: Boolean);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
+  Item:= Item; //fixes Hint: (5024) Parameter "Item" not used
+  Selected:= Selected; //fixes Hint: (5024) Parameter "Selected" not used
   UpdateValue;
 end;
 
@@ -429,6 +435,7 @@ procedure TCodeToolsDefinesDialog.DefineTreeCalculate(DefineTree: TDefineTree;
 var
   NewNodeValues: TCodeToolsDefinesNodeValues;
 begin
+  DefineTree:= DefineTree; //fixes Hint: (5024) Parameter "DefineTree" not used
   NewNodeValues:=TCodeToolsDefinesNodeValues.Create;
   NewNodeValues.Node:=Node;
   NewNodeValues.ValueParsed:=ValueParsed;
@@ -445,6 +452,7 @@ procedure TCodeToolsDefinesDialog.CodeToolsDefinesDialogCREATE(Sender: TObject);
 var
   ListColumn: TListColumn;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   IDEDialogLayoutList.ApplyLayout(Self,485,450);
 
   Caption:=lisCTDefCodeToolsDirectoryValues;
@@ -485,6 +493,8 @@ end;
 procedure TCodeToolsDefinesDialog.CodeToolsDefinesDialogCLOSE(Sender: TObject;
   var CloseAction: TCloseAction);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
+  CloseAction:= CloseAction; //fixes Hint: (5024) Parameter "CloseAction" not used
   IDEDialogLayoutList.SaveLayout(Self);
   InputHistories.HistoryLists.GetList(hlCodeToolsDirectories,true,rltFile).Assign(
     DirectoryCombobox.Items);
@@ -498,6 +508,7 @@ var
   OpenDialog: TOpenDialog;
   Filename: string;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   OpenDialog:=TSelectDirectoryDialog.Create(nil);
   try
     InputHistories.ApplyFileDialogSettings(OpenDialog);
@@ -516,6 +527,7 @@ end;
 
 procedure TCodeToolsDefinesDialog.DirectoryComboboxCHANGE(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   UpdateValues;
 end;
 

@@ -443,6 +443,14 @@ var
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 var
   RegisteredDrawers: array[TCDDrawStyle] of TCDDrawer
     = (nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil);
@@ -621,6 +629,8 @@ begin
   palNative:   LoadNativePaletteColors();
   palFallback: LoadFallbackPaletteColors();
   //palUserConfig:
+  else
+    NoOp
   end;
 end;
 
@@ -727,6 +737,8 @@ begin
   cidListView:   DrawListView(ADest, ASize, AState, TCDListViewStateEx(AStateEx));
   cidToolBar:    DrawToolBar(ADest, ASize, AState, TCDToolBarStateEx(AStateEx));
   cidCTabControl:DrawCTabControl(ADest, ASize, AState, TCDCTabControlStateEx(AStateEx));
+  else
+    NoOp
   end;
 end;
 

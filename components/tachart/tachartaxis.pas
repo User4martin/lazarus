@@ -793,6 +793,7 @@ var
   axisMin, axisMax: Double;
   rng: TDoubleInterval;
 begin
+  rng:= Default(TDoubleInterval); //fixes Hint: (5057) Local variable "rng" does not seem to be initialized
   with FHelper do begin
     axisMin := GetTransform.GraphToAxis(FValueMin);
     axisMax := GetTransform.GraphToAxis(FValueMax);

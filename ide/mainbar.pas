@@ -409,6 +409,14 @@ var
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TMainIDEBar }
 
 procedure TMainIDEBar.MainIDEBarDropFiles(Sender: TObject;
@@ -804,6 +812,8 @@ begin
         //DebugLn('TMainIDEBar.Resizing: Setting main IDE height');
         DoSetMainIDEHeight(State = wsMaximized);
       end;
+    else
+      NoOp
     end;
 
   inherited Resizing(State);

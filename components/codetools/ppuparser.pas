@@ -1929,11 +1929,12 @@ begin
         {$ENDIF}
         inc(i,2);
       end;
-    else
-      begin
-        Error('unsupported dereftyp: '+IntToStr(ord(b)));
-        break;
-      end;
+    {fixes -- Comment out Unreachable Code below}
+    //else
+    //  begin
+    //    Error('unsupported dereftyp: '+IntToStr(ord(b)));
+    //    break;
+    //  end;
     end;
   end;
   {$IFDEF VerbosePPUParser}
@@ -2219,6 +2220,7 @@ var
   end;
 
 begin
+  Result:= EmptyStr;
   l:=ReadEntryLongint;
   SetLength(Result{%H-},l);
   if l>0 then begin

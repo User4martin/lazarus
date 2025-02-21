@@ -531,6 +531,13 @@ uses
   InterfaceBase, LCLIntf;
 
 //----------------------------------------------------------------------------------------------------------------------
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 function ThemeServices: TThemeServices;
 begin
@@ -1910,6 +1917,8 @@ begin
     teHeader:
       if Details.Part in [HP_HEADERSORTARROW] then
         Result := Size(8, 5);
+    else
+      NoOp
   end;
   if (Result.cx>0) then
     Result.cx := MulDiv(Result.cx, PPI, 96);
@@ -1941,6 +1950,7 @@ end;
 
 function TThemeServices.GetOption(AOption: TThemeOption): Integer;
 begin
+  Result := 0;
   case AOption of
     toShowButtonImages: Result := 1;
     toShowMenuImages: Result := 1;
@@ -1955,8 +1965,8 @@ begin
       Result := 0;
       {$ENDIF}
     end;
-  else
-    Result := 0;
+  //else      //Warning: (6018) Unreachable code
+  //  Result := 0;
   end;
 end;
 
@@ -2272,6 +2282,8 @@ begin
           LCLIntf.DrawEdge(DC, ARect, BDR_RAISEDOUTER, BF_RECT);
         end;
       end;
+    else
+      NoOp
   end;
 end;
 

@@ -251,6 +251,14 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TCompiler }
 
 {------------------------------------------------------------------------------
@@ -782,6 +790,8 @@ begin
       case Opt.EditKind of
         oeSetElem  : s := s + Opt.Option;
         oeSetNumber: s := s + Opt.Value;
+      else
+        NoOp
       end;
   end;
   if s <> '' then begin

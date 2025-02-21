@@ -63,6 +63,7 @@ var
   st: baseunix.stat;
   SysFileName: String;
 begin
+  st:= Default(baseunix.stat);
   SysFileName := Utf8ToSys(FileName);
   if not fpstat(pointer(SysFileName),st{%H-})>=0 then
     exit(-1);
@@ -252,6 +253,7 @@ function FileIsExecutable(const AFilename: string): boolean;
 var
   Info : Stat;
 begin
+  Info := Default(Stat);
   // first check AFilename is not a directory and then check if executable
   Result:= (FpStat(AFilename,info{%H-})<>-1) and FPS_ISREG(info.st_mode) and
            (BaseUnix.FpAccess(AFilename,BaseUnix.X_OK)=0);
@@ -333,6 +335,7 @@ var
   FileInfo: stat;
 begin
   Result := false;
+  FileInfo:= Default(stat);
   H := FileOpenUtf8(aFilename, fmOpenRead);
   if H <> feInvalidHandle then
   begin
@@ -375,6 +378,7 @@ var
   mode: mode_t;
 begin
   Result:='';
+  info:= Default(Stat); //fixes Hint: (5057) Local variable "info" does not seem to be initialized
   if not (FpStat(AFilename,info{%H-})=0) then exit;
 
   // permissions

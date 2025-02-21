@@ -914,6 +914,7 @@ procedure TSynSearchDictionary.BuildDictionary;
        memory consumption, since they have 4 continuation bytes (array size 64)
        to bring down the average.
     *)
+    Result:= EmptyStr; //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
     SetLength(Result{%H-}, Length(ATerm));
     for i := 1 to Length(ATerm) do begin
       c := ATerm[i];
@@ -1954,9 +1955,9 @@ begin
 end;
 
 function TSynMarkupHighAllMatchList.Insert(AStartPoint, AEndPoint: TPoint): integer;
-var
-  C: Integer;
-  S: TPoint;
+//var
+//  C: Integer;  //Note: (5025) Local variable "C" not used
+//  S: TPoint;   //Note: (5025) Local variable "S" not used
 begin
   Result := IndexOf(AStartPoint);
   Insert(Result, AStartPoint, AEndPoint);

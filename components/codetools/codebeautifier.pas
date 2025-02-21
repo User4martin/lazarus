@@ -382,6 +382,14 @@ function CompareCodeWithFABPolicy(Key, Data: Pointer): integer;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function EnumToStr(BlockType: TFABBlockType): string;
 begin
   WriteStr(Result, BlockType);
@@ -851,6 +859,8 @@ begin
             bbtWhile: BeginBlock(bbtWhileDo);
             bbtFor: BeginBlock(bbtForDo);
             bbtWith: BeginBlock(bbtWithDo);
+          else
+            NoOp
           end;
         end;
       'E':
@@ -889,6 +899,8 @@ begin
               EndBlock; // close bbtCaseOf
               BeginBlock(bbtCaseElse);
             end;
+          else
+            NoOp
           end;
         end;
       'N': // EN
@@ -935,6 +947,8 @@ begin
             end;
           bbtInterface,bbtImplementation,bbtInitialization,bbtFinalization:
             EndBlock;
+          else
+            NoOp
           end;
 
           while Stack.TopType in bbtAllAutoEnd do
@@ -1002,6 +1016,8 @@ begin
               BeginBlock(bbtInterface);
             bbtDefinition:
               BeginBlock(bbtClassInterface);
+            else
+              NoOp
             end;
           end;
         end;
@@ -1050,6 +1066,8 @@ begin
             BeginBlock(bbtCaseOf);
           bbtClass,bbtClassInterface:
             EndBlock;
+          else
+            NoOp
           end;
         end;
       'P': // OP
@@ -1179,6 +1197,8 @@ begin
             if Stack.TopType=bbtDefinition then
               EndBlock;
           end;
+        else
+          NoOp
         end;
       end;
     ':':
@@ -1195,6 +1215,8 @@ begin
             if Stack.TopType=bbtIf then
               EndBlock;
           end;
+        else
+          NoOp
         end;
       end;
     '(':
@@ -1219,6 +1241,8 @@ begin
         case Stack.TopType of
         bbtProcedureParamList,bbtTypeRoundBracket,bbtStatementRoundBracket:
           EndBlock;
+        else
+          NoOp
         end;
       end;
     '[':
@@ -1236,6 +1260,8 @@ begin
         case Stack.TopType of
         bbtTypeEdgedBracket,bbtStatementEdgedBracket:
           EndBlock;
+        else
+          NoOp
         end;
       end;
     end;
@@ -1512,6 +1538,8 @@ begin
         BeginBlock(bbtIfBegin);
       bbtProcedure:
         BeginBlock(bbtProcedureBegin);
+      else
+        NoOp
       end;
     end;
   'C':
@@ -1541,6 +1569,8 @@ begin
           end;
         bbtIfThen:
           EndBlock;
+        else
+          NoOp
         end;
       end;
     'N': // EN
@@ -1579,6 +1609,8 @@ begin
           EndBlock;
         bbtInterface,bbtImplementation,bbtInitialization,bbtFinalization:
           EndBlock;
+        else
+          NoOp
         end;
       end;
     'X': // EX
@@ -2136,6 +2168,7 @@ procedure TFullyAutomaticBeautifier.GetDefaultSrcIndent(const Source: string;
   Indent: TFABIndentationPolicy);
 // return indent of last non empty line
 begin
+  NewNestedComments:= NewNestedComments; //fixes Hint: (5024) Parameter "NewNestedComments" not used
   Indent.Indent:=0;
   Indent.IndentValid:=false;
   // go to start of line
@@ -2223,6 +2256,8 @@ begin
       Indent.Indent:=2;
       Indent.IndentValid:=true;
     end;
+  else
+    NoOp
   end;
 end;
 
@@ -2288,6 +2323,7 @@ var
   i: Integer;
   Ind: PFABFoundIndentationPolicy;
 begin
+  SrcPos:= SrcPos; //fixes Hint: (5024) Parameter "SrcPos" not used
   if not FindIndentation(Typ,SubType,i) then begin
     inc(IndentationCount);
     if IndentationCount>IndentationCapacity then begin

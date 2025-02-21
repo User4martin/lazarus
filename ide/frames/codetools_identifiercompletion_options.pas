@@ -93,6 +93,7 @@ end;
 procedure TCodetoolsIndentifierCompletionOptionsFrame.Setup(
   ADialog: TAbstractOptionsEditorDialog);
 begin
+  ADialog:= ADialog; //fixes Hint: (5024) Parameter "ADialog" not used
   ICOpenDividerBevel.Caption:=lisIdCOpening;
   ICAutoInvokeOnTypeCheckBox.Caption:=lisAutomaticallyInvokeOnType;
   ICAutoOnTypeUseTimer.Caption:=lisAutomaticallyInvokeOnTypeUseTimer;

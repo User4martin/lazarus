@@ -285,11 +285,14 @@ begin
 end;
 
 procedure TLazFifoQueue.Grow(ADelta: integer);
+type
+  TNewListArray = array of T;
 var
-  NewList: array of T;
+  NewList: TNewListArray;
   c: Integer;
   i: QWord;
 begin
+  NewList:= Default(TNewListArray); //fixes Hint: (5091) Local variable "NewList" of a managed type does not seem to be initialized
   c:=Max(FQueueSize + ADelta, Integer(FTotalItemsPushed - FTotalItemsPopped));
   setlength(NewList{%H-}, c);
   i:=FTotalItemsPopped;

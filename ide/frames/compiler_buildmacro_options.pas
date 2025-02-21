@@ -111,6 +111,14 @@ implementation
 
 {$R *.lfm}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TCompOptBuildMacrosFrame }
 
 procedure TCompOptBuildMacrosFrame.BuildMacrosTreeViewEditing(Sender: TObject;
@@ -244,6 +252,8 @@ begin
       BuildMacro.Values[Node.Index]:=S;
     end;
 
+  else
+    NoOp
   end;
 end;
 

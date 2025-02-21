@@ -178,6 +178,14 @@ var
   FLazIDEInstances: TIDEInstances;
   FServerPrefix: string;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function LazIDEInstances: TIDEInstances;
 begin
   Result := FLazIDEInstances;
@@ -360,6 +368,7 @@ var
   I, J: Integer;
 begin
   Result := False;
+  outParams:= Default(TMessageParams); //fixes Hint: (5092) Variable "outParams" of a managed type does not seem to be initialized
 
   outMessageType := '';
   SetLength(outParams{%H-}, 0);
@@ -594,6 +603,8 @@ begin
       MessageDlg(lisLazarusIDE, xNotRespondingErrorMessage, mtError, [mbOK], 0);
     ofrForceSingleInstanceModalError:
       MessageDlg(lisLazarusIDE, xModalErrorForceUniqueMessage, mtError, [mbOK], 0);
+  else
+    NoOp
   end;
 
   {$IFDEF MSWINDOWS}
@@ -636,6 +647,7 @@ var
     xOutParams: TMessageParams;
     xStream: TMemoryStream;
   begin
+    xOutParams:= Default(TMessageParams); //fixes Hint: (5091) Local variable "xOutParams" of a managed type does not seem to be initialized
     xClient := TIPCClient.Create(nil);
     try
       xClient.ServerID := SERVERNAME_COLLECT;
@@ -799,6 +811,7 @@ var
   xOutParams, xInParams: TMessageParams;
 begin
   Result := ofrStartNewInstance;
+  xOutParams:= Default(TMessageParams); //fixes Hint: (5091) Local variable "xOutParams" of a managed type does not seem to be initialized
   xStream := TMemoryStream.Create;
   try
     //ask to show prompt
@@ -840,6 +853,7 @@ var
   xOutParams, xInParams: TMessageParams;
 begin
   Result := '';
+  xOutParams:= Default(TMessageParams); //fixes Hint: (5091) Local variable "xOutParams" of a managed type does not seem to be initialized
   xStream := TMemoryStream.Create;
   try
     xStream.Clear;
@@ -871,6 +885,7 @@ end;
 
 procedure TMainServer.CheckMessagesOnTimer(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   DoCheckMessages;
 end;
 
@@ -897,6 +912,7 @@ var
   xParams: TMessageParams;
   xSourceWindowHandle: HWND = 0;
 begin
+  xParams:= Default(TMessageParams); //fixes Hint: (5091) Local variable "xParams" of a managed type does not seem to be initialized
   xResult := ofrStartNewInstance;
   if Assigned(FStartNewInstanceEvent) then
   begin
@@ -982,6 +998,7 @@ var
   xParams: TMessageParams;
 begin
   xResult := '';
+  xParams:= Default(TMessageParams); //fixes Hint: (5091) Local variable "xParams" of a managed type does not seem to be initialized
   if Assigned(FStartNewInstanceEvent) then
     FGetCurrentProjectEvent(xResult);
 

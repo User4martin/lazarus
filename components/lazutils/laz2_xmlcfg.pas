@@ -179,6 +179,14 @@ function CompareDomNodeNames(DOMNode1, DOMNode2: Pointer): integer;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function CompareDomNodeNames(DOMNode1, DOMNode2: Pointer): integer;
 var
   Node1: TDOMNode absolute DomNode1;
@@ -454,6 +462,8 @@ begin
       tkSet: Move(ADefault, AResult, GetTypeData(APTypeInfo)^.SetSize);
       tkChar:  Char(AResult) := Char(ADefault);
       tkWChar: WideChar(AResult) := WideChar(ADefault);
+      else
+        NoOp
     end;
   end;
 end;
@@ -476,6 +486,8 @@ begin
       tkSet:   raise Exception.Create('not supported');
       tkChar:  Char(AResult) := Char(ADefault);
       tkWChar: WideChar(AResult) := WideChar(ADefault);
+      else
+        NoOp
     end;
   end;
 end;
@@ -754,6 +766,8 @@ begin
     tkSet:   Result := GetTypeData(APTypeInfo)^.SetSize;
     tkChar:  Result := 1;
     tkWChar: Result := 2;
+    else
+      NoOp
   end;
 end;
 
@@ -788,6 +802,8 @@ begin
           end;
         tkEnumeration:
           Result := GetEnumName(APTypeInfo, Val);
+        else
+          NoOp
       end;
     end;
     tkInt64: Result := IntToStr(Int64(AValue));
@@ -795,6 +811,8 @@ begin
     tkSet:   Result := SetToString(APTypeInfo, @AValue, True);
     tkChar:  Result := Char(AValue);
     tkWChar: Result := {%H-}WideChar(AValue);
+    else
+      NoOp
   end;
 end;
 
@@ -830,6 +848,8 @@ begin
           Val := GetEnumValue(APTypeInfo, AString);
           Result := Val >= 0;
         end;
+        else
+          NoOp
       end;
       try
         {$PUSH}{$R+}{$Q+} // Enable range/overflow checks.
@@ -1138,7 +1158,7 @@ var
   i: Integer;
   PropType: PTypeInfo;
   Value, DefValue: Int64;
-  Ident: String;
+  Ident: String = ''; //fixes Hint: (5091) Local variable "Ident" of a managed type does not seem to be initialized
   IntToIdentFn: TIntToIdent;
   SetType: Pointer;
   FloatValue, DefFloatValue: Extended;
@@ -1198,6 +1218,8 @@ begin
               end;
             tkEnumeration:
               SetValue(Path, GetEnumName(PropType, Value));
+            else
+              NoOp
           end;
         end;
       end;
@@ -1269,6 +1291,8 @@ begin
         else
           DeleteValue(Path);
       end;
+    else
+      NoOp
   end;
 end;
 
@@ -1375,6 +1399,8 @@ begin
               else
                 SetOrdProp(Instance, PropInfo, DefValue);
             end;
+          else
+            NoOp
         end;
       end;
     tkFloat:
@@ -1410,6 +1436,8 @@ begin
         if (obj is TPersistent) and HasPath(Path, False) then
           ReadObject(Path+'/', TPersistent(obj));
       end;
+    else
+      NoOp
   end;
 end;
 

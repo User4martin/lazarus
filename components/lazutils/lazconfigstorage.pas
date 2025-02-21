@@ -159,6 +159,14 @@ function ComparePCharWithConfigMemStorageNode(aPChar, ANode: Pointer): integer;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure LoadStringToStringTree(Config: TConfigStorage; const Path: string;
   Tree: TStringToStringTree);
 var
@@ -368,12 +376,13 @@ procedure TConfigStorage.WriteProperty(Path: String; Instance: TPersistent; Prop
 type
   tset = set of 0..31;
 var
-  i: Integer;
+  i: Integer = 0;
   PropType: PTypeInfo;
-  Value, DefValue: LongInt;
-  Ident: String;
+  Value: LongInt = 0;
+  DefValue: LongInt = 0;
+  Ident: String = ''; //fixes Hint: (5091) Local variable "Ident" of a managed type does not seem to be initialized
   IntToIdentFn: TIntToIdent;
-  SetType: Pointer;
+  SetType: Pointer = nil;
   FloatValue, DefFloatValue: Extended;
   //WStrValue, WDefStrValue: WideString;
   StrValue, DefStrValue: String;
@@ -426,6 +435,8 @@ begin
               end;
             tkEnumeration:
               SetValue(Path, GetEnumName(PropType, Value));
+            else
+              NoOp
           end;
         end;
       end;
@@ -479,6 +490,8 @@ begin
         else
           SetValue(Path, BoolValue);
       end;
+    else
+      NoOp
   end;
 end;
 
@@ -575,6 +588,8 @@ begin
               else
                 SetOrdProp(Instance, PropInfo, DefValue);
             end;
+          else
+            NoOp
         end;
       end;
     tkFloat:
@@ -604,6 +619,8 @@ begin
         BoolValue := GetValue(Path, DefBoolValue);
         SetOrdProp(Instance, PropInfo, ord(BoolValue));
       end;
+  else
+    NoOp
   end;
 end;
 

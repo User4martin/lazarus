@@ -1840,6 +1840,7 @@ procedure TCompilerDirectivesTree.ReduceCompilerDirectives(
   var
     MacroNode: TCompilerMacroStats;
   begin
+    Changed:= Changed; //fixes (5024) Parameter "Changed" not used
     MacroNode:=GetMacroNode(@Src[NameStart]);
     if MacroNode=nil then begin
       MacroNode:=TCompilerMacroStats.Create;

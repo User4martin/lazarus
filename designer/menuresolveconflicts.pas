@@ -68,6 +68,14 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TResolveConflictsDlg }
 
 constructor TResolveConflictsDlg.Create(aShortcuts: TMenuShortcuts;
@@ -236,6 +244,8 @@ begin
         scActionSC:        TAction(FSelectedInfo.Component).ShortCut:=newShortcut;
         scActionSecondary: AddSecondaryShortcut;
         scOtherCompAccel:  TControl(FSelectedInfo.Component).Caption:=newCaption;
+      else
+        NoOp
       end;
       if (FSelectedInfo.Kind in MenuItem_Kinds) then begin
         FShadowMenu.EditorDesigner.PropertyEditorHook.RefreshPropertyValues;
@@ -255,6 +265,8 @@ begin
             GlobalDesignHook.RefreshPropertyValues;
             GlobalDesignHook.Modified(TControl(FSelectedInfo.Component));
           end;
+        else
+          NoOp
       end;
 
       RePopulateListBox;

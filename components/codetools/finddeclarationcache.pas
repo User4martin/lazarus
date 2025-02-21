@@ -1000,6 +1000,7 @@ var
   DirectionSucc: boolean;
   NextNode: TAVLTreeNode;
 begin
+  InFront:= InFront; //fixes Hint: (5024) Parameter "InFront" not used
   if CleanStartPos>CleanEndPos then begin
     raise Exception.Create('[TCodeTreeNodeCache.FindNearestAVLNode]'
       +' internal error: CleanStartPos>CleanEndPos');

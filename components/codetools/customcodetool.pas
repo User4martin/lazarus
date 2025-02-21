@@ -374,7 +374,8 @@ end;
 function IdentifierHasKeywords(const Identifier: string; cm: TCompilerMode; out
   AmpIdentifier: string): boolean;
 var
-  p, StartP: Integer;
+  p: Integer;
+  //StartP: Integer;
   KeyWords: TKeyWordFunctionList;
 begin
   Result:=false;
@@ -3229,6 +3230,7 @@ function TCustomCodeTool.ExtractIdentifier(CleanStartPos: integer;
   SkipAmp: Boolean = True): string;
 var len: integer;
 begin
+  Result:= EmptyStr;
   if (CleanStartPos>=1) and (CleanStartPos<=SrcLen) then begin
     len:=0;
     if SkipAmp then begin
@@ -3294,7 +3296,7 @@ function TCustomCodeTool.ExtractIdentifierWithPointsOutEndPos( StartPos: integer
 //result = "dotted.ident.unit1" and comment = "{but contaminated}{comment}"
 var
   beforePos, aLen: integer;
-  CommentAtom: string;
+  CommentAtom: string = '';
 begin
   Result:='';
   Comment:='';

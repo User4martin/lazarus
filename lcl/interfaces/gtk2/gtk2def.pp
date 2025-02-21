@@ -808,6 +808,7 @@ end;
 
 function dbgs(g: TGDIType): string;
 begin
+  Result:='<?? unknown gdi type '+dbgs(ord(g))+'>'; //fixes Unreachable code
   case g of
   gdiBitmap: Result:='gdiBitmap';
   gdiBrush: Result:='gdiBrush';
@@ -815,7 +816,7 @@ begin
   gdiPen: Result:='gdiPen';
   gdiRegion: Result:='gdiRegion';
   gdiPalette: Result:='gdiPalette';
-  else Result:='<?? unknown gdi type '+dbgs(ord(g))+'>';
+  //else Result:='<?? unknown gdi type '+dbgs(ord(g))+'>'; //Warning: (6018) Unreachable code
   end;
 end;
 

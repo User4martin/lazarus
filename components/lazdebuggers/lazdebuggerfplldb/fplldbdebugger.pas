@@ -356,6 +356,15 @@ type
     property EntryRanges;
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
+
 { TFpLldbDebugDebuggerPropertiesMemLimits }
 
 function TFpLldbDebugDebuggerPropertiesMemLimits.MaxMemReadSizeIsStored: Boolean;
@@ -1108,6 +1117,10 @@ var
   i: Integer;
 begin
   Result := False;
+  dummy := Default(TDBGPtrArray); //fixes Hint: (5091) Local variable "dummy" of a managed type does not seem to be initialized
+  Map:= Default(PDWarfLineMap);
+  Map2:= Default(PDWarfLineMap);
+
   if not FpDebugger.HasDwarf then
     exit;
   //Result := FpDebugger.FDwarfInfo.GetLineAddress(FRequestedSources[AIndex], ALine);

@@ -169,13 +169,22 @@ var
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function BuildMatrixOptionTypeCaption(Typ: TBuildMatrixOptionType): string;
 begin
+  Result:='?'; //fixes Warning: (6018) Unreachable code
   case Typ of
   bmotCustom: Result:='Custom';
   bmotOutDir: Result:='OutDir';
   bmotIDEMacro: Result:='IDE Macro';
-  else Result:='?';
+  //else Result:='?';   //Warning: (6018) Unreachable code
   end;
 end;
 
@@ -188,11 +197,12 @@ end;
 
 function BuildMatrixOptionTypeHint(Typ: TBuildMatrixOptionType): string;
 begin
+  Result:='?'; //fixes Warning: (6018) Unreachable code
   case Typ of
   bmotCustom: Result:=lisMMAppendArbitraryFpcOptionsEGO1GhtlDFlag;
   bmotOutDir: Result:=lisMMOverrideOutputDirectoryFUOfTarget;
   bmotIDEMacro: Result:=lisMMSetAnIDEMacroEGLCLWidgetTypeWin32;
-  else Result:='?';
+  //else Result:='?';   //Warning: (6018) Unreachable code
   end;
 end;
 
@@ -202,6 +212,8 @@ begin
   case Typ of
   bmotIDEMacro: Result:='MacroName:=Value';
   bmotOutDir: Result:='lib/$(TargetCPU)-$(TargetOS)/$(BuildMode)';
+  else
+    NoOp
   end;
 end;
 

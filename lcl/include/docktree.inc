@@ -146,6 +146,8 @@ begin
           R.Right := R.Right div 2;
           inc(R.Left, R.Right);
         end;
+      else
+        NoOp
     end;
   end;
 

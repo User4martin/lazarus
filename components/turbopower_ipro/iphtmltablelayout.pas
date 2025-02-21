@@ -37,6 +37,14 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TIpNodeTableLayouter }
 
 constructor TIpNodeTableLayouter.Create(AOwner: TIpHtmlNodeCore);
@@ -282,6 +290,8 @@ begin
                         - FCellSpacing - RUH);
                     Max0 := Min0;
                   end;
+                else
+                  NoOp
                 end;
 
                 CellNode.CalcWidthMin := Min0;
@@ -684,6 +694,8 @@ begin
                   case CellNode.Width.LengthType of
                   hlPercent :
                     Inc(P, CellNode.Width.LengthValue);
+                  else
+                    NoOp
                   end;
                 end;
             end;
@@ -736,6 +748,8 @@ begin
                   AdjustCol(CellNode.Colspan,
                             round((FTableWidth - CellOverhead) *
                                   CellNode.Width.LengthValue / 100));
+                else
+                  NoOp
                 end;
 
                 CellSpace := FTableWidth - CellOverhead;

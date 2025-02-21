@@ -125,6 +125,7 @@ var
   e: PChar;
   len: Integer;
 begin
+  Result:= EmptyStr; //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   e:=p;
   len:=0;
   while (e^<>#0) and (len<MaxLen) do begin
@@ -261,7 +262,8 @@ const
 var
   MsgLine: TMessageLine;
   p: PChar;
-  Filename, Dir: string;
+  Filename: String = '';  //fixes Hint: (5091) Local variable "Filename" of a managed type does not seem to be initialized
+  Dir: String = '';
   Run, OldP: PChar;
 begin
   if Line='' then exit;

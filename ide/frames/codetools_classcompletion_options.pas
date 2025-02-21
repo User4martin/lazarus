@@ -92,6 +92,7 @@ var
   s: String;
   ics: TInsertClassSection;
 begin
+  ADialog:= ADialog; //fixes Hint: (5024) Parameter "ADialog" not used
   ClassPartInsertPolicyLabel.Caption:=dlgInsertClassParts;
   ClassPartInsertPolicyLabel.Hint:=
     lisNewMethodsAndMembersAreInsertedAlphabeticallyOrAdd;

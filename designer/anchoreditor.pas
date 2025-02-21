@@ -686,6 +686,8 @@ end;
 
 
 procedure TAnchorDesigner.SiblingComboBoxChange(Sender: TObject);
+type
+  TIntegerArray = array of Integer;
 var
   Kind,CurNeighbour: TAnchorKind;
   NewSibling: TControl;
@@ -695,7 +697,7 @@ var
   CurControl: TControl;
   NewValue: String;
   UseNeighbours: boolean;
-  OldPositions,OldPositions2: array of Integer;
+  OldPositions, OldPositions2: TIntegerArray;
 
   function NeighbourPosition(c: TControl): Integer;
   begin
@@ -733,6 +735,8 @@ var
   ReferenceSide: TAnchorSideReference;
   CheckPosition: Integer;
 begin
+  OldPositions:= Default(TIntegerArray); //fixes Hint: (5091) Local variable "OldPositions" of a managed type does not seem to be initialized
+  OldPositions2:= Default(TIntegerArray); //fixes Hint: (5091) Local variable "OldPositions2" of a managed type does not seem to be initialized
   if FUpdating or (Values=nil) then exit;
   if Sender=LeftSiblingComboBox then
     Kind:=akLeft

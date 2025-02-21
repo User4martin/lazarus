@@ -761,7 +761,11 @@ var
   procedure ReadUnits;
   var
     StartP: PChar;
-    UnitID, s, CurUnitName, UnitFilename, Identifier: string;
+    UnitID: String = '';
+    s: String = '';
+    CurUnitName: String = '';
+    UnitFilename: String = '';
+    Identifier: String = '';
     CurUnit: TUDUnit;
     Item: TUDIdentifier;
     Skip: boolean;
@@ -848,7 +852,10 @@ var
 
   procedure ReadGroups;
   var
-    s, GroupName, GroupFilename, UnitID: string;
+    s: String = '';
+    GroupName: String = '';
+    GroupFilename: String = '';
+    UnitID: String = '';
     StartP: PChar;
     Group: TUDUnitGroup;
     CurUnit: TUDUnit;

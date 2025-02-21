@@ -212,6 +212,7 @@ var
   NewData: TIconData;
   fs: TFileStream;
 begin
+  NewData:= Default(TIconData); //fixes Hint: (5091) Local variable "NewData" of a managed type does not seem to be initialized
   if IsEmpty=AValue then exit;
   if AValue then
   begin

@@ -108,6 +108,14 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function SameDimensions(const R1, R2 : TRect): Boolean;
 begin
   Result := ( (R1.Bottom - R1.Top = R2.Bottom - R2.Top) or (R1.Top = R2.Top) )
@@ -394,6 +402,8 @@ var
           end;
         end;
         }
+    else
+      NoOp
     end;
   end;
 
@@ -503,6 +513,8 @@ begin
         FLIdent := 0;
         FRIdent := 0;
       end;
+  else
+    NoOp
   end;
   FClear := cNone;
 end;
@@ -702,6 +714,8 @@ begin
     etClearLeft : FClear := cLeft;
     etClearRight : FClear := cRight;
     etClearBoth : FClear := cBoth;
+  else
+    NoOp
   end;
   if FLineBreak then
     FMaxDescent := 0;
@@ -1411,6 +1425,8 @@ begin
           FCanvas.TextOut(P.x, P.y, '-');
           FIpHtml.AddRect(CurWord.WordRect2, CurWord, FBlockOwner);
         end;
+      else
+        NoOp
       end
     end
     else
@@ -1422,6 +1438,8 @@ begin
            (CurWord.WordRect2.Top > FIpHtml.PageViewRect.Bottom) and L0
         then
           break;
+      else
+        NoOp
       end;
   end;
 end;

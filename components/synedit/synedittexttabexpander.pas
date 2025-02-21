@@ -585,6 +585,7 @@ var
   CharWidths: TPhysicalCharWidths;
   i: Integer;
 begin
+  CharWidths:= Default(TPhysicalCharWidths); //Hint: (5091) Local variable "CharWidths" of a managed type does not seem to be initialized
   Line := NextLines[Index];
   if (Line = '') then begin
     Result := 0;

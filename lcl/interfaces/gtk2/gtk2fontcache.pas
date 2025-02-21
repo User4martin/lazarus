@@ -256,6 +256,7 @@ var
   LogFont: TLogFont;
   LongFontName: string;
 begin
+  LogFont:= Default(TLogFont); //fixes Hint: (5057) Local variable "LogFont" does not seem to be initialized
   FillChar(LogFont{%H-},SizeOf(LogFont),0);
   LongFontName:=dbghex({%H-}PtrUInt(TheGtkFont));
   Result:=Add(TheGtkFont,LogFont,LongFontName);

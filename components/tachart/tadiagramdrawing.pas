@@ -66,6 +66,14 @@ uses
   Math, Types, SysUtils,
   TAGeometry;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function ToImage(const AP: TDiaPoint): TPoint; inline;
 begin
   Result := RoundPoint(AP.AsUnits(duPixels));
@@ -112,6 +120,8 @@ begin
   case AEndPoint.Shape of
     depsClosedArrow: ADrawer.Polygon([pt1, APos, pt2], 0, 3);
     depsOpenArrow: ADrawer.Polyline([pt1, APos, pt2], 0, 3);
+  else
+    NoOp
   end;
 end;
 

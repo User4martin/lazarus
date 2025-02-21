@@ -549,6 +549,14 @@ const
     [gpLeft, gpBottom], [gpBottom], [gpBottom, gpRight]
   );
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function RoundToGrid(p, GridOrigin, GridStep: integer): integer;
 begin
   if GridStep<=1 then
@@ -3087,6 +3095,8 @@ begin
           dec(x,HorSpacing);
         end;
       end;
+  else
+    NoOp
   end;
 
   // move components vertically
@@ -3138,6 +3148,8 @@ begin
           dec(y,VertSpacing);
         end;
       end;
+  else
+    NoOp
   end;
 
   EndResizing(false, false);
@@ -3215,21 +3227,29 @@ begin
       AWidth:=Items[0].Width;
     cssFixed:
       if AWidth<1 then HorizSizing:=cssNone;
+  else
+    NoOp
   end;
   case VertSizing of
     cssShrinkToSmallest, cssGrowToLargest:
       AHeight:=Items[0].Height;
     cssFixed:
       if AHeight<1 then VertSizing:=cssNone;
+  else
+    NoOp
   end;
   for i:=1 to FControls.Count-1 do begin
     case HorizSizing of
      cssShrinkToSmallest: AWidth:=Min(AWidth,Items[i].Width);
      cssGrowToLargest:    AWidth:=Max(AWidth,Items[i].Width);
+    else
+      NoOp
     end;
     case VertSizing of
      cssShrinkToSmallest: AHeight:=Min(AHeight,Items[i].Height);
      cssGrowToLargest:    AHeight:=Max(AHeight,Items[i].Height);
+    else
+      NoOp
     end;
   end;
 

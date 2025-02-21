@@ -734,6 +734,7 @@ var
   e: string;
   y: Integer;
 begin
+  Result:= EmptyStr; //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   Cols:=StrToIntDef(Application.GetOptionValue('ldcn-colunms'),79);
   Rows:=StrToIntDef(Application.GetOptionValue('ldcn-rows'),20);
 

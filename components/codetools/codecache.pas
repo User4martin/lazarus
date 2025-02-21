@@ -558,6 +558,7 @@ function Dbgs(const p: TCodePosition): string;
 var
   CodeXYPosition: TCodeXYPosition;
 begin
+  CodeXYPosition:= Default(TCodeXYPosition);
   FillChar(CodeXYPosition{%H-},SizeOf(TCodeXYPosition),0);
   CodeXYPosition.Code:=p.Code;
   if CodeXYPosition.Code<>nil then begin
@@ -965,6 +966,7 @@ end;
 function TCodeCache.OnScannerGetFileName(Sender: TObject; Code: TSourceLog
   ): string;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if (Code<>nil) then
     Result:=TCodeBuffer(Code).Filename
   else
@@ -974,6 +976,7 @@ end;
 function TCodeCache.OnScannerLoadSource(Sender: TObject;
   const AFilename: string; OnlyIfExists: boolean): TSourceLog;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   if OnlyIfExists then begin
     Result:=FindFile(AFilename);
     if (Result=nil)
@@ -1027,12 +1030,14 @@ end;
 procedure TCodeCache.OnScannerGetSourceStatus(Sender: TObject;
   Code: TSourceLog; var ReadOnly: boolean);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   ReadOnly:=TCodeBuffer(Code).ReadOnly;
 end;
 
 procedure TCodeCache.OnScannerDeleteSource(Sender: TObject; Code: TSourceLog;
   Pos, Len: integer);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   TCodeBuffer(Code).Delete(Pos,Len);
 end;
 

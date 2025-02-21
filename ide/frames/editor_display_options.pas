@@ -131,6 +131,7 @@ function TEditorDisplayOptionsFrame.FontSizeNegativeToPositive(NegativeSize: Int
 var
   tm: TTextMetric;
 begin
+  tm:= Default(TTextMetric); //fixes Hint: (5057) Local variable "tm" does not seem to be initialized
   DisplayPreview.Canvas.Font.Assign(DisplayPreview.Font);
   if LCLIntf.GetTextMetrics(DisplayPreview.Canvas.Handle, tm{%H-}) then
     Result := -(NegativeSize + MulDiv(tm.tmInternalLeading, 72, DisplayPreview.Font.PixelsPerInch))

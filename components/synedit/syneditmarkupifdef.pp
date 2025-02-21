@@ -546,6 +546,14 @@ const
   MARKUP_TEMP_DISABLED = 4;
   MARKUP_TEMP_ENABLED  = 8;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure MaybeCreateDict;
 begin
   if TheDict = nil then
@@ -1052,6 +1060,8 @@ begin
           ClosingPeer.SetOpeningPeerNodeState(NodeState, NodeStateForPeer(ClosingPeer.NodeType))
       end;
     idnCommentedNode: Assert(AValue = idnUnknown, 'SetOpeningPeerNodeState for idnCommentedIfdef not possible. '+DebugText);
+  else
+    NoOp
   end;
 end;
 
@@ -1188,6 +1198,8 @@ begin
           if FOpeningPeerNodeState in [idnDisabled, idnTempDisabled] then
             FLine.DisabledEntryCloseCount := FLine.DisabledEntryCloseCount + i;
         end;
+      else
+        NoOp
     end;
   end;
 
@@ -1264,6 +1276,8 @@ begin
           idnElseIf: Result := NodeStateMap[APeerType = idnEndIf]; // idnElse[if] will be idnDisabled;
           idnElse:   Result := NodeStateMap[APeerType = idnEndIf]; // idnIfdef will be idnDisabled;;
           idnEndIf:  Result := idnEnabled;
+        else
+          NoOp
         end;
       end;
     idnDisabled: begin
@@ -1272,6 +1286,8 @@ begin
           idnElseIf: Result := NodeStateMap[APeerType <> idnEndIf];
           idnElse:   Result := NodeStateMap[APeerType <> idnEndIf];
           idnEndIf:  Result := idnDisabled;
+        else
+          NoOp
         end;
       end;
     idnTempEnabled: begin
@@ -1280,6 +1296,8 @@ begin
           idnElseIf: Result := NodeStateTempMap[APeerType = idnEndIf]; // idnElse[if] will be idnDisabled;
           idnElse:   Result := NodeStateTempMap[APeerType = idnEndIf]; // idnIfdef will be idnDisabled;;
           idnEndIf:  Result := idnTempEnabled;
+        else
+          NoOp
         end;
       end;
     idnTempDisabled: begin
@@ -1288,8 +1306,12 @@ begin
           idnElseIf: Result := NodeStateTempMap[APeerType <> idnEndIf];
           idnElse:   Result := NodeStateTempMap[APeerType <> idnEndIf];
           idnEndIf:  Result := idnTempDisabled;
+        else
+          NoOp
         end;
       end;
+    else
+      NoOp
   end;
 end;
 
@@ -1852,9 +1874,11 @@ end;
 
 procedure TSynMarkupHighIfDefLinesTree.ConnectPeers(var ANode: TSynMarkupHighIfDefLinesNodeInfo;
   var ANestList: TSynMarkupHighIfDefLinesNodeInfoList; AOuterLines: TLazSynEditNestedFoldsList);
+type
+  TSynMarkupHighIfDefEntryArray = array of TSynMarkupHighIfDefEntry;
 var
-  PeerList: array of TSynMarkupHighIfDefEntry; // List of Else/Endif in the current line, that where opened in a previous line
-  OpenList: array of TSynMarkupHighIfDefEntry; // List of IfDef/Else in the current line
+  PeerList: TSynMarkupHighIfDefEntryArray; // List of Else/Endif in the current line, that where opened in a previous line
+  OpenList: TSynMarkupHighIfDefEntryArray; // List of IfDef/Else in the current line
   CurDepth, MaxListIdx, MinOpenDepth, MaxOpenDepth, MaxPeerDepth, MinPeerDepth: Integer;
   i, j, OtherDepth: Integer;
   OtherLine: TSynMarkupHighIfDefLinesNodeInfo;
@@ -1869,6 +1893,8 @@ var
   end;
 
 begin
+  PeerList:= Default(TSynMarkupHighIfDefEntryArray); // fixes Hint: (5091) Local variable "PeerList" of a managed type does not seem to be initialized
+  OpenList:= Default(TSynMarkupHighIfDefEntryArray); // fixes Hint: (5091) Local variable "OpenList" of a managed type does not seem to be initialized
   /// Scan for onel line blocks
   PeerChanged := False;
   CurDepth := ANode.NestDepthAtNodeStart;
@@ -1907,6 +1933,8 @@ begin
                   //dec(MaxOpenDepth); // Will be set with the current entry
                 end;
               idnElse: ;//DebugLn('Ignoring invalid double else (on same line)');
+              else
+                NoOp
             end;
           end
           else
@@ -1949,6 +1977,8 @@ begin
 
           dec(CurDepth);
         end;
+      else
+        NoOp
     end;
   end;
 
@@ -2018,12 +2048,16 @@ begin
               end;
               break;
             end;
+          else
+            NoOp
         end;
       end;
       case OtherLine.Entry[j].NodeType of
         idnIfdef: dec(OtherDepth);
         idnElse, idnElseIf:  ; //
         idnEndIf: inc(OtherDepth);
+        else
+          NoOp
       end;
     end;
 
@@ -2043,6 +2077,8 @@ begin
             PeerChanged := True;
             //DoModified;
           end;
+        else
+          NoOp
       end;
     end;
 
@@ -3271,6 +3307,8 @@ var
         idnElse, idnElseIf:
           if ADownFromLevel <= ALevel + 1 then
             dec(ADownFromLevel);
+      else
+        NoOp
       end;
       if (ADownFromLevel <= ALevel) then
         exit;

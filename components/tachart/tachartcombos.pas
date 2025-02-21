@@ -163,6 +163,14 @@ uses
   TAChartStrConsts, TAChartUtils, TADrawerCanvas, TACustomSeries,
   TASeries, TALegend;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure Register;
 begin
   RegisterComponents(CHART_COMPONENT_IDE_PAGE, [
@@ -393,6 +401,8 @@ begin
           case alignmnt of
             taLeftJustify: x2 := x1 + symheight;
             taRightJustify: x1 := x2 - symheight;
+          else
+            NoOp
           end;
           R := Rect(x1, ARect.Top + MARGIN, x2, ARect.Bottom - MARGIN);
           if isDisabled then brushClr := clGrayText else brushClr := FBrushColor;
@@ -405,6 +415,8 @@ begin
       case alignmnt of
         taLeftJustify  : ARect.Left := x2 + DIST;
         taRightJustify : ARect.Left := x1 - DIST - Canvas.TextWidth(Items[AIndex]) - 1;
+      else
+        NoOp
       end;
       if [odDisabled, odGrayed] * AState <> [] then
         Canvas.Font.Color := clGrayText;

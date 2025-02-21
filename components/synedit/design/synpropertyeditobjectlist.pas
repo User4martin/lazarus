@@ -27,7 +27,8 @@ uses
   SynEdit, SynGutterBase, SynEditMiscClasses, SynEditMouseCmds, SynEditKeyCmds,
   SynDesignStringConstants,
   PropEdits, PropEditUtils, Forms, StdCtrls, ComCtrls, Dialogs, ComponentEditors,
-  ObjInspStrConsts, Controls, IDEImagesIntf, typinfo, FormEditingIntf, SynEditTypes;
+  ObjInspStrConsts, Controls, IDEImagesIntf, typinfo, FormEditingIntf,
+  SynEditTypes, LazLogger;
 
 type
 
@@ -445,7 +446,7 @@ var
   OldSynObjectPartList: TSynObjectList;
   I: Integer;
 begin
-  debugln(['TSynObjectPartListPropertyEditorForm.PersistentDeleting ']);
+  DebugLogger.debugln(['TSynObjectPartListPropertyEditorForm.PersistentDeleting ']);
   if APersistent = OwnerPersistent then
   begin
     OldSynObjectPartList := SynObjectPartList;

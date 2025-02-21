@@ -19,6 +19,14 @@ const
   ShowCommands: array[TWindowState] of Integer =
     (SW_SHOWNORMAL, SW_MINIMIZE, SW_SHOWMAXIMIZED, SW_SHOWFULLSCREEN);
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TCustomForm }
 
 {------------------------------------------------------------------------------
@@ -38,6 +46,8 @@ begin
     case CloseAction of
       caNone: ModalResult := 0;
       caFree: Release;
+    else
+      NoOp
     end;
     { do not call widgetset CloseModal here, but in ShowModal to
       guarantee execution of it }
@@ -2176,6 +2186,8 @@ begin
             else
               Release;
           end;
+        else
+          NoOp
       end;
     end;
   end;

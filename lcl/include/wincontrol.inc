@@ -313,6 +313,8 @@ var
         alLeft: AlignBoundaryControls[akLeft] := ChildData;
         alRight: AlignBoundaryControls[akRight] := ChildData;
         alClient: ; // Delphi compatibility: multiple alClient controls overlap
+        else
+          NoOp
       end;
       {DebugLn(['DoAlign AlignBoundaryControls:',
         ' Left=',DbgSName(AlignBoundaryControls[akLeft].Control),
@@ -551,8 +553,8 @@ type
             //DebugLn(['ComputePosition ',DbgSName(Child),' Side=',dbgs(Side),' parent anchored, Direction=',AutoSizeSideDistDirectionNames[Direction],'  => assdfUncomputable']);
             ChildData.Sides[Side].DistanceState[Direction]:=assdfUncomputable;
           end;
-        else
-          RaiseGDBException('');
+        //else  //Warning: (6018) Unreachable code
+        //  RaiseGDBException('');
         end;
       end else begin
         // this side is anchored to a sibling
@@ -1348,12 +1350,13 @@ procedure TAutoSizeCtrlData.WriteDebugReport(const Title, Prefix: string;
 
   function GetDistance(a: TAnchorKind; d: TAutoSizeSideDistDirection): string;
   begin
+    Result:='???';  //fixes Warning: (6018) Unreachable code
     case Sides[a].DistanceState[d] of
     assdfInvalid: Result:='invalid';
     assdfComputing: Result:='computing';
     assdfUncomputable: Result:='uncomputable';
     assdfValid: Result:=dbgs(Sides[a].Distance[d]);
-    else Result:='???';
+    //else Result:='???';   //Warning: (6018) Unreachable code
     end;
   end;
   
@@ -1561,6 +1564,8 @@ begin
         ChildBox.SetControl(ChildControl);
         ChildBox.ApplyChildsizingBorders(ChildSizing);
       end;
+    else
+      NoOp
     end;
   end;
 end;
@@ -1864,6 +1869,8 @@ var
                     CurOffset := double(RemainingTargetSize) / (ChildCount[Orientation] - NonResizeableCount);
                   CurScale := 0;
                 end;
+              else
+                NoOp
             end;
             for i:=0 to ChildCount[Orientation]-1 do begin
               Child:=Children[Orientation][i];
@@ -1947,6 +1954,8 @@ var
             Child.BorderRightBottom[Orientation]:=NewSize;
           end;
         end;
+      else
+        NoOp
     end;
   end;
 
@@ -2028,6 +2037,8 @@ var
                     CurOffset := double(RemainingTargetSize) / (ChildCount[Orientation] - NonResizeableCount);
                   CurScale := 0;
                 end;
+              else
+                NoOp
             end;
             for i:=0 to ChildCount[Orientation]-1 do begin
               Child:=Children[Orientation][i];
@@ -2154,6 +2165,8 @@ var
             Child.BorderRightBottom[Orientation]:=NewSize;
           end;
         end;
+      else
+        NoOp
     end;
   end;
 
@@ -3072,6 +3085,8 @@ var
         AlignInfo.ControlIndex := AControlIndex;
         CustomAlignPosition(Control, NewLeft, NewTop, NewWidth, NewHeight, RemainingClientRect, AlignInfo);
       end;
+      else
+        NoOp
     end;
     
     // apply the constraints
@@ -3158,6 +3173,8 @@ var
           // reduce overhead.
           // See bug 10380.
         end;
+      else
+        NoOp
     end;
 
     {$IFDEF CHECK_POSITION}
@@ -5562,6 +5579,8 @@ begin
         dec(NewBounds.Right, Client.Width);
       alBottom:
         dec(NewBounds.Bottom, Client.Height);
+      else
+        NoOp
     end;
     SetBoundsKeepBase(NewBounds.Left, NewBounds.Top,
                       NewBounds.Right - NewBounds.Left,

@@ -44,11 +44,14 @@ end;
 function LazQuestionDialogAb(const aCaption, aMsg: string;
   DlgType: TMsgDlgType; Buttons: array of const;
   HideAbort: boolean; const HelpKeyword: string): Integer;
+type
+  TVarRecArray = array of TVarRec;
 var
-  NewButtons: array of TVarRec;
+  NewButtons: TVarRecArray;
   i: Integer;
   j: Integer;
 begin
+  NewButtons:= Default(TVarRecArray); //fixes Hint: (5091) Local variable "NewButtons" of a managed type does not seem to be initialized
   SetLength(NewButtons{%H-},High(Buttons)-Low(Buttons)+1);
   i:=low(Buttons);
   j:=0;

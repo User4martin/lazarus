@@ -877,6 +877,14 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TSynEditBase }
 
 constructor TSynEditBase.Create(AOwner: TComponent);
@@ -1033,6 +1041,8 @@ begin
     case Side of
       bsLeft:  if not IsMatching(FCurrentStartX, FStartX) then exit(clNone);
       bsRight: if not IsMatching(FCurrentEndX,   FEndX)   then exit(clNone);
+    else
+      NoOp
     end;
 
   if (Side in SynFrameEdgeToSides[FrameEdges])
@@ -1060,6 +1070,8 @@ begin
     case Side of
       bsLeft:  if not IsMatching(FCurrentStartX, FStartX) then exit(0);
       bsRight: if not IsMatching(FCurrentEndX,   FEndX)   then exit(0);
+    else
+      NoOp
     end;
 
   if (Side in SynFrameEdgeToSides[FrameEdges])
@@ -1485,6 +1497,8 @@ begin
        // startX ?
         SetSide(sscFrameLeft, bsLeft, Other);
       end;
+    else
+      NoOp
   end;
 end;
 
@@ -3421,6 +3435,8 @@ begin
           afmNil:    Result := nil;
           afmPrev:   Result := Restore; // Precessor
           //afmNext:   Result := ; //already contains next node
+          else
+            NoOp
         end;
         break;
       end;
@@ -3444,6 +3460,8 @@ begin
           afmNil:    Result := nil;
           afmNext:   Result := Restore; // Successor
           //afmPrev :  Result := ; //already contains prev node
+        else
+          NoOp
         end;
         break;
       end;

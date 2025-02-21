@@ -865,8 +865,8 @@ end;
 
 procedure TPOFile.ReadPOText(AStream: TStream);
 var
-  Size: Integer;
-  s: string;
+  Size: Integer = 0;
+  s: String = ''; //fixes Hint: (5091) Local variable "s" of a managed type does not seem to be initialized
 begin
   Size:=AStream.Size-AStream.Position;
   if Size<=0 then exit;

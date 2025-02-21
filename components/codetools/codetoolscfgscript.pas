@@ -295,6 +295,14 @@ function dbgs(const V: PCTCfgScriptVariable): string; overload;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure RenameCTCSVariable(var Src: string; const OldName, NewName: string);
 var
   p: PChar;
@@ -1021,6 +1029,7 @@ end;
 
 function GetCTCSVariableAsString(const V: PCTCfgScriptVariable): string;
 begin
+  Result:= EmptyStr;
   {$IFDEF CheckCTCfgVars}
   CheckCTCSVariable(V);
   {$ENDIF}
@@ -1033,7 +1042,6 @@ begin
         System.Move(V^.StrStart^,Result[1],length(Result));
     end;
   ctcsvNumber: Result:=IntToStr(V^.Number);
-  else Result:='';
   end;
 end;
 
@@ -1589,6 +1597,7 @@ var
   FunctionName: PChar;
 begin
   Result:=false;
+  Value:= Default(TCTCfgScriptVariable);
   FunctionName:=AtomStart;
   StartTop:=FStack.Top;
   ReadRawNextPascalAtom(Src,AtomStart,nil,false,true);
@@ -2197,6 +2206,8 @@ begin
           ctcsoAnd: b:=b and CTCSVariableIsTrue(@OperandItem^.Operand);
           ctcsoOr:  b:=b or CTCSVariableIsTrue(@OperandItem^.Operand);
           ctcsoXOr: b:=b xor CTCSVariableIsTrue(@OperandItem^.Operand);
+          else
+            NoOp
           end;
           FStack.Pop;
         end;
@@ -2227,6 +2238,8 @@ begin
               b:=(not OperandsEqual) and not LeftIsLowerThanRight;
             ctcsoGreaterOrEqualThan:
               b:=OperandsEqual or not LeftIsLowerThanRight;
+            else
+              NoOp
             end;
           end;
           {$IFDEF VerboseCTCfgScript}
@@ -2283,12 +2296,14 @@ end;
 function TCTConfigScriptEngine.IsCustomFunction(FunctionName: PChar): boolean;
 begin
   Result:=false;
+  FunctionName:= FunctionName; //fixes Hint: (5024) Parameter "FunctionName" not used
 end;
 
 procedure TCTConfigScriptEngine.RunCustomSimpleFunction(FunctionName: PChar;
   Value: PCTCfgScriptVariable);
 begin
-
+  FunctionName:= FunctionName; //fixes Hint: (5024) Parameter "FunctionName" not used
+  Value:= Value; //fixes Hint: (5024) Parameter "Value" not used
 end;
 
 constructor TCTConfigScriptEngine.Create;

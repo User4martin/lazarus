@@ -1869,9 +1869,9 @@ begin
     fitSingular             : Result := rsErrFitSingular;
     fitNoBaseFunctions      : Result := rsErrFitNoBaseFunctions;
     fitOverflow             : Result := rsErrNumericalOverflow;
-  else
-    raise EChartError.CreateFmt('[%s.ErrorMsg] No message text assigned to error code #%d.',
-      [NameOrClassName(self), ord(ErrCode)]){%H-};
+  //else    //Warning: (6018) Unreachable code
+  //  raise EChartError.CreateFmt('[%s.ErrorMsg] No message text assigned to error code #%d.',
+  //    [NameOrClassName(self), ord(ErrCode)]){%H-};
   end;
 end;
 
@@ -2003,6 +2003,7 @@ function TFitSeries.FitParams: TDoubleDynArray;
 var
   i: Integer;
 begin
+  Result:= Default(TDoubleDynArray);
   SetLength(Result{%H-}, ParamCount);
   for i := 0 to High(Result) do
     Result[i] := Param[i];

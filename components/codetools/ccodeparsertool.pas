@@ -2000,7 +2000,7 @@ end;
 function TCCodeParserTool.ExtractCode(StartPos, EndPos: integer;
   WithDirectives: boolean): string;
 var
-  s: string;
+  s: string = '';
   p: integer;
 
   procedure ReadIt;

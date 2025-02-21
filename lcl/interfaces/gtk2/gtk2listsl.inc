@@ -51,6 +51,7 @@ var
   LCLList: TGtkListStringList;
 begin
   Result:=true;
+  Msg:= Default(TLMDrawListItem); //Hint: (5057) Local variable "Msg" does not seem to be initialized
 
   //DebugLn('gtkListItemDrawCB ');
 

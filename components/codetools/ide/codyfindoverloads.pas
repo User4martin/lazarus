@@ -213,6 +213,7 @@ implementation
 
 procedure ShowFindOverloadsClicked(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   ShowFindOverloads;
 end;
 
@@ -246,6 +247,7 @@ end;
 
 procedure TCodyFindOverloadsWindow.FormCreate(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   AbortParsing;
   FProcList:=TObjectList.Create(true);
 
@@ -265,6 +267,7 @@ end;
 
 procedure TCodyFindOverloadsWindow.FormDestroy(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   FreeAndNil(FProcList);
 end;
 
@@ -277,6 +280,7 @@ end;
 procedure TCodyFindOverloadsWindow.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   AbortParsing;
   FreeUsesGraph;
 end;

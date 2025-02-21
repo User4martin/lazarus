@@ -382,6 +382,13 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 type
   TBlockKeyword = (bkwNone, bkwBegin, bkwAsm, bkwTry, bkwCase, bkwRepeat,
@@ -2689,6 +2696,8 @@ var
         lfmnProperty:
           if not ContextIsDefault then
             CheckLFMProperty(TLFMPropertyNode(CurLFMNode),ClassContext);
+        else
+          NoOp
       end;
       CurLFMNode:=CurLFMNode.NextSibling;
     end;
@@ -3492,7 +3501,8 @@ begin
         ReadTilBracketClose(true);
         CurrentToken:=GetCurrentTokenType;
       end;
-      
+    else
+      NoOp
     end;
   until false;
 
@@ -3545,7 +3555,8 @@ begin
         ReadBackTilBracketOpen(true);
         CurrentToken:=GetCurrentTokenType;
       end;
-
+    else
+      NoOp
     end;
   until false;
   
@@ -3827,6 +3838,8 @@ begin
       end;
     cafRoundBracketOpen,cafEdgedBracketOpen:
       ReadTilBracketCloseOrUnexpected(true,[]);
+    else
+      NoOp
     end;  // UpAtomIs('APPLICATION')
   until (CurPos.StartPos>SrcLen);
   // The statement was not found. Return a good place for insertion.
@@ -5607,6 +5620,7 @@ var
 
   procedure InitStack(out Stack: TBlockStack);
   begin
+    Stack:= Default(TBlockStack);
     FillByte(Stack{%H-},SizeOf(Stack),0);
     Stack.Top:=-1;
   end;
@@ -6106,6 +6120,8 @@ var
                 end;
                 break;
               end;
+            else
+              NoOp
             end;
           end else if UpAtomIs('PROCEDURE') or UpAtomIs('FUNCTION')
           or UpAtomIs('CONSTRUCTOR') or UpAtomIs('DESTRUCTOR')
@@ -6123,6 +6139,8 @@ var
             break;
           end;
         end;
+      else
+        NoOp
       end;
 
       // check if line start
@@ -6374,6 +6392,7 @@ var
   CommentStart, CommentEnd: integer;
 begin
   Result:=false;
+  Stack:= Default(TBlockStack);
   NewPos:=CursorPos;
   NewTopLine:=-1;
   BuildTreeAndGetCleanPos(trTillCursor,lsrEnd,CursorPos,CleanCursorPos,
@@ -7021,7 +7040,8 @@ begin
             Result:=true;
             exit;
           end;
-          
+        else
+          NoOp
         end;
       end
       else

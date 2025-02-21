@@ -46,6 +46,13 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 { TFormFileConverter }
 
@@ -159,6 +166,8 @@ begin
     end;
     lfmnProperty:
       DoProperty(TLFMPropertyNode(CurNode), GrandParType, ParentType);
+    else
+      NoOp
     end;
     CurNode:=CurNode.NextSibling;
   end;

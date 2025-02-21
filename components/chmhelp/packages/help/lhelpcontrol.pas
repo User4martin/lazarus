@@ -90,6 +90,14 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TLHelpConnection }
 
 function TLHelpConnection.WaitForMsgResponse: TLHelpResponse;
@@ -318,6 +326,8 @@ begin
       mrShow: ;  //no arguments required
       mrVersion:
         MiscRequest.FileRequest.FileName := PROTOCOL_VERSION+#0;
+    else
+      NoOp
     end;
     try
       Stream.Write(MiscRequest, SizeOf(MiscRequest));

@@ -27,7 +27,7 @@ unit CairoCanvas;
 interface
 
 uses
-  Types, SysUtils, Classes, Math,
+  LazLogger, Types, SysUtils, Classes, Math,
   // LCL
   Printers, LCLType, LCLProc, Graphics,
   // LazUtils
@@ -203,6 +203,14 @@ const
   Dash_DashDot:     array [0..3] of double = (9, 6, 3, 6);        //__ . __ .
   Dash_DashDotDot:  array [0..5] of double = (9, 3, 3, 3, 3, 3);  //__ . . __
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function WriteToStream(closure: Pointer; data: PByte; length: LongWord): cairo_status_t; cdecl;
 var
   Stream: TStream absolute closure;
@@ -299,7 +307,9 @@ begin
   // make it flat until a solution is found
   {%H-}case Pen.Style of
     psDash, psDot, psDashDot, psDashDotDot:
-      cap := CAIRO_LINE_CAP_BUTT
+      cap := CAIRO_LINE_CAP_BUTT;
+  else
+    NoOp
   end;
   cairo_set_line_cap(cr, cap);
 
@@ -532,9 +542,9 @@ var
 begin
   cairo_get_current_point(cr, @x, @y);
   cairo_get_matrix(cr, @matrix);
-  DebugLn('CurPoint:  x=%f y=%f',[x, y]);
+  DebugLogger.DebugLn('CurPoint:  x=%f y=%f',[x, y]); //fixes Warning: (5066) Symbol "DebugLn" is deprecated: "Use DebugLogger.DebugLn instead"
   with matrix do
-    DebugLn('CurMatrix: xx=%f yx=%f xy=%f yy=%f x0=%f y0=%f',[xx,yx,xy,yy,x0,y0]);
+    DebugLogger.DebugLn('CurMatrix: xx=%f yx=%f xy=%f yy=%f x0=%f y0=%f',[xx,yx,xy,yy,x0,y0]);
 end;
 
 procedure TCairoPrinterCanvas.SetLazClipRect(r: TRect);
@@ -1196,6 +1206,8 @@ begin
         {%H-}case Style.Alignment of
           taCenter:       x := BoxWidth/2 - logical.width/PANGO_SCALE/2;
           taRightJustify: x := BoxWidth - logical.Width/PANGO_SCALE;
+          else
+            NoOp
         end;
       end;
       cairo_move_to(cr, x, y);
@@ -1255,6 +1267,7 @@ function TCairoPrinterCanvas.GetTextMetrics(out M: TLCLTextMetric): boolean;
 var
   e: cairo_font_extents_t;
 begin
+  M:= Default(TLCLTextMetric); //fixes Hint: (5058) Variable "M" does not seem to be initialized
   RequiredState([csHandleValid, csFontValid]);
   SelectFont;
   cairo_font_extents(cr, @e); //transformation matrix is here ignored
@@ -1456,7 +1469,7 @@ begin
 
   if (fStream=nil) and not FileExists(FOutputFileName) then
   begin
-    DebugLn('Error: unable to write cairo ps to "'+FOutputFileName+'"');
+    DebugLogger.DebugLn('Error: unable to write cairo ps to "'+FOutputFileName+'"');
     DestroyCairoHandle;
     exit(0);
   end;
@@ -1497,6 +1510,8 @@ begin
   {%H-}case Pen.Mode of
     pmXor: cairo_set_operator(cr, CAIRO_OPERATOR_XOR);
     pmNotXor: cairo_set_operator(cr, CAIRO_OPERATOR_XOR);
+    else
+      NoOp
   end;
 end;
 

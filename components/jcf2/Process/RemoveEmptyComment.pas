@@ -95,9 +95,9 @@ begin
     end;
     eBracketStar, eCompilerDirective: ; // always leave these
     eNotAComment: ; // this is not a comment
-    else
-      // should not be here
-      Assert(False);
+    //else //Warning: (6018) Unreachable code
+    //  // should not be here
+    //  Assert(False);
   end;
 end;
 

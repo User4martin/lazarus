@@ -5,7 +5,7 @@ unit TestInsightServer;
 interface
 
 uses
-  Classes, SysUtils, types, httpdefs, syncobjs, fphttpserver, fpJSON, testinsightprotocol;
+  Classes, SysUtils, types, httpdefs, {syncobjs,} fphttpserver, fpJSON, testinsightprotocol;
 
 {$IF DECLARED(TCORSSUPPORT)}
 {$DEFINE USECORS}
@@ -394,6 +394,7 @@ Var
 
 
 begin
+  Result:= Default(TTestInsightResultArray); //fixes Warning: (5093) Function result variable of a managed type does not seem to be initialized
   aLen:=0;
   SetLength(Result,anArray.Count);
   For I:=0 to anArray.Count-1 do

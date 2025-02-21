@@ -855,6 +855,13 @@ type
     function MapLevel(ALvl: Integer): integer;
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 procedure LvlGraphMinimizeCrossings(Graph: TLvlGraph);
 var
@@ -997,6 +1004,7 @@ var
   ch: TChannel;
   i: Integer;
 begin
+  Result:= Default(TLazCtrlPalette); //fixes Warning: (5093) Function result variable of a managed type does not seem to be initialized
   SetLength(Result{%H-},Cnt);
   if Cnt=0 then exit;
   for ch:=Low(TChannel) to High(TChannel) do
@@ -1101,6 +1109,7 @@ var
   Node: TLvlGraphNode;
   i: Integer;
 begin
+  Result:= Default(TLvlGraphNodeArray); //fixes Warning: (5093) Function result variable of a managed type does not seem to be initialized
   if Nodes=nil then begin
     SetLength(Result{%H-},0);
     exit;
@@ -2678,6 +2687,8 @@ begin
         Canvas.Rectangle(x, y, x+NodeStyle.Width, y+Node.DrawSize);
       lgnsEllipse:
         Canvas.Ellipse(x, y, x+NodeStyle.Width, y+Node.DrawSize);
+      else
+        NoOp
       end;
 
       // draw image and overlay
@@ -2924,13 +2935,15 @@ end;
 
 procedure TCustomLvlGraphControl.DoAutoLayoutLevels(TxtHeight: integer);
 // compute all Levels.DrawPosition
+type TIntegerArray = array of integer;
 var
   j: Integer;
   p: Integer;
   i: Integer;
-  LevelTxtWidths: array of integer;
+  LevelTxtWidths: TIntegerArray;
   Level: TLvlGraphLevel;
 begin
+  LevelTxtWidths:= Default(TIntegerArray); //fixes Hint: (5091) Local variable "LevelTxtWidths" of a managed type does not seem to be initialized
   Canvas.Font.Height:=round(single(TxtHeight)*NodeStyle.CaptionScale+0.5);
   if Graph.LevelCount=0 then exit;
   SetLength(LevelTxtWidths{%H-},Graph.LevelCount);
@@ -3345,6 +3358,8 @@ begin
     case NodeStyle.CaptionPosition of
     lgncTop: GapInFront+=TxtH;
     lgncBottom: GapBehind+=TxtH;
+    else
+      NoOp
     end;
 
     // scale Nodes.DrawSize
@@ -3935,15 +3950,18 @@ var
 
       ExtAdjustNode.InPath := False;
     end;
+  type
+    TGraphLevelerNodeArray= array of TGraphLevelerNode;
   var
     AVLNode: TAVLTreeNode;
     ExtNode, ExtTargetNode: TGraphLevelerNode;
     Node: TLvlGraphNode;
     LvlIdx, LowerLvl, BackEdgeCnt, TotalBackEdgeCnt: Integer;
     i, c, j, BestLvl: integer;
-    BackEdgeList: array of TGraphLevelerNode;
+    BackEdgeList: TGraphLevelerNodeArray;
     SiblingOnLvl: Boolean;
   begin
+    BackEdgeList:= Default(TGraphLevelerNodeArray);
     SetLength(BackEdgeList{%H-}, NodeCount);
     MaybeReduceMaxLevel := False;
     AVLNode := ExtNodes.FindLowest;
@@ -4525,6 +4543,8 @@ begin
           case SplitMode of
           lgesMergeTarget: MergeAtSourceNode:=false;
           lgesMergeHighest: MergeAtSourceNode:=SourceInfo^.LongOutEdges>=TargetInfo^.LongInEdges;
+          else
+            NoOp
           end;
           //debugln(['TLvlGraph.SplitLongEdges ',SourceNode.Caption,'=',SourceInfo^.LongOutEdges,' ',TargetNode.Caption,'=',TargetInfo^.LongInEdges,' MergeAtSourceNode=',MergeAtSourceNode]);
           if MergeAtSourceNode then

@@ -940,12 +940,13 @@ var
 
 function dbgs(SiteType: TAnchorDockHostSiteType): string; overload;
 begin
+  Result:='?'; //fixes Warning: (6018) Unreachable code
   case SiteType of
   adhstNone: Result:='None';
   adhstOneControl: Result:='OneControl';
   adhstLayout: Result:='Layout';
   adhstPages: Result:='Pages';
-  else Result:='?'{%H-};
+  //else Result:='?'{%H-};   //Warning: (6018) Unreachable code
   end;
 end;
 

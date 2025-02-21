@@ -301,6 +301,7 @@ function CreateBuildMatrixOptionGUID: string;
 var
   i: Integer;
 begin
+  Result:= EmptyStr;
   SetLength(Result{%H-},12);
   for i:=1 to length(Result) do
     Result[i]:=chr(ord('0')+random(10));
@@ -716,7 +717,7 @@ function TBuildMatrixOption.GetModesSeparatedByComma(
 var
   p, StartP: PChar;
   l: SizeInt;
-  CurMode: string;
+  CurMode: String = '';
   i: Integer;
 begin
   Result:='';

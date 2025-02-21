@@ -483,6 +483,7 @@ var
   i: Integer;
   L: SizeUInt;
 begin
+  u:= Default(UnicodeString);
   Result := p^ in ['a'..'z','A'..'Z','0'..'9','_'];
   if Result then exit;
   if p^ <= #127 then exit;
@@ -1199,6 +1200,7 @@ procedure TSynBaseCompletionForm.FontChanged(Sender: TObject);
 var
   TextMetric: TTextMetric;
 begin
+  TextMetric:= Default(TTextMetric);
   inc(FResizeLock);   // prevent DoResize from recalculating NbLinesInWindow
   try
     inherited;

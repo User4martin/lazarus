@@ -2086,10 +2086,13 @@ end;
 
 procedure TLazPagedListObjBase.SwapPagesUp(ASourceStartIndex, ATargetStartIndex,
   ATargetEndIndex: Integer);
+type
+  TPageTypeArray = Array of TPageType;
 var
   Cnt, Diff: Integer;
-  TempPages: Array of TPageType;
+  TempPages: TPageTypeArray;
 begin
+  TempPages:= Default(TPageTypeArray); //fixes Hint: (5091) Local variable "TempPages" of a managed type does not seem to be initialized
   Cnt := ATargetEndIndex - ATargetStartIndex + 1;
   Diff := ATargetStartIndex - ASourceStartIndex;
   assert(Diff > 0, 'TLazPagedListObjBase.MoveRows: Diff > 0');
@@ -2109,10 +2112,13 @@ end;
 
 procedure TLazPagedListObjBase.SwapPagesDown(ASourceStartIndex, ATargetStartIndex,
   ATargetEndIndex: Integer);
+type
+  TPageTypeArray = Array of TPageType;
 var
   Cnt, Diff: Integer;
-  TempPages: Array of TPageType;
+  TempPages: TPageTypeArray;
 begin
+  TempPages:= Default(TPageTypeArray); //fixes Hint: (5091) Local variable "TempPages" of a managed type does not seem to be initialized
   Cnt := ATargetEndIndex - ATargetStartIndex + 1;
   Diff := ASourceStartIndex - ATargetStartIndex;
   assert(Diff > 0, 'TLazPagedListObjBase.MoveRows: Diff > 0');

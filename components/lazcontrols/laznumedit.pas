@@ -5,7 +5,7 @@ unit LazNumEdit;
 interface
 
 uses
-  Classes, SysUtils, Math, StdCtrls, LCLType, Controls, Clipbrd, StrUtils;
+  Classes, SysUtils, Math, StdCtrls, LCLType, Controls, Clipbrd{, StrUtils};
 
 (* Since generics can not override anythning, the specialized class must do this
    and redirect the calls
@@ -536,8 +536,8 @@ const
 var
   Utf8Key: TUtf8Char;
   p: String;
-  v: Int64;
-  e: integer;
+  v: Int64 = 0;   //fixes Warning: (5036) Local variable "v" does not seem to be initialized
+  e: Integer = 0; //fixes Warning: (5036) Local variable "e" does not seem to be initialized
   s: TCaption;
   sgn, SelS, SelE: Integer;
   k: Char;

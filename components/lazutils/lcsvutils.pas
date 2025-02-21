@@ -27,6 +27,14 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 const
   BUFSIZE=1024;
   MAXGROW = 1 shl 29;
@@ -168,7 +176,7 @@ var
 
   procedure ConvertEncoding;
   var
-    W: WideString;
+    W: WideString = ''; //fixes Hint: (5091) Local variable "W" of a managed type does not seem to be initialized
   begin
     if (CSVEncoding=ceAuto) and (BufLen>1) then begin
       if (leadPtr[0]=#$FF) and (leadPtr[1]=#$FE) then begin
@@ -203,6 +211,8 @@ var
           leadPtr := @Buffer[1];
           tailPtr := leadPtr+length(Buffer);
         end;
+      else
+        NoOp
     end;
   end;
 

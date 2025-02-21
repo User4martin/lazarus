@@ -231,6 +231,13 @@ const
     ));
 
 { funcs }
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 procedure SetDefaultFont(AFont: TFont; Layout: TCalculatorLayout);
 begin
@@ -651,6 +658,8 @@ begin
     cbCancel:
         if Assigned(FOnCancel) then
           FOnCancel(Self);
+  else
+    NoOp
   end;
 end;
 

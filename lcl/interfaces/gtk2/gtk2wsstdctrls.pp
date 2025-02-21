@@ -486,6 +486,7 @@ var
   AGdkRect: TGdkRectangle;
 begin
   Result := False;
+  AGdkRect:= Default(TGdkRectangle); //fixes Hint: (5057) Local variable "AGdkRect" does not seem to be initialized
   FillChar(ARect, SizeOf(ARect), 0);
   if not WSCheckHandleAllocated(ACustomListBox, 'GetItemIndex') then
     Exit;
@@ -728,6 +729,7 @@ var
   Mess: TLMessage;
 begin
   Result := CallBackDefaultReturn;
+  Mess:= Default(TLMessage); //Hint: (5057) Local variable "Mess" does not seem to be initialized
   if WidgetInfo^.ChangeLock > 0 then
     Exit;
   {$IFDEF EventTrace}
@@ -1112,6 +1114,7 @@ var
   Widget: PGtkWidget;
   Mess : TLMessage;
 begin
+  Mess := Default(TLMessage); //Hint: (5057) Local variable "Mess" does not seem to be initialized
   if not WSCheckHandleAllocated(AWinControl, 'SetText') then
     Exit;
   if TCustomEdit(AWinControl).NumbersOnly and not IsNumeric(AText) then
@@ -1154,6 +1157,7 @@ var
   SelStart: Integer;
   Mess : TLMessage;
 begin
+  Mess := Default(TLMessage); //Hint: (5057) Local variable "Mess" does not seem to be initialized
   if not WSCheckHandleAllocated(ACustomEdit, 'SetSelText') then
     Exit;
   if ACustomEdit.NumbersOnly and not IsNumeric(NewSelText) then
@@ -1626,6 +1630,7 @@ var
   AMenu: PGtkWidget;
   ComboBox: TCustomComboBox;
 begin
+  AValue:= Default(TGValue); //fixes Hint: (5057) Local variable "AValue" does not seem to be initialized
   if pspec^.name = 'popup-shown' then
   begin
     LCLSendSetFocusMsg(TControl(WidgetInfo^.LCLObject));
@@ -1824,6 +1829,7 @@ var
   Combo: PGtkComboBox;
   AValue: TGValue;
 begin
+  AValue:= Default(TGValue); //Hint: (5057) Local variable "AValue" does not seem to be initialized
   WidgetInfo := GetWidgetInfo({%H-}Pointer(ACustomComboBox.Handle));
   Combo := PGtkComboBox(WidgetInfo^.CoreWidget);
 

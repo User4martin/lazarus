@@ -292,6 +292,14 @@ type
   end;
   PUnitFile = ^TUnitFile;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure BMLazConfMacroFunction(var s: string);
 begin
   if not GlobalMacroList.SubstituteStr(s) then
@@ -1977,6 +1985,8 @@ begin
         BackupFilename:=FileNameOnly+FileExt+'.'+BackupInfo.AdditionalExtension;
       bakSameName:
         BackupFilename:=FileNameOnly+FileExt;
+    else
+      NoOp
     end;
     if BackupInfo.SubDirectory<>'' then
       BackupFilename:=AppendPathDelim(SubDir)+BackupFilename

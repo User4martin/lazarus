@@ -1231,8 +1231,8 @@ begin
       Result :='$I';
     ppInclude:
       Result :='$INCLUDE';
-    else
-      Assert(False);
+    //else           //Warning: (6018) Unreachable code
+    //  Assert(False);
   end;
 end;
 

@@ -5336,7 +5336,9 @@ var
   DestroyDriver: Boolean;
   Writer: TWriter;
   ACaption, AText: string;
-  CompResourceCode, LFMFilename, TestFilename: string;
+  CompResourceCode: String = '';  //fixes Hint: (5091) Local variable "CompResourceCode" of a managed type does not seem to be initialized
+  LFMFilename: String = '';
+  TestFilename: String = '';
   ADesigner: TIDesigner;
   Grubber: TLRJGrubber;
   LRJFilename: String;

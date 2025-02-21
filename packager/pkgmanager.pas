@@ -420,6 +420,14 @@ implementation
 const
   constNewPackageName = 'NewPackage'; //must be valid Pascal identifier, thus should not be allowed to be translated
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TPkgManager }
 
 procedure TPkgManager.MainIDEitmPkgOpenPackageFileClick(Sender: TObject);
@@ -2450,6 +2458,8 @@ var
         MergeSearchPaths(NewUnitPaths,NewDir);
       pftInclude:
         MergeSearchPaths(NewIncPaths,NewDir);
+      else
+        NoOp
       end;
     end;
     // unit paths

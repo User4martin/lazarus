@@ -141,6 +141,14 @@ var
   CompTableSensitive: TByteArray256;
   CompTableNoneSensitive: TByteArray256;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure MakeCompTable;
 var
   I: Char;
@@ -318,6 +326,8 @@ begin
           begin
             Case fWhole of
               True: if not TestWholeWord then break;
+            else
+              NoOp
             end;
             inc(fCount);
             Result := Run - Origin - Patlen + 2;

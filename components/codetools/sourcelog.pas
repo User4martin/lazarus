@@ -290,6 +290,7 @@ end;
 function TSourceLog.GetLine(Index: integer; WithLineEnd: boolean): string;
 var LineLen: integer;
 begin
+  Result:= EmptyStr;
   BuildLineRanges;
   if (Index>=0) and (Index<fLineCount) then begin
     if WithLineEnd then begin
@@ -741,7 +742,7 @@ end;
 
 function TSourceLog.LoadFromFile(const Filename: string): boolean;
 var
-  s: string;
+  s: string = '';
   fs: TFileStream;
   p: Integer;
 begin
@@ -842,6 +843,7 @@ var
   StartPos: Integer;
   EndPos: Integer;
 begin
+  Result:= EmptyStr;
   BuildLineRanges;
   if StartLine<1 then StartLine:=1;
   if EndLine>LineCount then EndLine:=LineCount;

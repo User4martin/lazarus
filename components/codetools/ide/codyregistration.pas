@@ -99,6 +99,7 @@ var
   ViewCodyWindowCommand: TIDECommand;
   CmdCatSearchReplace: TIDECommandCategory;
 begin
+  ViewCodyWindowCommand:= Default(TIDECommand); //fixes Warning: (5036) Local variable "ViewCodyWindowCommand" does not seem to be initialized
   CodyOptions:=TCodyMiscOptions.Create;
   CodyOptions.LoadSafe;
 

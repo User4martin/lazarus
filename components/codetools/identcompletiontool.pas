@@ -602,6 +602,7 @@ var
   Item1: TIdentifierListItem absolute Data1;
   Item2: TIdentifierListItem absolute Data2;
 begin
+  Tree:= Tree; //fixes Hint: (5024) Parameter "Tree" not used
 
   if SortMethodForCompletion in IdentComplSortMethodUsingCompatibility then begin
     // first sort for Compatibility  (lower is better)
@@ -1365,12 +1366,12 @@ var
   Node: TCodeTreeNode;
   ProtectedForeignClass: Boolean;
   Lvl: LongInt;
-  NamePos: TAtomPosition;
+  //NamePos: TAtomPosition;
   HasLowerVisibility: Boolean;
   IsDottedIdent: Boolean;
   PlaceForDotted: string;
-  PlaceForNamespace: string;
-  i: integer;
+  //PlaceForNamespace: string;
+  //i: integer;
 begin
   // proceed searching ...
   Result:=ifrProceedSearch;
@@ -2725,6 +2726,7 @@ function TIdentCompletionTool.CollectAttributeConstructors(
   ): TIdentifierFoundResult;
 begin
   Result:=ifrProceedSearch;
+  Params:= Params; //fixes Hint: (5024) Parameter "Params" not used
   if FoundContext.Node=nil then exit;
   {$IFDEF VerboseCodeContext}
   //DebugLn(['TIdentCompletionTool.CollectAttributeConstructors ',FoundContext.Node.DescAsString]);
@@ -4331,6 +4333,7 @@ end;
 procedure TIdentifierListItem.BeautifyIdentifier(IdentList: TIdentifierList);
 begin
   // can be overridden
+  IdentList:= IdentList; //fixes Hint: (5024) Parameter "IdentList" not used
 end;
 
 function TIdentifierListItem.GetDesc: TCodeTreeNodeDesc;

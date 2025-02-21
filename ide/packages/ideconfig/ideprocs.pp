@@ -464,6 +464,7 @@ var
   {$ENDIF}
 begin
   Result := False;
+  OldInfo:= Default(Stat); //fixes Hint: (5057) Local variable "OldInfo" does not seem to be initialized
 
   // store file attributes
   {$IF defined(MSWindows) or defined(HASAMIGA)}

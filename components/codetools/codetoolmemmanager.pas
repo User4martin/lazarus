@@ -112,6 +112,7 @@ end;
 
 procedure TCodeToolMemManager.DisposeItem(AnItem: PCodeToolMemManagerItem);
 begin
+  AnItem:= AnItem; //fixes Hint: (5024) Parameter "AnItem" not used
   if (FFreeCount<FMinFree) or (FFreeCount<((FCount shr 3)*FMaxFreeRatio)) then
   begin
     // add ANode to Free list

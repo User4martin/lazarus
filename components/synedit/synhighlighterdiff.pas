@@ -558,6 +558,7 @@ end;
 
 function TSynDiffSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
+  Result := nil; //fixes Warning: (6018) Unreachable code
   case fTokenID of
     tkNull:            Result := FUnknownAttri;
     tkUnknown:         Result := FUnknownAttri;
@@ -581,7 +582,7 @@ begin
     tkLineAdded:       Result := FLineAddedAttri;
     tkLineChanged:     Result := FLineChangedAttri;
     tkLineContext:     Result := FLineContextAttri;
-    else Result := nil;
+    //else Result := nil; Warning: (6018) Unreachable code
   end;
 end;
 

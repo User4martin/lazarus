@@ -163,11 +163,11 @@ begin
       begin
         AssertBreaketStarCommentBalanced(pcNode);
       end;
-    else
-      begin
-        // should not be here
-        Assert(False);
-      end;
+    //else        //Warning: (6018) Unreachable code
+    //  begin
+    //    // should not be here
+    //    Assert(False);
+    //  end;
     end;
   except
     on E: TEParseError do

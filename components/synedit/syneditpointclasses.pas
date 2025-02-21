@@ -653,6 +653,14 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TSynBeforeSetSelTextList }
 
 procedure TSynBeforeSetSelTextList.CallBeforeSetSelTextHandlers(Sender: TObject;
@@ -1876,17 +1884,20 @@ function TSynEditSelection.GetSelText : string;
     Inc(P, Len);
   end;
 
-
+type
+  TIntegerArray = array of Integer;
 var
   First, Last, TotalLen: Integer;
   ColFrom, ColTo: Integer;
   I: Integer;
   P: PChar;
   C1, C2: Integer;
-  Col, Len: array of Integer;
+  Col, Len: TIntegerArray;
 
 begin
   Result := '';
+  Col:= Default(TIntegerArray); //fixes Hint: (5091) Local variable "Col" of a managed type does not seem to be initialized
+  Len:= Default(TIntegerArray);
   if SelAvail then
   begin
     if IsBackwardSel then begin
@@ -1980,6 +1991,8 @@ begin
           if Last < FLines.Count - 1 then
             CopyAndForward(LineEnding, 1, MaxInt, P);
         end;
+        else
+         NoOp
     end;
   end;
 end;
@@ -2310,6 +2323,8 @@ var
           // Column deletion never removes a line entirely,
           // so no (vertical) mark updating is needed here.
         end;
+      else
+        NoOp
     end;
   end;
 
@@ -2376,7 +2391,7 @@ var
 
     function InsertColumn: Integer;
     var
-      Str: string;
+      Str: String = ''; //fixes Hint: (5057) Local variable "Str" does not seem to be initialized
       Start: PChar;
       P: PChar;
     begin
@@ -2409,7 +2424,7 @@ var
     var
       Start: PChar;
       P: PChar;
-      Str: string;
+      Str: String = ''; //Hint: (5057) Local variable "Str" does not seem to be initialized
     begin
       Result := 0;
       FInternalCaret.CharPos := 1;
@@ -2460,6 +2475,8 @@ var
         InsertColumn;
       smLine:
         InsertLine;
+      else
+        NoOp
     end;
   end;
 

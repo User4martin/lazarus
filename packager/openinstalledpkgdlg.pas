@@ -73,6 +73,14 @@ implementation
 
 {$R *.lfm}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function ShowOpenLoadedPkgDlg(out OpenPackage: TLazPackage): TModalResult;
 var
   Dlg: TOpenLoadedPackagesDlg;
@@ -199,10 +207,14 @@ begin
   case APackage.Installed of
     pitStatic: AddState(lisOIPinstalledStatic);
     pitDynamic: AddState(lisOIPinstalledDynamic);
+  else
+    NoOp
   end;
   case APackage.AutoInstall of
     pitStatic: AddState(lisOIPautoInstallStatic);
     pitDynamic: AddState(lisOIPautoInstallDynamic);
+  else
+    NoOp
   end;
   if APackage.ReadOnly then AddState(lisOIPreadonly);
 end;

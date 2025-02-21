@@ -258,6 +258,7 @@ end;
 
 function dbgs(k: TCTGDBMangledItemKind): string;
 begin
+  Result:='?';
   case k of
   cgmiNone: Result:='None';
   cgmiUnknown: Result:='Unknown';
@@ -269,7 +270,6 @@ begin
   cgmiParameterType: Result:='ParameterType';
   cgmiResultType: Result:='ResultType';
   cgmiError: Result:='Error';
-  else Result:='?';
   end;
 end;
 
@@ -727,6 +727,7 @@ function TCTGDBTracer.AsString: string;
 var
   ms: TMemoryStream;
 begin
+  Result:= EmptyStr;
   ms:=TMemoryStream.Create;
   try
     WriteToStream(ms);

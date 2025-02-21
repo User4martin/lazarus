@@ -816,6 +816,8 @@ begin
             case Alignment of
               taLeftJustify: inc(TextRect.Left, Margin);
               taRightJustify: dec(TextRect.Right, Margin);
+            else
+              NoOp
             end;
           end;
       end;

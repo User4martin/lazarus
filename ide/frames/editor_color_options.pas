@@ -209,6 +209,14 @@ const
   MAX_PRIOR = 9999;
   MIN_PRIOR = 0;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function DefaultToNone(AColor: TColor): TColor;
 begin
   if AColor = clDefault then
@@ -919,6 +927,8 @@ procedure TEditorColorOptionsFrame.FillPriorEditor;
                      (AnAttr.FrameColor <> clDefault);
         mfStyle:     Result := (hafStyle in AnAttr.Features) and
                      ( (AnAttr.Style <> []) or (AnAttr.StyleMask <> []) );
+    else
+      NoOp
     end
   end;
 
@@ -1068,6 +1078,8 @@ begin
     mfBackGround: Result := BackPriorEdit;
     mfFrame:      Result := FramePriorEdit;
     mfStyle:      Result := StylePriorEdit;
+  else
+    NoOp
   end;
 end;
 
@@ -1079,6 +1091,8 @@ begin
     mfBackGround: Result := BackPriorList;
     mfFrame:      Result := FramePriorList;
     mfStyle:      Result := StylePriorList;
+  else
+    NoOp
   end;
 end;
 
@@ -1096,6 +1110,8 @@ begin
         AnAttr.StylePriority[fsItalic] := AValue;
         AnAttr.StylePriority[fsUnderline] := AValue;
       end;
+  else
+    NoOp
   end;
 end;
 
@@ -1111,6 +1127,8 @@ begin
     mfBackGround: Result := AnAttr.BackPriority;
     mfFrame:      Result := AnAttr.FramePriority;
     mfStyle:      Result := AnAttr.StylePriority[fsBold];
+  else
+    NoOp
   end;
 end;
 

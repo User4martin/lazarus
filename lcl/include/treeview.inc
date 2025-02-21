@@ -5030,6 +5030,8 @@ begin
         ADragObject.ShowDragImage;
       end;
     dmDragDrop: FLastDropTarget := nil;
+  else
+    NoOp
   end;
 end;
 
@@ -5485,6 +5487,8 @@ var
         end;
       end;
 
+    else
+      NoOp
     end;
   end;
 

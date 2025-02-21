@@ -433,6 +433,14 @@ const
   sShellTreeViewIncorrectNodeType = 'TShellTreeView: the newly created node is not a TShellTreeNode!';
   MaskCaseSensitivityStrings: array[TMaskCaseSensitivity] of String = ('mcsPlatformDefault', 'mcsCaseInsensitive', 'mcsCaseSensitive');
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function DbgS(OT: TObjectTypes): String; overload;
 begin
   Result := '[';
@@ -889,6 +897,8 @@ begin
         fstCustom:
           if ASortCompare <> nil then
             Files := TFileItemAVLTree.CreateFileItemCompare(ASortCompare);
+        else
+          NoOp
       end;
 
       i := 0;

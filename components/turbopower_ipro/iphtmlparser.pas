@@ -183,6 +183,14 @@ uses
   LConvEncoding, LazUTF8, LazStringUtils, Translations,
   IpHtmlNodes;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TIpHtmlParser }
 
 constructor TIpHtmlParser.Create(AOwner: TIpHtml; AStream: TStream);
@@ -933,6 +941,8 @@ begin
         ReportError(SHtmlUnknownTok)
       else
         NextToken;
+  else
+    NoOp
   end;
 end;
 
@@ -1270,6 +1280,8 @@ begin
       curStyle.Style := hfsSUB;
     IpHtmlTagSUP :
       curStyle.Style := hfsSUP;
+  else
+    NoOp
   end;
   curStyle.ParseBaseProps(FOwner);
   NextToken;
@@ -2395,6 +2407,8 @@ begin
       curPhrase.Style := hpsABBR;
     IpHtmlTagACRONYM :
       curPhrase.Style := hpsACRONYM;
+  else
+    NoOp
   end;
   curPhrase.ParseBaseProps(FOwner);
   NextToken; // this can not be before previous line, as NextToken resets properties
@@ -2819,6 +2833,8 @@ procedure TIpHtmlParser.ParseTableRows(AParent: TIpHtmlNode;
             Inc(P0);
           hlPercent :
             Inc(Pt, TIpHtmlNodeTableHeaderOrCell(CurRow.ChildNode[i]).Width.LengthValue);
+        else
+          NoOp
         end;
     if (Pt > 0) and (Pt < 100) and (P0 > 0) then begin
       Pt := (100 - Pt) div P0;

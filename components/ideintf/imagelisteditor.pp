@@ -181,6 +181,14 @@ implementation
 uses
   ClipBrd;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure AlignButtons(AButtons: array of TControl);
 var
   Button: TControl;
@@ -234,6 +242,8 @@ begin
       gaStretch: Result.Canvas.StretchDraw(Bounds(0, 0, Width, Height), B);
       gaCrop: Result.Canvas.Draw(0, 0, B);
       gaCenter: Result.Canvas.Draw((Width - B.Width) div 2, (Height - B.Height) div 2, B);
+    else
+      NoOp
     end;
   end;
   if TransparentColor = clDefault then
@@ -503,12 +513,16 @@ begin
 end;
 
 procedure TImageListEditorDlg.acDeleteResolutionExecute(Sender: TObject);
+type
+  TIntegerArray = array of Integer;
 var
   TD: LCLTaskDialog.TTaskDialog;
   R: TCustomImageListResolution;
-  RA: array of Integer;
+  RA: TIntegerArray;
   ResItem: string;
 begin
+  TD:= Default(LCLTaskDialog.TTaskDialog); //fixes Hint: (5091) Local variable "TD" of a managed type does not seem to be initialized
+  RA:= Default(TIntegerArray); //fixes Hint: (5091) Local variable "RA" of a managed type does not seem to be initialized
   FillChar(TD{%H-}, SizeOf(LCLTaskDialog.TTaskDialog), 0);
   SetLength(RA, 0);
   for R in ImageList.Resolutions do
@@ -1092,6 +1106,8 @@ begin
     case AddType of
       atAdd: ImageListBox.ItemIndex := ImageListBox.Count-1;
       atInsert: ImageListBox.ItemIndex := ImageListBox.ItemIndex+1;
+    else
+      NoOp
     end;
 
     UpdateCmds;

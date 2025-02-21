@@ -266,6 +266,14 @@ function dbgs(AExtendMode: TSynCommentExtendMode): String; overload;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function dbgs(ACommentType: TSynCommentType): String;
 begin
   Result := ''; WriteStr(Result, ACommentType);
@@ -586,6 +594,8 @@ begin
         if not ModifyIndent then Indent := OrigIndent;
         exit;
       end;
+    else
+      NoOp
   end;
 
   if (IndentCharsFromLinePos > 0) and (IndentCharsFromLinePos <= FCurrentLines.Count) then

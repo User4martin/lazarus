@@ -14,6 +14,14 @@
 const
   csAllValid = [csHandleValid..csBrushValid];
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 {-----------------------------------------------}
 {--  TCanvas.Draw --}
 {-----------------------------------------------}
@@ -1259,10 +1267,14 @@ begin
   case Style.Alignment of
     taRightJustify : Options := DT_RIGHT;
     taCenter : Options := DT_CENTER;
+  else
+    NoOp
   end;
   case Style.Layout of
     tlCenter : Options := Options or DT_VCENTER;
     tlBottom : Options := Options or DT_BOTTOM;
+  else
+    NoOp
   end;
   if Style.EndEllipsis then
     Options := Options or DT_END_ELLIPSIS;
@@ -1315,11 +1327,15 @@ begin
     case Style.Alignment of
       taRightJustify : Types.OffsetRect(fRect, ARect.Right - fRect.Right, 0);
       taCenter : Types.OffsetRect(fRect, (ARect.Right - fRect.Right) div 2, 0);
+    else
+      NoOp
     end;
     case Style.Layout of
       tlCenter : Types.OffsetRect(fRect, 0,
                ((ARect.Bottom - ARect.Top) - (fRect.Bottom - fRect.Top)) div 2);
       tlBottom : Types.OffsetRect(fRect, 0, ARect.Bottom - fRect.Bottom);
+    else
+      NoOp
     end;
   end;
 

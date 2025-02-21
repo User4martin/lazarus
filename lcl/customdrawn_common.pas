@@ -154,6 +154,14 @@ const
 
   WIN2000_FORM    = WIN2000_BTNFACE;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TCDDrawerCommon }
 
 function TCDDrawerCommon.PalDefaultUsesNativePalette: Boolean;
@@ -344,6 +352,8 @@ begin
       PreferredHeight := Max(PreferredHeight,
         GetMeasuresEx(ADest, TCDCONTROL_CAPTION_HEIGHT, AState, AStateEx));
   end;
+  else
+    NoOp
   end;
 end;
 
@@ -397,6 +407,8 @@ begin
     Result.Right := Result.Right - 2;
     Result.Bottom := Result.Bottom - 2;
   end;
+  else
+    NoOp
   end;
 end;
 
@@ -488,6 +500,8 @@ begin
       bvSpace:
       begin
       end;
+      else
+        NoOp
     end;
 
     InflateRect(ARect, -1, -1);
@@ -1567,6 +1581,8 @@ begin
   // The contents depend on the view style
   case AStateEx.ViewStyle of
   vsReport: DrawReportListView(ADest, Point(0, 0), ASize, AState, AStateEx);
+  else
+    NoOp
   end;
 end;
 

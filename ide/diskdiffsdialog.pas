@@ -109,7 +109,8 @@ procedure CheckUnits(ACodeList: TFPList);
   function AddChangedBuffer(Code: TCodeBuffer): boolean;
   var
     fs: TFileStream;
-    s, DiskEncoding, MemEncoding, aFilename: string;
+    s: String = ''; //fixes Hint: (5091) Local variable "s" of a managed type does not seem to be initialized
+    DiskEncoding, MemEncoding, aFilename: string;
   begin
     if (Code=nil) or Code.IsVirtual then
       exit(false);
@@ -166,7 +167,8 @@ var
   CurPackage: TLazPackage;
   PackageOk: Boolean;
   fs: TFileStream;
-  CurSource, DiskSource: string;
+  CurSource: String = '';
+  DiskSource: String = ''; //fixes Hint: (5091) Local variable "DiskSource" of a managed type does not seem to be initialized
   AltFilename, LPKFilename: String;
 begin
   for i:=APackageList.Count-1 downto 0 do

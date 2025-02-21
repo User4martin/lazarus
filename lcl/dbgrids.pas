@@ -680,6 +680,14 @@ procedure Register;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure Register;
 begin
   RegisterComponents('Data Controls',[TDBGrid]);
@@ -2247,6 +2255,8 @@ begin
   if (Result=cbsAuto) and (F<>nil) then
     case F.DataType of
       ftBoolean: Result := cbsCheckboxColumn;
+      else
+       NoOp
     end;
   if (result = cbsCheckBoxColumn) and not (dgeCheckboxColumn in FExtraOptions) then
     Result := cbsAuto;
@@ -4243,8 +4253,8 @@ begin
         end;
       coFieldIndexOrder:
         L.Sort(@CompareFieldIndex);
-      else
-        exit;
+      //else   //Warning: (6018) Unreachable code
+      //  exit;
     end;
 
     for i:=0 to L.Count-1 do

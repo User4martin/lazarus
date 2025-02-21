@@ -87,6 +87,14 @@ implementation
 type
   TPersistentAccess = class(TPersistent);
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function FindLang(var Lang: string): TLanguageID;
 var
   CurParam: string;
@@ -400,6 +408,8 @@ begin
                 end;
               end;
             end;
+          else
+            NoOp
           end;
       end;
   finally

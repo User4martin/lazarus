@@ -1220,12 +1220,13 @@ end;
 
 function dbgs(aType: TUnitCompDependencyType): string;
 begin
+  Result:='?'; //fixes Warning: (6018) Unreachable code
   case aType of
   ucdtAncestor: Result:='Ancestor';
   ucdtProperty: Result:='Property';
   ucdtOldProperty: Result:='OldProperty';
   ucdtInlineClass: Result:='InlineClass';
-  else Result:='?'
+  //else Result:='?'  //Warning: (6018) Unreachable code
   {%H-}end;
 end;
 

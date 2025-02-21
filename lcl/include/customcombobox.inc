@@ -13,6 +13,14 @@
 
 }
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 {------------------------------------------------------------------------------
   Method: TCustomComboBox.CreateWnd
   Params: ---
@@ -539,6 +547,8 @@ begin
    case FCharCase of
      ecUpperCase: Text := UTF8UpperCase(Text);
      ecLowerCase: Text := UTF8Lowercase(Text);
+     else
+       NoOp
     end;
   end;
 end;
@@ -686,6 +696,8 @@ begin
   case FCharCase of
     ecLowerCase: UTF8Key := UTF8LowerCase(UTF8Key);
     ecUpperCase: UTF8Key := UTF8UpperCase(UTF8Key);
+  else
+    NoOp
   end;
 end;
 

@@ -1165,14 +1165,18 @@ var
     Result:=SourceChanger.DeleteRange(Scanner,FromPos,ToPos,false,true);
   end;
 
+type
+  TItemsArray = array of TItem;
+
 var
   Item: TItem;
-  Items: array of TItem;
+  Items: TItemsArray;
   NewCode: String;
   OldCount, NewCount, i, j, k, p: Integer;
   HasComments: Boolean;
 begin
   Result:=false;
+  Items:= Default(TItemsArray);
 
   OldCount:=length(Param.OldNames);
   NewCount:=length(Param.NewNames);

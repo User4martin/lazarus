@@ -431,6 +431,14 @@ begin
   Result := FCurly <= 0;
 end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TLldbInstructionBreakOrWatchSet }
 
 function TLldbInstructionBreakOrWatchSet.ProcessInputFromDbg(const AData: String
@@ -948,6 +956,8 @@ begin
   	wpkWrite:     inherited Create(Format('watchpoint set variable -w write %s', [AWatch]));
     wpkRead:      inherited Create(Format('watchpoint set variable -w read %s', [AWatch]));
     wpkReadWrite: inherited Create(Format('watchpoint set variable -w read_write %s', [AWatch]));
+  else
+    NoOp
   end;
 end;
 

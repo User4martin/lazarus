@@ -49,8 +49,8 @@ begin
     pssInProjectDir:  Result := lisPOSaveInLpsFileInProjectDirectory;
     pssInIDEConfig:   Result := lisPOSaveInIDEConfigDirectory;
     pssNone:          Result := lisPODoNotSaveAnySessionInfo;
-  else
-    RaiseGDBException('');
+  //else       //Warning: (6018) Unreachable code
+  //  RaiseGDBException('');
   end;
 end;
 

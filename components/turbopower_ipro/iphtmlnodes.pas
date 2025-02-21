@@ -1176,6 +1176,14 @@ type
     procedure CreateWnd; override;
 end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure THtmlRadioButton.CreateWnd;
 begin
   inherited CreateWnd;
@@ -2542,6 +2550,8 @@ begin
       ltULCircle: FListType := ulCircle;
       ltULDisc: FListType := ulDisc;
       ltULSquare: FListType := ulSquare;
+    else
+      NoOp
     end;
   for i := 0 to ChildCount-1 do
     if ChildNode[i] is TIpHtmlNodeLI then
@@ -2653,6 +2663,8 @@ begin
       Min := Width.LengthValue;
       Max := Min;
     end;
+  else
+    NoOp
   end;
 end;
 
@@ -3171,6 +3183,8 @@ begin
           else
             Owner.Target.Ellipse(R.Left, R.Top, R.Left + 7, R.Top + 7);
         end;
+      else
+        NoOp
       end;
   end;
 end;
@@ -3355,6 +3369,8 @@ begin
       ltOLUpperAlpha: FOLStyle := olUpperAlpha;
       ltOLLowerRoman: FOLStyle := olLowerRoman;
       ltOLUpperRoman: FOLStyle := olUpperRoman;
+    else
+      NoOp
     end;
 end;
 
@@ -3615,6 +3631,8 @@ begin
       Min := MaxI2(Min, Width.LengthValue);
       Max := MaxI2(Max, Min);
     end;
+  else
+    NoOp
   end;
 end;
 
@@ -3830,6 +3848,8 @@ begin
       TmpSize := Props.BaseFontSize + Size.Value;
       Props.FontSize := GetFontSizeValue(TmpSize);
     end;
+  else
+    NoOp
   end;
   if Color <> clNone then
     Props.FontColor := Color;
@@ -3961,6 +3981,8 @@ begin
     hpsCODE, 
     hpsKBD, 
     hpsSAMP    : Props.FontName := Owner.FixedTypeface;
+  else
+    NoOp
   end;
   case Style of
     hpsEM      : ElementName := 'em';
@@ -4210,6 +4232,8 @@ begin
       with THtmlRadioButton(FControl) do
         Checked := Self.Checked;
     end;
+  else
+    NoOp
   end;
 end;
 
@@ -4456,6 +4480,8 @@ begin
     S := 'file://'+FFileEdit.Text;
   hitHidden :
     S := FValue;
+  else
+    NoOp
   end;
   if S <> '' then begin
     NameList.Add(Name);
@@ -4485,6 +4511,8 @@ begin
       Result := FFileEdit.Text <> '';
     hitHidden :
       Result := FValue <> '';
+    else
+      NoOp
     end;
   end;
 end;
@@ -4514,6 +4542,8 @@ begin
     Checked := TCheckBox(FControl).Checked;
   hitRadio :
     Checked := THtmlRadioButton(FControl).Checked;
+  else
+    NoOp
   end;
 end;
 

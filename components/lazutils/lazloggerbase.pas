@@ -507,6 +507,7 @@ var
   DestPos: Integer;
   i: Integer;
 begin
+  Result:= EmptyStr;
   SetLength(Result{%H-},length(StringWithSpecialChars));
   SrcPos:=1;
   DestPos:=1;

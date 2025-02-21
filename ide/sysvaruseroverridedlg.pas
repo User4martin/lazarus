@@ -49,10 +49,13 @@ function ShowSysVarUserOverrideDialog(var AName, AValue: string): TModalResult;
 implementation
 
 function ShowSysVarUserOverrideDialog(var AName, AValue: string): TModalResult;
+type
+  TStringArray = array of string;
 var
   ok: boolean;
-  Vals: array of string;
+  Vals: TStringArray;
 begin
+  Vals:= Default(TStringArray);
   SetLength(Vals{%H-}, 2);
   Vals[0]:= AName;
   Vals[1]:= AValue;

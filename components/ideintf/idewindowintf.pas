@@ -491,6 +491,14 @@ var
   FIDEWindowsGlobalOptions: TIDEWindowsGlobalOptions = nil;
   TheIDEDockMaster: TIDEDockMaster = nil; // can be set by a package
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure SetPopupModeParentForPropertyEditor(const AEditorDlg: TCustomForm);
 begin
   if IDEDockMaster<>nil then
@@ -1472,6 +1480,8 @@ begin
   case WindowState of
     iwsMinimized: xForm.WindowState:=wsMinimized;
     iwsMaximized: xForm.WindowState:=wsMaximized;
+  else
+    NoOp
   end;
   Result := ValidateAndSetCoordinates(aForce);     // Adjust bounds to screen area and apply them.
   if WindowState in [iwsMinimized, iwsMaximized] then
@@ -1786,6 +1796,8 @@ begin
             end;
           alClient:
             NewBounds:=DockSibling.BoundsRect;
+          else
+            NoOp
           end;
         end;
       end;

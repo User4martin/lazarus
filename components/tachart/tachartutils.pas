@@ -1053,6 +1053,7 @@ function TPublishedIntegerSet.AsBooleans(ACount: Integer): TBooleanDynArray;
 var
   i: Integer;
 begin
+  Result:= Default(TBooleanDynArray); //fixes Warning: (5093) Function result variable of a managed type does not seem to be initialized
   SetLength(Result{%H-}, ACount);
   if ACount = 0 then exit;
   if AllSet then

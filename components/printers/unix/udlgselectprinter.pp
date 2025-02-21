@@ -146,6 +146,14 @@ uses
 Type
   THackCUPSPrinter = Class(TCUPSPrinter);
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 //Convert an local date & time to a GMT(UTC) Date & Time
 function LocalToGMTDateTime(aDate : TDateTime) : TDateTime;
 begin
@@ -225,6 +233,8 @@ begin
                       StP:=StP+'_stopped';
                       BtnPrint.Enabled:=False;
                     end;
+      else
+        NoOp
     end;
 
     if Printer.CanPrint then

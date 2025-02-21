@@ -167,6 +167,14 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TLazCanvasState }
 
 destructor TLazCanvasState.Destroy;
@@ -336,6 +344,8 @@ begin
       end;
     bsHorizontal : FillRectangleHashHorizontal (self, b, HashWidth);
     bsVertical : FillRectangleHashVertical (self, b, HashWidth);
+    else
+      NoOp
   end;
 end;
 
@@ -525,6 +535,8 @@ begin
       // Patterned lines have width always at 1
     psDash, psDot, psDashDot, psDashDotDot :
       DrawPatternLine (self, x1,y1, x2,y2, PenPatterns[Pen.Style]);
+    else
+      NoOp
   end;
 end;
 

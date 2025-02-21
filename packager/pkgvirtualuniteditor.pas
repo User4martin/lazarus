@@ -61,11 +61,14 @@ type
   end;
 
 function ShowEditVirtualPackageDialog(PkgFile: TPkgFile): TModalResult;
+type
+  TStringArray = array of string;
 var
-  Str: array of string;
+  Str: TStringArray;
   Dummy: TDummyForClose;
 begin
   Result:= mrCancel;
+  Str:= Default(TStringArray); //fixes Hint: (5091) Local variable "Str" of a managed type does not seem to be initialized
   if not Assigned(PkgFile) then exit;
 
   SetLength(Str{%H-}, 2);
@@ -102,6 +105,7 @@ var
   LazPackage: TLazPackage;
   ConflictUnit: TPkgFile;
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   ACanClose:=false;
   NewFilename:=AValues[0];
   NewUnitName:=AValues[1];

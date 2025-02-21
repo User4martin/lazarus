@@ -452,6 +452,7 @@ var
   var
     next_angle: Double;
   begin
+    APoints:= Default(TPointArray); //fixes Hint: (5092) Variable "APoints" of a managed type does not seem to be initialized
     SetLength(APoints{%H-}, 0);
     next_angle := ASlice.FixedNextAngle;
     CalcArcPoints(ASlice, ASlice.FPrevAngle, next_angle, FRadius, APoints);

@@ -718,6 +718,14 @@ uses
   LResources,
   TAChartStrConsts, TAEnumerators, TAGeometry, TAMath;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function InitBuiltinTools(AChart: TChart): TBasicChartToolset;
 var
   ts: TChartToolset;
@@ -1410,6 +1418,8 @@ begin
         Result.Top := Chart.ClipRect.Top+1;
         Result.Bottom := Chart.ClipRect.Bottom;
       end;
+  else
+    NoOp
   end;
 end;
 

@@ -191,6 +191,7 @@ function TSynPositionHighlighter.GetToken: string;
 var
   Len: LongInt;
 begin
+  Result:= EmptyStr; //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   Len := fTokenEnd - fTokenPos;
   SetLength(Result{%H-},Len);
   System.Move(fLine[fTokenPos],Result[1],Len);

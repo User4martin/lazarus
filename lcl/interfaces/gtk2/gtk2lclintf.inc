@@ -63,6 +63,8 @@ begin
     case {%H-}PGDIObject(ABrush)^.GDIBrushFill of
       GDK_TILED: gdk_gc_set_tile(gc, {%H-}PGDIObject(ABrush)^.GDIBrushPixMap);
       GDK_STIPPLED: gdk_gc_set_stipple(gc, {%H-}PGDIObject(ABrush)^.GDIBrushPixMap);
+    else
+      NoOp
     end;
     gdk_draw_rectangle(Pixmap, gc, -1, 0, 0, dx, dy);
     gdk_gc_unref(gc);
@@ -138,6 +140,8 @@ begin
   case AOperation of
     disShow: gtk_widget_show(FDockImage);
     disHide: gtk_widget_hide(FDockImage);
+  else
+    NoOp
   end;
 end;
 
@@ -501,9 +505,9 @@ begin
         GdiObject^.GDIPixmapObject.Image, GdiObject^.GDIPixmapObject.Mask <> nil);
     gbPixbuf:
       Result := RawImage_DescriptionFromPixbuf(ADesc, GdiObject^.GDIPixbufObject);
-  else
-    DebugLn('WARNING: [TGtk2WidgetSet.RawImage_DescriptionFromBitmap] Unknown GDIBitmapType');
-    Exit;
+  //else        //Warning: (6018) Unreachable code
+  //  DebugLn('WARNING: [TGtk2WidgetSet.RawImage_DescriptionFromBitmap] Unknown GDIBitmapType');
+  //  Exit;
   end;
 end;
 
@@ -688,9 +692,9 @@ begin
         Result := RawImage_FromPixbuf(ARawImage, GdiBitmap^.GDIPixbufObject, ARect);
         Exit;
       end;
-    else
-      DebugLn('WARNING: [TGtk2WidgetSet.RawImage_FromBitmap] Unknown GDIBitmapType');
-      Exit;
+    //else             //Warning: (6018) Unreachable code
+    //  DebugLn('WARNING: [TGtk2WidgetSet.RawImage_FromBitmap] Unknown GDIBitmapType');
+    //  Exit;
     end;
     {$IFDEF VerboseRawImage}
     DebugLn('TGtk2WidgetSet.RawImage_FromBitmap A GdkPixmap=',DbgS(Drawable),' SrcMaskBitmap=',DbgS(Bitmap));

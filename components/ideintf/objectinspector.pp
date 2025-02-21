@@ -922,6 +922,14 @@ implementation
 {$R *.lfm}
 {$R images\ideintf_images.res}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function SortGridRows(Item1, Item2 : pointer) : integer;
 begin
   Result:=CompareText(TOIPropertyGridRow(Item1).Name,
@@ -1541,9 +1549,13 @@ procedure TOICustomPropertyGrid.SetRowValue(CheckFocus, ForceValue: boolean);
           Result := Editor.GetVarValueAt(Index)
         else
           Result := '(Null)';
+      else
+        NoOp
     end;
   end;
 
+type
+  TStringArray = array of string;
 var
   CurRow: TOIPropertyGridRow;
   NewValue: string;
@@ -1554,11 +1566,12 @@ var
   APersistent: TPersistent;
   i: integer;
   UndoVal: string;
-  OldUndoValues: array of string;
+  OldUndoValues: TStringArray;
   isExcept: boolean;
   prpInfo: PPropInfo;
   Editor: TPropertyEditor;
 begin
+  OldUndoValues:= Default(TStringArray);
   //if FItemIndex > -1 then
   //  debugln(['TOICustomPropertyGrid.SetRowValue A, FItemIndex=',dbgs(FItemIndex),
   //    ', CanEditRowValue=', CanEditRowValue(CheckFocus), ', IsReadOnly=', Rows[FItemIndex].IsReadOnly]);
@@ -5488,6 +5501,7 @@ var
   WSRestrictions: TWidgetSetRestrictionsArray;
   RestrProp: TOIRestrictedProperty;
 begin
+  WSRestrictions:= Default(TWidgetSetRestrictionsArray);
   if (RestrictedProps = nil) or (Selection = nil) then exit;
 
   FillChar(WSRestrictions{%H-}, SizeOf(WSRestrictions), 0);
@@ -6089,6 +6103,8 @@ begin
     zoToBack:  Control.SendToBack;
     zoForward: Control.Parent.SetControlIndex(Control, Control.Parent.GetControlIndex(Control) + 1);
     zoBackward:Control.Parent.SetControlIndex(Control, Control.Parent.GetControlIndex(Control) - 1);
+  else
+    NoOp
   end;
 
   // Ensure controls that belong to a container are rearranged if required.

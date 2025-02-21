@@ -160,6 +160,15 @@ type
   end;
 
 implementation
+
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 {
 procedure Register;
 begin
@@ -722,6 +731,8 @@ begin
           inc(FDiffStats.deletes);
         end;
       end;
+  else
+    NoOp
   end;
 end;
 //------------------------------------------------------------------------------
@@ -841,6 +852,8 @@ begin
           inc(FDiffStats.deletes);
         end;
       end;
+  else
+    NoOp
   end;
 end;
 //------------------------------------------------------------------------------

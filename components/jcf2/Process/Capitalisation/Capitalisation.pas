@@ -56,6 +56,14 @@ uses
   SourceToken, SettingsTypes, Tokens,
   JcfSettings, FormatFlags, TokenUtils;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure FixCaps(const pct: TSourceToken; const caps: TCapitalisationType);
 begin
   if pct = nil then
@@ -131,6 +139,8 @@ begin
         FixCaps(lcSourceToken, FormattingSettings.Caps.Operators);
       wtBuiltInType:
         FixCaps(lcSourceToken, FormattingSettings.Caps.Types);
+      else
+        NoOp
     end;
   end;
 

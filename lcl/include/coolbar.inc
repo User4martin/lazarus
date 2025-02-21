@@ -1254,6 +1254,8 @@ begin
       case aGrabStyle of
         gsHorLines: aGrabStyle := gsVerLines;
         gsVerLines: aGrabStyle := gsHorLines;
+      else
+        NoOp
       end;
     case aGrabStyle of
       gsGripper: if not Vertical then
@@ -1261,6 +1263,8 @@ begin
                  else
                    aGrabDetails := ThemeServices.GetElementDetails(trGripperVert);
       gsButton: aGrabDetails := ThemeServices.GetElementDetails(tbPushButtonNormal);
+    else
+      NoOp
     end;
     if FShowText or Assigned(FImages) then begin
       if IsEnabled then

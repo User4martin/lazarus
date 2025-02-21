@@ -218,6 +218,14 @@ implementation
 const
   NameChars : set of char = ['0'..'9', 'a'..'z', 'A'..'Z', '_', '.', ':', '-'];
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 constructor TSynXMLSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -530,6 +538,8 @@ begin
           inc(Run);
         end;
       end;
+    else
+      NoOp
   end;
 end;
 

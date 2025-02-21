@@ -144,6 +144,14 @@ procedure ClearExtractProcVariableTree(VarTree: TAVLTree; FreeTree: boolean);
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function CompareExtractedProcVariables(V1, V2: TExtractedProcVariable): integer;
 var
   cmp: Integer;
@@ -811,8 +819,8 @@ var
         Indent:=Beauty.GetLineIndent(Src,MainBlockNode.StartPos);
       end;
 
-    else
-      exit{%H-};
+    //else
+    //  exit{%H-};  //Warning: (6018) Unreachable code
     end;
     Result:=true;
   end;
@@ -830,7 +838,8 @@ var
         FindInsertPositionForProcInterface(IntfIndent,IntfInsertPos,
                                            SourceChangeCache);
       end;
-      
+    else
+      NoOp
     end;
     
     Result:=true;
@@ -928,7 +937,8 @@ var
         if not InsertAllNewClassParts then
           RaiseException(20170421201927,ctsErrorDuringInsertingNewClassParts);
       end;
-
+    else
+      NoOp
     end;
     Result:=true;
   end;
@@ -1597,6 +1607,8 @@ var
           RaiseCharExpectedButAtomFound(20170421201942,')')
         else
           RaiseStringExpectedButAtomFound(20170421201946,'end');
+      else
+        NoOp
       end;
       if AtomIsIdentifier then begin
         LastPos:=LastAtoms.GetPriorAtom;

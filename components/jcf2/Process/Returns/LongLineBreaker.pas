@@ -71,6 +71,14 @@ uses
 
 {$WARN 6058 off}  // supress note: function/procedure marked as inline is not inlined
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function IsLineBreaker(const pcToken: TSourceToken): boolean;
 begin
   Result := (pcToken.TokenType in [ttReturn, ttConditionalCompilationRemoved]) or
@@ -422,6 +430,8 @@ begin
         piScoreBefore := BAD1;
         piScoreAfter  := GOOD1;
       end;
+      else
+        NoOp
     end;
   end;
 
@@ -466,6 +476,8 @@ begin
         end;
 
       end;
+      else
+        NoOp
     end;
 
     if pcToken.HasParentNode(nPropertyParameterList) and
@@ -492,6 +504,8 @@ begin
         piScoreBefore := GOOD3;
         piScoreAfter  := BAD2;
       end;
+      else
+        NoOp
     end;
   end
 end;

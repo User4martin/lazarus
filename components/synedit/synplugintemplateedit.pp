@@ -271,7 +271,8 @@ var
   Temp: TStringList;
   CellStart, StartPos: TPoint;
   i, j, k, XOffs, Grp: Integer;
-  s, s2: string;
+  s: String = '';
+  s2: String = '';
 begin
   Clear;
   Active := False;

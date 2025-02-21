@@ -3226,6 +3226,7 @@ function TDOMElement.GetAttribute(const name: DOMString): DOMString;
 var
   Attr: TDOMNode;
 begin
+  Result:= Default(DOMString); //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   SetLength(Result{%H-}, 0);
   if Assigned(FAttributes) then
   begin
@@ -3239,6 +3240,7 @@ function TDOMElement.GetAttributeNS(const nsURI, aLocalName: DOMString): DOMStri
 var
   Attr: TDOMNode;
 begin
+  Result:= Default(DOMString); //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   SetLength(Result{%H-}, 0);
   if Assigned(FAttributes) then
   begin

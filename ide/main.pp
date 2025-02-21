@@ -1019,6 +1019,14 @@ type
     BringToFront: Boolean;
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function FindDesignComponent(const aName: string): TComponent;
 var
   AnUnitInfo: TUnitInfo;
@@ -5109,6 +5117,7 @@ var
   i: Integer;
 begin
   Result := false;
+  OptionsFilter:= Default(TIDEOptionsEditorFilter); //fixes Hint: (5091) Local variable "OptionsFilter" of a managed type does not seem to be initialized
   IDEOptionsDialog := TIDEOptionsDialog.Create(nil);
   try
     if ACaption <> '' then
@@ -7974,6 +7983,7 @@ var
 begin
   // create uses section addition for lazarus.pp
   Result:=PkgBoss.DoSaveAutoInstallConfig;
+  InheritedOptionStrings:= Default(TInheritedCompOptsStrings); //fixes Hint: (5091) Local variable "InheritedOptionStrings" of a managed type does not seem to be initialized
   if Result<>mrOk then exit;
 
   // check ambiguous units
@@ -8020,6 +8030,7 @@ var
   ErrMsg: String;
   r: integer;
 begin
+  InheritedOptionStrings:= Default(TInheritedCompOptsStrings); //fixes Hint: (5091) Local variable "InheritedOptionStrings" of a managed type does not seem to be initialized
   if ToolStatus<>itNone then begin
     IDEMessageDialog(lisNotNow,lisYouCanNotBuildLazarusWhileDebuggingOrCompiling,
                      mtError,[mbCancel]);
@@ -11273,7 +11284,8 @@ end;
 procedure TMainIDE.SrcNotebookEditorDoSetBookmark(Sender: TObject; ID: Integer; Toggle: Boolean);
 var
   ActEdit, OldEdit: TSourceEditor;
-  OldX, OldY: integer;
+  OldX: Integer = 0; //fixes Hint: (5057) Local variable "OldX" does not seem to be initialized
+  OldY: Integer = 0; //fixes Hint: (5057) Local variable "OldY" does not seem to be initialized
   NewXY: TPoint;
   SetMark: Boolean;
   AnUnitInfo: TUnitInfo;

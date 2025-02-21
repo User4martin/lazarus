@@ -9,6 +9,14 @@
  *****************************************************************************
 }
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TCustomActionList }
 
 constructor TCustomActionList.Create(AOwner: TComponent);
@@ -212,6 +220,8 @@ begin
           Action.SavedEnabledState := Action.Enabled;
           Action.Enabled := True;
         end;
+      else
+        NoOp
       end;
     end;
   end;

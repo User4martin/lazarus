@@ -147,6 +147,14 @@ implementation
 
 {$R *.lfm}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function ShowFindRenameIdentifierDialog(const Filename: string;
   var Position: TPoint; AllowRename: boolean; SetRenameActive: boolean;
   Options: TFindRenameIdentifierOptions): TModalResult;
@@ -577,6 +585,8 @@ begin
           ReverseList(OwnerList);
         end;
       end;
+    else
+      NoOp
     end;
 
     // get source files of packages and projects

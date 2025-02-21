@@ -14,6 +14,14 @@ type
   TLVItemHack = class(TListItem)
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 ////////////////////////////////////////
 ////   Event Code  /////////////////////
 ////////////////////////////////////////
@@ -94,6 +102,7 @@ var
   cell: PGtkCellRenderer;
 begin
   // DebugLn('Gtk2_ItemFocusChanged');
+  NM:= Default(TNMListView); //fixes (5057) Local variable "NM" does not seem to be initialized
   // the defocus of the oldrow isn't send
   if GTK_IS_TREE_VIEW(Widget) then begin
     path:=nil;
@@ -137,6 +146,7 @@ var
   pstr:PChar;
 begin
   //DebugLn('Gtk2_ItemDeleted');
+  NM:= Default(TNMListView); //fixes (5057) Local variable "NM" does not seem to be initialized
   msg.Msg := CN_NOTIFY;
 
   FillChar(NM{%H-}, SizeOf(NM), 0);
@@ -155,6 +165,7 @@ var
   NM: TNMListView;
 begin
   //DebugLn('Gtk2_ItemInserted');
+  NM:= Default(TNMListView); //fixes (5057) Local variable "NM" does not seem to be initialized
   msg.Msg := CN_NOTIFY;
 
   FillChar(NM{%H-}, SizeOf(NM), 0);
@@ -189,6 +200,7 @@ var
   msg: TLMNotify;
   NM: TNMListView;
 begin
+  NM:= Default(TNMListView); //fixes (5057) Local variable "NM" does not seem to be initialized
   AColumn := TListColumn(g_object_get_data(G_OBJECT(column), 'TListColumn'));
 
   msg.Msg := CN_NOTIFY;
@@ -208,6 +220,7 @@ var
   msg: TLMNotify;
   NM: TNMListView;
 begin
+  NM:= Default(TNMListView); //fixes (5057) Local variable "NM" does not seem to be initialized
   msg.Msg := CN_NOTIFY;
 
   FillChar(NM{%H-}, SizeOf(NM), 0);
@@ -634,6 +647,8 @@ begin
       lvpWrapText: begin
         // TODO: implement ???
       end;
+      else
+        NoOp
     end;
   end;
 end;
@@ -1352,6 +1367,7 @@ var
   Cell: PGtkCellRenderer;
 begin
   Result := False;
+  Cell:= Default(PGtkCellRenderer); //fixes Hint: (5057) Local variable "Cell" does not seem to be initialized
 
   if not WSCheckHandleAllocated(ALV, 'ItemGetState')
   then Exit;

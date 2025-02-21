@@ -79,6 +79,7 @@ implementation
 
 procedure TCodetoolsGeneralOptionsFrame.IndentOnPasteCheckBoxChange(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   VisualizeIndentEnabled;
 end;
 
@@ -94,11 +95,13 @@ end;
 
 procedure TCodetoolsGeneralOptionsFrame.IndentOnLineBreakCheckBoxChange(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   VisualizeIndentEnabled;
 end;
 
 procedure TCodetoolsGeneralOptionsFrame.GeneralAutoIndentClick(Sender: TObject);
 begin
+  Sender:= Sender; //fixes Hint: (5024) Parameter "Sender" not used
   FDialog.OpenEditor(GroupEditor,EdtOptionsIndent);
 end;
 

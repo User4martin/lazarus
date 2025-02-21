@@ -143,6 +143,7 @@ function CalcBestFitValues(const x, y: TArbFloatArray; n, m: Integer;
 var
   i, j: Integer;
 begin
+  Result:= Default(TArbFloatArray); //fixes Warning: (5093) Function result variable of a managed type does not seem to be initialized
   SetLength(Result{%H-}, Length(y));
   for i := 0 to n - 1 do begin
     Result[i] := 0.0;
@@ -228,6 +229,7 @@ var
   ca: ArbFloat = 0.0;
   term: ArbInt = 0;
 begin
+  Result:= Default(TFitResults); //fixes Warning: (5093) Function result variable of a managed type does not seem to be initialized
   SetLength(Result{%H-}.ParamValues, 0);
   SetLength(Result.CovarianceMatrix, 0);
 

@@ -190,6 +190,13 @@ function ChooseIconFromImageListDlg(anImageList: TCustomImageList): integer;
 implementation
 
 {$R *.lfm}
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 function GetNestingLevelDepth(aMenu: TMenu): integer;
 
@@ -789,6 +796,8 @@ begin
   case FRIState of
     risUp: FRIState:=risUncheckedHot;
     risDown: FRIState:=risCheckedHot;
+  else
+    NoOp
   end;
   Invalidate;
 end;
@@ -798,6 +807,8 @@ begin
   case FRIState of
     risPressed, risCheckedHot: FRIState:=risDown;
     risUncheckedHot:           FRIState:=risUp;
+  else
+    NoOp
   end;
   Invalidate;
   inherited MouseLeave;

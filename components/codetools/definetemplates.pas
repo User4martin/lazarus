@@ -1270,6 +1270,13 @@ function CompareDirectoryWithFPCSourceCacheItem(AString, CacheItem: Pointer): in
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 type
   TUnitNameLink = class
@@ -3155,7 +3162,7 @@ const
 
   procedure AddBooleanFlag(var p: PChar; Len: integer; Prefix: string = '');
   var
-    aName: string;
+    aName: string = '';
     PrefixLen: Integer;
   begin
     PrefixLen:=length(Prefix);
@@ -3190,7 +3197,7 @@ const
   var
     Option, c: Char;
     Opt, Opt2, p2: PChar;
-    aName: string;
+    aName: string = '';
   begin
     if not (p[1] in AlphaNum) then begin
       AddBooleanFlag(p,1,'');
@@ -3422,6 +3429,8 @@ begin
       fpkNonOption:
         if IsRelativeFile(Param.Value) then
           exit(i);
+      else
+        NoOp
     end;
   end;
 end;
@@ -3560,6 +3569,7 @@ procedure ParseMakefileFPC(const Filename, SrcOS: string;
     SrcPos: Integer;
     DestPos: Integer;
   begin
+    Result:= EmptyStr;
     // check how much space is needed
     SrcPos:=1;
     DestPos:=0;
@@ -6051,6 +6061,8 @@ begin
             OnCalculate(Self,DefTempl,true,SubPath,false,'',false);
         end;
       end;
+      else
+        NoOp
     end;
     if ErrorTemplate<>nil then exit;
     if DefTempl<>nil then
@@ -6482,7 +6494,8 @@ var
 var
   i, OutLen, LineStart: integer;
   TheProcess: TProcessUTF8;
-  OutputLine, Buf: String;
+  OutputLine: String = '';
+  Buf: String = '';
   NewDefTempl: TDefineTemplate;
   SrcOS: string;
   SrcOS2: String;
@@ -7262,6 +7275,7 @@ end;
 function TDefinePool.CreateKylixSrcPath(KylixVersion: integer;
   const PathPrefix: string): string;
 begin
+  KylixVersion:= KylixVersion; //fixes Hint: (5024) Parameter "KylixVersion" not used
   Result:=PathPrefix+'source/rtl/linux;'
     +PathPrefix+'source/rtl/sys;'
     +PathPrefix+'source/rtl/common;'

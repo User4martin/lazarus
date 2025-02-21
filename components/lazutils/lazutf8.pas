@@ -737,6 +737,7 @@ function UTF8ToDoubleByteString(const s: string): string;
 var
   Len: Integer;
 begin
+  Result:= Emptystr; //Hint: (5094) Function result variable of a managed type does not seem to be initialized
   Len:=UTF8Length(s);
   SetLength(Result{%H-},Len*2);
   if Len=0 then exit;
@@ -1023,6 +1024,7 @@ var
   end;
 
 begin
+  Result:= Emptystr; //Hint: (5094) Function result variable of a managed type does not seem to be initialized
   SetLength(Result{%H-}, SourceLen);
   if SourceLen=0 then exit;
   SourceCopied:=SourceStart;
@@ -1260,9 +1262,10 @@ function UTF8SwapCase(const AInStr: string; const ALanguage: string=''): string;
 // ALanguage - The language. Use '' for maximum speed if one desires to ignore the language
 //   (See UTF8LowerCase comment for more details on ALanguage parameter.)
 var
-  SCodepoint, LCodepoint: string;
-  P: PChar;
-  CharLen: Integer;
+  SCodepoint: String = ''; //fixes Hint: (5091) Local variable "SCodepoint" of a managed type does not seem to be initialized
+  LCodepoint: String = '';
+  P: PChar = nil;
+  CharLen: Integer = 0;
 begin
   if AInStr = '' then
     Exit('');
@@ -1285,9 +1288,10 @@ end;
 function UTF8ProperCase(AInStr: string; const WordDelims: TSysCharSet): string;
 // Capitalize the first letter of every word
 var
-  Capital: string;
-  P, PE : PChar;
-  CharLen: Integer;
+  Capital: String = ''; //fixes Hint: (5091) Local variable "Capital" of a managed type does not seem to be initialized
+  P: PChar = nil;
+  PE: PChar = nil;
+  CharLen: Integer = 0;
 begin
   AInStr := UTF8LowerCase(AInStr);
   P := PChar(AInStr);
@@ -2857,10 +2861,12 @@ end;
 
 function UTF8UpperCaseFast(const AText: String): String;
 var
-  src, dst: PChar;
-  c: Integer;
-  t: Char;
+  src: PChar = nil;
+  dst: PChar = nil;
+  c: Integer = 0;
+  t: Char = #0;
 begin
+  Result:= EmptyStr; //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   SetLength(Result, Length(AText));
   if Result = '' then
     exit;
@@ -2882,10 +2888,12 @@ end;
 
 function UTF8LowerCaseFast(const AText: String): String;
 var
-  src, dst: PChar;
-  c: Integer;
-  t: Char;
+  src: PChar = nil;
+  dst: PChar = nil;
+  c: Integer = 0;
+  t: Char = #0;
 begin
+  Result:= EmptyStr; //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   SetLength(Result, Length(AText));
   if Result = '' then
     exit;
@@ -3252,8 +3260,10 @@ end;
 
 function UTF8ReverseString(p: PChar; const ByteCount: LongInt): string;
 var
-  CharLen, rBytePos: LongInt;
+  CharLen: LongInt = 0;
+  rBytePos: LongInt = 0;
 begin
+  Result:= EmptyStr; //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   SetLength(Result{%H-}, ByteCount);
   rBytePos := ByteCount + 1;
   while (rBytePos > 1) do

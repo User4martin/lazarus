@@ -890,6 +890,7 @@ implementation
 
 function GetPkgFileTypeLocalizedName(FileType: TPkgFileType): string;
 begin
+  Result:='Unknown'; //Warning: (6018) Unreachable code
   case FileType of
   pftUnit: Result:=lisUnit;
   pftVirtualUnit: Result:=lisPkgFileTypeVirtualUnit;
@@ -900,8 +901,8 @@ begin
   pftIssues: Result:=lisPkgFileTypeIssues;
   pftText: Result:=lisPkgFileTypeText;
   pftBinary: Result:=lisPkgFileTypeBinary;
-  else
-    Result:='Unknown'{%H-};
+  //else     //Unreachable code
+  //  Result:='Unknown'{%H-};
   end;
 end;
 

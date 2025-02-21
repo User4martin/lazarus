@@ -553,7 +553,7 @@ var
     clen: Integer;
     NewSIndex, i: SizeInt;
     Item: PItem;
-    NewS: string;
+    NewS: String = ''; //fixes Hint: (5091) Local variable "NewS" of a managed type does not seem to be initialized
     NewSP: PChar;
     NewCharLen: Integer;
     NewCharP: PChar;

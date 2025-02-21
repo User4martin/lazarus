@@ -399,6 +399,13 @@ function dbgs(g: TGapTyp): string; overload;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 function AtomTypeNameToType(const s: string): TAtomType;
 begin
@@ -718,6 +725,8 @@ var
   IsDirectChange: boolean;
   IntersectionEntry: TSourceChangeCacheEntry;
 begin
+  NewEntry:= Default(TSourceChangeCacheEntry); //fixes Note: (5025) Local variable "NewEntry" not used
+  NewEntry:= NewEntry;
   {$IFDEF VerboseSrcChanger}
   DebugLn('TSourceChangeCache.ReplaceEx FrontGap=',dbgs(FrontGap),
   ' AfterGap=',dbgs(AfterGap),' Text="',Text,'"');
@@ -1045,6 +1054,8 @@ var
           for i:=1 to NeededLineEnds do
             InsertText:=InsertText+BeautifyCodeOptions.LineEnd;
         end;
+      else
+        NoOp
     end;
     if AnEntry.AfterGap in [gtNewLine,gtEmptyLine] then begin
       // move the rest of the line behind the insert position to the next line
@@ -1103,6 +1114,8 @@ var
           for i:=1 to NeededLineEnds do
             InsertText:=BeautifyCodeOptions.LineEnd+InsertText;
         end;
+      else
+        NoOp
     end;
     FromPosAdjustment:=0;
     if (AnEntry.FrontGap in [gtNewLine,gtEmptyLine]) and (NeededLineEnds=0)
@@ -1184,6 +1197,8 @@ begin
               gtEmptyLine:
                 InsertText:=BeautifyCodeOptions.LineEnd
                               +BeautifyCodeOptions.LineEnd+InsertText;
+              else
+                NoOp
             end;
           end else begin
             // the behind operation is a delete only operation
@@ -1791,6 +1806,7 @@ end;
 
 function TBeautifyCodeOptions.EndComment(CommentStart: char; p: integer): boolean;
 begin
+  p:= p; //fixes Hint: (5024) Parameter "p" not used
   if IsCommentType(CommentStart) then begin
     dec(CommentLvl);
     Result:=true;
@@ -2078,6 +2094,8 @@ begin
     wpUpperCase: Result:=UpperCaseStr(AWord);
     wpLowerCaseFirstLetterUp: Result:=UpperCaseStr(copy(AWord,1,1))
                                      +lowercase(copy(AWord,2,length(AWord)-1));
+    else
+      NoOp
   end;
 end;
 

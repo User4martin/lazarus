@@ -451,6 +451,14 @@ var
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 type
   TNodeMoveEdge = class
   public
@@ -799,6 +807,7 @@ end;
 function TCodeCompletionCodeTool.NodeExtHasVisibilty(
   ANodeExt: TCodeTreeNodeExtension; Visibility: TPascalClassSection): boolean;
 begin
+  Result:= False;
   case Visibility of
   pcsPrivate:
     Result:=(ANodeExt.Flags=ord(ncpPrivateVars))
@@ -812,8 +821,8 @@ begin
   pcsPublished:
     Result:=(ANodeExt.Flags=ord(ncpPublishedVars))
          or (ANodeExt.Flags=ord(ncpPublishedProcs));
-  else
-    Result:=false{%H-};
+  //else
+  //  Result:=false{%H-};
   end;
 end;
 
@@ -6527,6 +6536,8 @@ begin
   xtNativeUInt: AddAssignment('0');
   xtVariant: begin AddAssignment('0'); AddAssignment(''''''); end;
   xtJSValue: begin AddAssignment('0'); AddAssignment(''''''); AddAssignment('nil'); AddAssignment('false'); end;
+  else
+    NoOp
   end;
   if Statements.Count=0 then begin
     MoveCursorToAtomPos(IdentAtom);
@@ -8090,6 +8101,8 @@ var
           if ANode=nil then
             ANode:=FindClassSection(CodeCompleteClassNode,ctnClassPrivate);
         end;
+      else
+        NoOp
       end;
       if ANode=nil then begin
         // default: insert new section behind first published section
@@ -8987,6 +9000,8 @@ begin
         exit;
       end;
     end;
+  else
+    NoOp
   end;
 
   // Default position: Insert behind last node
@@ -9350,6 +9365,8 @@ begin
                 InsertPos:=FindLineEndOrCodeInFrontOfPosition(ANode.StartPos);
               end;
             end;
+          else
+            NoOp
           end;
           CreateMethodBodies_CreateCode(ANodeExt,Indent);
           CreateMethodBodies_Insert(TheClassName,ANodeExt,InsertPos,0);
@@ -9650,6 +9667,8 @@ function TCodeCompletionCodeTool.CompleteCode(CursorPos: TCodeXYPosition;
             break;
         cafSemicolon:
           break; // stop on semicolon
+      else
+        NoOp
       end;
     end;
   end;

@@ -322,6 +322,14 @@ implementation
 
 {$R *.lfm}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function UpdateUnitInfoResourceBaseClass(AnUnitInfo: TUnitInfo; Quiet: boolean): boolean;
 
   procedure ClearUnitResInfo;
@@ -1019,6 +1027,8 @@ begin
         lprNotFound:
           if Assigned(OPMInterface) and not OPMInterface.IsPackageListLoaded then
             OpenItemCapt:=lisPckEditCheckAvailabilityOnline;
+      else
+        NoOp
       end;
     SetItem(ProjInspMenuOpen,@OpenButtonClick,true);
     ProjInspMenuOpen.Caption:=OpenItemCapt;

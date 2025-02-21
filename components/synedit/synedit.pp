@@ -1502,6 +1502,14 @@ type
     constructor Create(AEvent: THookedCommandEvent; AData: pointer; AFlags: THookedCommandFlags);
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TSynEditUndoCaret }
 
 function TSynEditUndoCaret.IsEqualContent(AnItem: TSynEditUndoItem): Boolean;
@@ -6032,7 +6040,7 @@ procedure TCustomSynEdit.UndoItem(Item: TSynEditUndoItem);
 var
   Line, OldText: PChar;
   y, Len, Len2, LenT: integer;
-  s: String;
+  s: String = '';
 begin
   if Assigned(Item) then try
     FCaret.IncForcePastEOL;
@@ -8095,7 +8103,8 @@ end;
 
 function TCustomSynEdit.IsBookmark(BookMark: integer): boolean;
 var
-  x, y: integer;
+  x: Integer = 0;
+  y: Integer = 0;
 begin
   Result := GetBookMark(BookMark, x{%H-}, y{%H-});
 end;
@@ -8320,6 +8329,8 @@ var
           ((ptCurrent.Y = ptEnd.Y) and (Last > ptEnd.X)) then Result := FALSE;
       smColumn:
         Result := (First >= ptStart.X) and (Last <= ptEnd.X);
+    else
+      NoOp
     end;
   end;
 
@@ -9157,14 +9168,17 @@ begin
 end;
 
 procedure TCustomSynEdit.DoBlockIndentColSel(AnIndentOutside: Boolean);
+type
+  TRecordArray = array of record
+    LeftByte, RightByte: integer;
+  end;
 var
   BB,BE, BB2, BE2: TPoint;
   Len, y, LeftBytePos, RightBytePos: integer;
   LineStr, TabStr, SpaceStr: String;
-  Bounds: array of record
-    LeftByte, RightByte: integer;
-  end;
+  Bounds: TRecordArray;
 begin
+  Bounds:= Default(TRecordArray);
   if not (SelAvail and (SelectionMode = smColumn)) then
     exit;
   if (FBlockIndent <= 0) and (FBlockTabIndent <= 0) then
@@ -9242,7 +9256,7 @@ const
   LineEnd = #10;
 var
   BB, BE: TPoint;
-  FullStrToDelete: String;
+  FullStrToDelete: String = '';
   Line: PChar;
   Len, LogP1, PhyP1, LogP2, PhyP2, y, StrToDeleteLen, StrToDeletePos, e : integer;
   i, i2, j: Integer;
@@ -9365,16 +9379,17 @@ begin
 end;
 
 procedure TCustomSynEdit.DoBlockUnindentColSel(AnIndentOutside: Boolean);
+type
+  TRecordArray = array of record
+    LeftByte, RightByte: integer;
+  end;
 var
   BB,BE, BB2, BE2: TPoint;
   Len, y, LeftBytePos, TabW, TabDel, CurTabDel, CurTabSpaceAdd,
     SpaceStartCharPos, CurSpaceSpaceAdd, CurSpaceDel, CurSpaceDelPos: integer;
   LineStr: String;
   LeftCharPos, RightBytePos, TabEndBytePos: LongInt;
-  Bounds: array of record
-    LeftByte, RightByte: integer;
-//    LeftChar, RightchByte: integer;
-  end;
+  Bounds: TRecordArray;
   LPC: TSynLogicalPhysicalConvertor;
   BbIsRight: Boolean;
 
@@ -9392,6 +9407,7 @@ var
   end;
 
 begin
+  Bounds:= Default(TRecordArray);
   if not (SelAvail and (SelectionMode = smColumn)) then
     exit;
   if (FBlockIndent <= 0) and (FBlockTabIndent <= 0) then

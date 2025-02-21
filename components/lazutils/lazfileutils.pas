@@ -649,7 +649,7 @@ end;
 
 function FileIsText(const AFilename: string; out FileReadable: boolean): boolean;
 var
-  Buf: string;
+  Buf: String = ''; //fixes Hint: (5091) Local variable "Buf" of a managed type does not seem to be initialized
   Len: integer;
   p: PChar;
   ZeroAllowed: Boolean;
@@ -1101,7 +1101,7 @@ var
   NextStartPos: LongInt;
   CmpPos: LongInt;
   UseQuickCompare: Boolean;
-  PathStr: String;
+  PathStr: String = ''; //fixes Hint: (5091) Local variable "PathStr" of a managed type does not seem to be initialized
   CurFilename: String;
 begin
   Result:=nil;

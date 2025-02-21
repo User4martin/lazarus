@@ -142,6 +142,7 @@ var
   srclen, dstlen, newlen: Integer;
   src, dst: PChar;
 begin
+  Result:= EmptyStr; //Hint: (5094) Function result variable of a managed type does not seem to be initialized
   srclen := Length(AText);
   Setlength(Result, srclen);
   dstlen := srclen;
@@ -685,6 +686,7 @@ end;
 
 function PCLenToString(const AVal: TPCharWithLen; UnQuote: Boolean = False): String;
 begin
+  Result:= EmptyStr; //Hint: (5094) Function result variable of a managed type does not seem to be initialized
   if UnQuote and (AVal.Len >= 2) and (AVal.Ptr[0] = '"') and (AVal.Ptr[AVal.Len-1] = '"')
   then begin
     SetLength(Result, AVal.Len - 2);

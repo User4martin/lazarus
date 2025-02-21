@@ -5650,6 +5650,7 @@ var
   Msg: TMsg;
 
 begin
+  Msg:= Default(TMsg);
   // Wait for any references to this tree to be released.
   // Pump WM_CHANGESTATE messages so the thread doesn't block on SendMessage calls.
   while FCurrentTree = Tree do

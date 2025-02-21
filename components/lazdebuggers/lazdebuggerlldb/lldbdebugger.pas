@@ -549,6 +549,14 @@ type
     procedure RequestData(ARegisters: TRegisters); override;
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TLldbDebuggerProperties }
 
 constructor TLldbDebuggerProperties.Create;
@@ -1888,6 +1896,8 @@ begin
       if FBreakID > 0
       then ReleaseBreakpoint;
     end;
+  else
+    NoOp
   end;
 end;
 
@@ -3060,6 +3070,8 @@ begin
 //                                              String(AParams[3].VPointer^), String(AParams[4].VPointer^),
 //                                              String(AParams[5].VPointer^), Integer(AParams[6].VPointer^))
 //                                              {%H-};
+    else
+      NoOp
     end;
   finally
     UnlockRelease;

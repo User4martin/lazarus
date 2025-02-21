@@ -13,7 +13,9 @@ uses
   // IdeIntf
   ProjectIntf, IDEOptionsIntf, IDEOptEditorIntf,
   // IDE
-  Project, LazarusIDEStrConsts;
+  Project, LazarusIDEStrConsts,
+  // RTL
+  Math {IfThen function};
 
 type
 
@@ -59,6 +61,7 @@ end;
 
 procedure TProjectMiscOptionsFrame.Setup(ADialog: TAbstractOptionsEditorDialog);
 begin
+  ADialog:= ADialog; //fixes Hint: (5024) Parameter "ADialog" not used
   MainUnitIsPascalSourceCheckBox.Caption := lisMainUnitIsPascalSource;
   MainUnitIsPascalSourceCheckBox.Hint := lisMainUnitIsPascalSourceHint;
   MainUnitHasUsesSectionForAllUnitsCheckBox.Caption := lisMainUnitHasUsesSectionContainingAllUnitsOfProject;
@@ -118,8 +121,10 @@ begin
     end;
     case StorePathDelim of
     pdsNone: PathDelimComboBox.ItemIndex:=0;
-    pdsSystem: if PathDelim='/' then {%H-}PathDelimComboBox.ItemIndex:=1
-                                else {%H-}PathDelimComboBox.ItemIndex:=2;
+    //pdsSystem: if PathDelim='/' then {%H-}PathDelimComboBox.ItemIndex:=1
+    //                            else {%H-}PathDelimComboBox.ItemIndex:=2;
+    //fixes project_misc_options.pas(122,43) Warning: (6018) Unreachable code
+    pdsSystem: PathDelimComboBox.ItemIndex:= IfThen(PathDelim='/',1,2);
     pdsUnix: PathDelimComboBox.ItemIndex:=1;
     pdsWindows: PathDelimComboBox.ItemIndex:=2;
     end;

@@ -304,7 +304,7 @@ procedure Register;
 implementation
 
 uses
-  Math, StrUtils, SysUtils, LazMethodList, TAMath, TAChartStrConsts;
+  Math, {StrUtils,} SysUtils, LazMethodList, TAMath, TAChartStrConsts;
 
 type
   TCustomChartSourceAccess = class(TCustomChartSource);

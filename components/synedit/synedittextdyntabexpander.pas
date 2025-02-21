@@ -297,6 +297,7 @@ var
   CharWidths: TPhysicalCharWidths;
   i: Integer;
 begin
+  CharWidths:= Default(TPhysicalCharWidths); //fixes Hint: (5091) Local variable "CharWidths" of a managed type does not seem to be initialized
   Line := NextLines[AnIndex];
   if (Line = '') then begin
     Result := 0;
@@ -503,7 +504,9 @@ function TSynEditStringDynTabExpander.GetUpdatedCache(AnIndex: IntIdx
   ): TCachedColumnWidth;
 var
   Idx, LastLineIdx, CachedMergeTopIdx, CachedMergeBottomIdx: IntIdx;
-  CachedMergeLineCnt, PrevLineTabCnt, LineCnt: Integer;
+  CachedMergeLineCnt: Integer = 0;
+  PrevLineTabCnt: Integer = 0;
+  LineCnt: Integer = 0;
   CurMinColWidths, CachedMergedMinColWidths, NewMergedMinColWidths: IntArray;
   LTxt: String;
 

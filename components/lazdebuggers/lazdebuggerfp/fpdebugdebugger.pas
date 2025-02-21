@@ -671,6 +671,13 @@ type
     procedure Execute; override;
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 procedure Register;
 begin
@@ -2266,6 +2273,7 @@ const
   MAX_DISASS_DIST_TO_ENTRY = 10000;
 begin
   Result := False;
+  CodeBin:= Default(TBytes); //Hint: (5091) Local variable "CodeBin" of a managed type does not seem to be initialized
   if (Debugger = nil) or not(Debugger.State = dsPause) or FInPrepare then
     exit;
 
@@ -2568,6 +2576,9 @@ var
   i: Integer;
 begin
   Result := False;
+  Map:= Default(PDWarfLineMap);
+  Map2:= Default(PDWarfLineMap);
+
   if not((FpDebugger.DebugInfo <> nil) and (FpDebugger.DebugInfo is TFpDwarfInfo)) then
     exit;
   Map := PDWarfLineMap(FRequestedSources.Objects[AIndex]);
@@ -3027,6 +3038,8 @@ begin
       end;
       exit;
     end;
+  else
+    NoOp
   end;
 
   if (CurrentThread = nil) then
@@ -3164,6 +3177,8 @@ begin
       esStepToFinally: begin
           StepOutFromPopCatches;
         end;
+    else
+      NoOp
     end;
     FState := esNone;
   end
@@ -3537,6 +3552,8 @@ begin
           ]);
       end
     end;
+  else
+    NoOp
   end;
 end;
 
@@ -4112,6 +4129,8 @@ begin
       if not &continue then
         EnterPause(GetLocation);
     end;
+  else
+    NoOp
   end;
 end;
 
@@ -4342,6 +4361,8 @@ begin
       begin
         FDbgController.CurrentProcess.SendConsoleInput(String(AParams[0].VAnsiString));
       end;
+  else
+    NoOp
   end; {case}
 end;
 

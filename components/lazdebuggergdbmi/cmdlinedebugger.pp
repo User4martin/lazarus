@@ -470,7 +470,7 @@ function TCmdLineDebugger.ReadLine(const APeek: Boolean; ATimeOut: Integer = -1)
   function ReadData(const AStream: TStream; var ABuffer: String): Integer;
   const READ_LEN = 32*1024;
   var
-    S: String;
+    S: String = ''; //fixes Hint: (5091) Local variable "S" of a managed type does not seem to be initialized
   begin
     SetLength(S, READ_LEN);
     Result := AStream.Read(S[1], READ_LEN);

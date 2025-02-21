@@ -1275,8 +1275,8 @@ begin
   case BarWidthStyle of
     bwPercent: r := GetXRange(AX, AIndex) * PERCENT;
     bwPercentMin: r := FMinXRange * PERCENT;
-    else
-      raise EBarError.Create('BarWidthStyle not implemented'){%H-};
+    //else    //Warning: (6018) Unreachable code
+    //  raise EBarError.Create('BarWidthStyle not implemented'){%H-};
   end;
   AOffset := r * BarOffsetPercent;
   AWidth := r * BarWidthPercent / 2;
@@ -1875,8 +1875,8 @@ begin
       FDrawBarProc := @DrawConicalBar;
     bsHexPrism:
       FDrawBarProc := @DrawHexPrism;
-    else
-      raise EBarError.Create('[TBarSeries.SetBarShape] No drawing procedure for bar shape.'){%H-};
+    //else    //Warning: (6018) Unreachable code
+    //  raise EBarError.Create('[TBarSeries.SetBarShape] No drawing procedure for bar shape.'){%H-};
   end;
   UpdateParentChart;
 end;

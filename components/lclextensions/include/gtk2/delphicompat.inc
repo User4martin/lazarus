@@ -65,6 +65,7 @@ var
   TM: TTextMetric;
 begin
   //Logger.Send('DrawTextW');
+  TM:= Default(TTextMetric);
   TempRect := lpRect;
   //fix position under gtk (lcl bug 8565)
   if (uFormat and DT_VCENTER) > 0 then

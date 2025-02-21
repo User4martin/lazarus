@@ -335,6 +335,14 @@ implementation
 var
   DBG_LOCATION_INFO: PLazLoggerLogGroup;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function GetDebugManager: TDebugManager;
 begin
   Result := TDebugManager(DebugBoss);
@@ -1619,6 +1627,8 @@ begin
       if FDialogs[ddtPseudoTerminal] <> nil then
         TPseudoConsoleDlg(FDialogs[ddtPseudoTerminal]).Clear;
     end;
+  else
+    NoOp
   end;
 end;
 
@@ -1818,6 +1828,8 @@ begin
       begin
         FEventLogManager.EventDialog := nil;
       end;
+    else
+      NoOp
     end;
     FDialogs[DlgType]:=nil;
     exit;
@@ -1867,6 +1879,8 @@ begin
       ddtPseudoTerminal: InitPseudoTerminal;
       ddtThreads:     InitThreadsDlg;
       ddtHistory:     InitHistoryDlg;
+    else
+      NoOp
     end;
   end
   else begin

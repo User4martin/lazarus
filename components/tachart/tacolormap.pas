@@ -159,8 +159,8 @@ begin
             end;
             Add(255, 0, '', clWhite);
           end;
-      else
-        raise EChartError.Create('[TAColorMap.BuildPalette] Palette kind not supported.');
+      //else
+      //  raise EChartError.Create('[TAColorMap.BuildPalette] Palette kind not supported.');
       end;
 
       if FPaletteMin < FPaletteMax then begin

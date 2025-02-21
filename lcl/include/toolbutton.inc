@@ -739,6 +739,8 @@ begin
       Width := cDefDividerWidth;
       Height := cDefDividerWidth;
     end;
+  else
+    NoOp
   end;
   InvalidatePreferredSize;
   if IsControlVisible then
@@ -1186,6 +1188,8 @@ begin
       case Style of
         tbsDropDown: inc(PreferredWidth, FToolBar.DropDownWidth);
         tbsButtonDrop:  inc(PreferredWidth, FToolBar.ButtonDropWidth-cDefButtonDropDecArrowWidth);
+      else
+        NoOp
       end;
     end
     else

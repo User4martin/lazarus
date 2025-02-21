@@ -695,6 +695,14 @@ const
 var
   NumEncode86Values: Array [Char] of integer;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure InitNumEncodeValues;
 var
   i: integer;
@@ -1476,6 +1484,8 @@ var
       scftOpen: if scftHide = FWriteCache[AStartIndex].aFoldType then HideBit := 1;
       scftFold: if scftHide = FWriteCache[AStartIndex].aFoldType then HideBit := 1;
       scftHide: if scftFold = FWriteCache[AStartIndex].aFoldType then HideBit := 1;
+    else
+      NoOp
     end;
     LastFoldType := FWriteCache[AStartIndex].aFoldType;
 
@@ -1727,12 +1737,16 @@ begin
                       scftOpen: FReadType := scftHide;
                       scftFold: FReadType := scftHide;
                       scftHide: FReadType := scftFold;
+                    else
+                      NoOp
                     end;
                   end else begin
                     case FReadType of
                       scftOpen: FReadType := scftFold;
                       scftFold: FReadType := scftOpen;
                       scftHide: FReadType := scftOpen;
+                    else
+                      NoOp
                     end;
                   end;
                   FReadCount := FReadCount div 2;
@@ -3127,6 +3141,7 @@ function TSynEditFoldProvider.InfoListForFoldsAtTextIndex(ALine: Integer;
 var
   i: Integer;
 begin
+  Result:= Default(TSynEditFoldProviderNodeInfoList); //Warning: (5093) Function result variable of a managed type does not seem to be initialized
   i := FoldOpenCount(ALine);
   SetLength(Result, i);
   while i > 0 do begin
@@ -4004,8 +4019,10 @@ end;
 
 procedure TSynEditFoldedView.ApplyFoldDescription(AStartIndex, AStartCol, AEndIndex,
   AEndCol: Integer; FoldDesc: PChar; FoldDescLen: Integer; IsText: Boolean = False);
+type
+  TSynEditFoldExportCoderArray = Array of TSynEditFoldExportCoder;
 var
-  FoldCoders: Array of TSynEditFoldExportCoder;
+  FoldCoders: TSynEditFoldExportCoderArray;
 
   function FoldCoderForType(AType: Pointer): TSynEditFoldExportCoder;
   var
@@ -4045,6 +4062,7 @@ var
   Coder: TSynEditFoldExportCoder;
   IsFold, IsHide: Boolean;
 begin
+  FoldCoders:= Default(TSynEditFoldExportCoderArray); //fixes Hint: (5091) Local variable "FoldCoders" of a managed type does not seem to be initialized
   hl := TSynCustomFoldHighlighter(HighLighter);
   if not assigned(hl) then
     exit;
@@ -4089,6 +4107,8 @@ begin
             scftFold:  FoldAtTextIndex(NdInfo.LineIndex, NdInfo.NodeIndex);
             scftHide:  FoldAtTextIndex(NdInfo.LineIndex, NdInfo.NodeIndex, 1, False, 0);
             scftInvalid: RemoveCoderForType(NdInfo.FoldType);
+          else
+            NoOp
           end;
         end;
         NdInfo := NdiHelper1.Next;
@@ -4585,10 +4605,12 @@ begin
 end;
 
 function TSynEditFoldedView.OpenFoldInfo(aStartIndex, ColIndex: Integer; AType: Integer = 0): TFoldViewNodeInfo;
+type
+  TArrayInteger = Array of Integer;
 var
   hl: TSynCustomFoldHighlighter;
   TypeCnt, Lvl: Integer;
-  EndLvl, CurLvl: Array of integer;
+  EndLvl, CurLvl: TArrayInteger;
   i, c, t, n, o: Integer;
   nd: TSynFoldNodeInfo;
   FN: TSynTextFoldAVLNode;
@@ -4611,6 +4633,8 @@ var
   end;
 
 begin
+    EndLvl:= Default(TArrayInteger); //fixes Hint: (5091) Local variable "EndLvl" of a managed type does not seem to be initialized
+    CurLvl:= Default(TArrayInteger); //fixes Hint: (5091) Local variable "CurLvl" of a managed type does not seem to be initialized
   hl := TSynCustomFoldHighlighter(HighLighter);
   if not assigned(hl) then
     exit;  // ToDo: Initialize Result

@@ -23,6 +23,14 @@ type
     constructor Create(AOwner: TButtonGlyph); reintroduce;
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure TGlyphBitmap.Assign(ASource: TPersistent);
 begin
   inherited Assign(ASource);
@@ -148,6 +156,8 @@ begin
           AStoredState := State
         else if AUseAutoEffects > 0 then
           AEffect := gdeHighlighted;
+      else
+        NoOp
     end;
     AIndex := FImageIndexes[AStoredState];
   end;

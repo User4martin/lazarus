@@ -10,6 +10,14 @@
  *****************************************************************************
 }
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TListControlItem }
 
 constructor TListControlItem.Create(ACollection: TCollection);
@@ -159,6 +167,8 @@ begin
       stBoth: if assigned(OnCompare)
                 then pCompareItems:=@DoOnCompare
                 else pCompareItems:=@CompareItems;
+    else
+      NoOp
     end;
   aID:=Items[(Owner as TCustomComboBoxEx).ItemIndex].ID;
   BeginUpdate;
@@ -246,6 +256,8 @@ begin
               else if i>0 then ItemIndex:=i-1;
           end;
       end;
+    else
+      NoOp
   end;
 end;
 

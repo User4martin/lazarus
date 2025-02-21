@@ -803,6 +803,7 @@ var
     LineSize, Count: Integer;
     BitsPtr: PByte;
   begin
+    Header:= Default(TBitmapHeader);
     Loader := gdk_pixbuf_loader_new;
     if Loader = nil then Exit;
 
@@ -1072,10 +1073,10 @@ begin
                     GObject^.GDIBrushPixmap, TmpMask, $80);
                   gdk_pixmap_unref(TmpMask);
                 end;
-                else
-                begin
-                  DebugLn('TGtk2WidgetSet.CreateBrushIndirect: Unsupported GDIBitmapType')
-                end;
+                //else    //Warning: (6018) Unreachable code
+                //begin
+                //  DebugLn('TGtk2WidgetSet.CreateBrushIndirect: Unsupported GDIBitmapType')
+                //end;
               end
             end
             else
@@ -1083,8 +1084,8 @@ begin
             if GObject^.GDIBrushPixmap <> nil then
               gdk_pixmap_ref(GObject^.GDIBrushPixmap);
           end;
-        else
-          RaiseGDBException(Format('unsupported Style %d',[lbStyle]));
+        //else      //Warning: (6018) Unreachable code
+        //  RaiseGDBException(Format('unsupported Style %d',[lbStyle]));
       end;
 
       {$IFDEF DebugGDKTraps}
@@ -1297,13 +1298,16 @@ end;
   polygon.
 }
 function TGtk2WidgetSet.CreateEllipticRgn(X1, Y1, X2, Y2: Integer): HRGN;
+type
+  TTGdkPointArray = array of TGdkPoint;
 var
   Points: TPointArray;
-  gPoints: array of TGdkPoint;
+  gPoints: TTGdkPointArray;
   i: Integer;
   GObject: PGdiObject;
   RegionObj: PGdkRegion;
 begin
+  gPoints:= Default(TTGdkPointArray);
   Points:=EllipsePolygon(Rect(X1,Y1,X2,Y2));
   SetLength(gPoints,length(Points));
   for i:=0 to length(Points)-1 do begin
@@ -2218,6 +2222,7 @@ var
   Style: PGtkStyle;
 begin
   Result := False;
+  AValue:= Default(TGValue); //fixes Hint: (5057) Local variable "AValue" does not seem to be initialized
   if IsValidDC(DC) then
   begin
     with LogPen do
@@ -2416,7 +2421,7 @@ const
   TabString = '        ';
 var
   pIndex: Longint;
-  AStr: String;
+  AStr: String = '';
 
   TM: TTextmetric;
   theRect: TRect;
@@ -2477,6 +2482,7 @@ var
     J, MaxWidth,
     LineWidth, ActualHeight: Integer;
   begin
+    AP:= Default(TSize); //Hint: (5057) Local variable "AP" does not seem to be initialized
     theRect := Rect;
 
     MaxWidth := theRect.Right - theRect.Left;
@@ -2618,10 +2624,13 @@ var
 
 
   procedure DrawLineRaw(theLine: PChar; LineLength, TopPos: Longint);
+  type
+    TSizeArray = array[0..1] of TSize;
   var
-    Points: array[0..1] of TSize;
+    Points: TSizeArray;
     LeftPos: Longint;
   begin
+    Points:= Default(TSizeArray); //fixes Hint: (5057) Local variable "Points" does not seem to be initialized
     if LeftOffset <> DT_LEFT then
       GetTextExtentPoint(DC, theLine, LineLength, {%H-}Points[0]);
 
@@ -2649,11 +2658,14 @@ var
   end;
 
   procedure DrawLine(theLine: PChar; LineLength, TopPos: Longint);
+  type
+    TSizeArray = array[0..1] of TSize;
   var
-    Points: array[0..1] of TSize;
+    Points: TSizeArray;
     LogP: TLogPen;
     LeftPos: Longint;
   begin
+    Points:= Default(TSizeArray); //fixes Hint: (5057) Local variable "Points" does not seem to be initialized
     if TempBrush = HBRUSH(-1) then
       TempBrush := SelectObject(DC, GetStockObject(NULL_BRUSH));
 
@@ -2709,6 +2721,8 @@ var
 
 begin
   if (Str=nil) or (Str[0]=#0) then Exit(0);
+  TM:= Default(TTextmetric);
+  Size:= Default(TSize);
 
   //DebugLn(Format('trace:> [TGtk2WidgetSet.DrawText] DC:0x%x, Str:''%s'', Count: %d, Rect = %d,%d,%d,%d, Flags:%d',
   //  [DC, Str, Count, Rect.Left, Rect.Top, Rect.Right, Rect.Bottom, Flags]));
@@ -5082,6 +5096,7 @@ function TGtk2WidgetSet.GetObject(GDIObj: HGDIOBJ; BufSize: Integer; Buf: Pointe
 
     Result := 0;
 
+    BitmapSection := Default(TDIBSECTION); //fixes Hint: (5057) Local variable "BitmapSection" does not seem to be initialized
     FillChar(BitmapSection{%H-}, SizeOf(TDIBSECTION), 0);
     with {%H-}PGDIObject(GDIObj)^, BitmapSection,
       BitmapSection.dsBm, BitmapSection.dsBmih
@@ -5643,6 +5658,7 @@ var
   AValue: TGValue;
 begin
   Result := 0;
+  AValue:= Default(TGValue); //Hint: (5057) Local variable "AValue" does not seem to be initialized
   case nIndex of
     SM_ARRANGE:
       begin
@@ -6911,6 +6927,8 @@ end;
 }
 function TGtk2WidgetSet.Polygon(DC: HDC; Points: PPoint; NumPts: Integer;
   Winding: boolean): boolean;
+type
+  TPointArray = array of types.TPoint;
 var
   DevCtx: TGtkDeviceContext absolute DC;
   i: integer;
@@ -6919,13 +6937,14 @@ var
   ClipRect : TRect;
   DCOrigin: TPoint;
   OldNumPts: integer;
-  ThePoints: array of types.TPoint;
+  ThePoints: TPointArray;
   PThePoints: PPoint;
 begin
   if not IsValidDC(DC) then Exit(False);
 
   if NumPts <= 0 then Exit(True);
 
+  ThePoints:= Default(TPointArray); //fixes Hint: (5091) Local variable "ThePoints" of a managed type does not seem to be initialized
   //Create a copy of the points so we can freely alter them
   SetLength(ThePoints{%H-}, NumPts);
   for i := 0 to NumPts - 1 do ThePoints[i] := Points[i];
@@ -9816,6 +9835,8 @@ var
   p: TPoint;
   WidgetInfo: PWidgetInfo;
 begin
+  ev:= Default(TgdkEvent); //fixes Hint: (5057) Local variable "ev" does not seem to be initialized
+
   // return cached value to prevent heavy gdk_display_get_window_at_pointer call
   if (APoint = LastWFPMousePos) and GTK_IS_OBJECT({%H-}Pointer(LastWFPResult)) and
     GTK_WIDGET_VISIBLE({%H-}PGtkWidget(LastWFPResult)) and

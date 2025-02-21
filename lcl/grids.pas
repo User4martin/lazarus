@@ -1990,6 +1990,14 @@ type
 const
   MULTISEL_MODIFIER = {$IFDEF Darwin}ssMeta{$ELSE}ssCtrl{$ENDIF};
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function BidiFlipX(X: Integer; const Width: Integer; const Flip: Boolean): Integer;
 begin
   if Flip then
@@ -2090,14 +2098,15 @@ end;
 
 function dbgs(zone: TGridZone):string; overload;
 begin
+  Result:= 'gz-error';  //fixes Warning: (6018) Unreachable code
   case Zone of
     gzFixedCells: Result := 'gzFixedCells';
     gzFixedCols:  Result := 'gzFixedCols';
     gzFixedRows:  Result := 'gzFixedRows';
     gzNormal:     Result := 'gzNormal';
     gzInvalid:    Result := 'gzInvalid';
-    else
-      result:= 'gz-error';
+    //else   //Warning: (6018) Unreachable code
+    //  result:= 'gz-error';
   end;
 end;
 
@@ -4753,10 +4762,14 @@ begin
     case Canvas.TextStyle.Alignment of
       Classes.taLeftJustify: Inc(ARect.Left, varCellPadding);
       Classes.taRightJustify: Dec(ARect.Right, 1);
+    else
+      NoOp
     end;
     case Canvas.TextStyle.Layout of
       tlTop: Inc(ARect.Top, varCellPadding);
       tlBottom: Dec(ARect.Bottom, varCellPadding);
+    else
+      NoOp
     end;
   end else
   begin
@@ -6993,6 +7006,8 @@ begin
 
         end;
       end;
+  else
+    NoOp
   end;
   {$ifDef dbgGrid}DebugLnExit('MouseDown END'); {$Endif}
 end;
@@ -9329,6 +9344,8 @@ var
         aaLeftDown:   aa := aaRightUp;
         aaRightUP:    aa := aaLeftDown;
         aaLeftUP:     aa := aaRightDown;
+      else
+        NoOp
       end;
 
     case aa of
@@ -9372,6 +9389,8 @@ var
           DeltaCol := ColCount-1-ACol;
           DeltaRow := 1;
         end;
+    else
+      NoOp
     end;
 
     CCol := ACol + DeltaCol;

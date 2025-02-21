@@ -82,6 +82,8 @@ begin
   case Style of
     lbOwnerDrawFixed: Params.Style := Params.Style or LBS_OWNERDRAWFIXED;
     lbOwnerDrawVariable: Params.Style := Params.Style or LBS_OWNERDRAWVARIABLE;
+  else
+    NoOp
   end;
   Params.Style := Params.Style or
     (WS_HSCROLL or WS_VSCROLL or LBS_NOINTEGRALHEIGHT or LBS_HASSTRINGS or LBS_NOTIFY);

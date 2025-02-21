@@ -1458,6 +1458,14 @@ const
   FSB_ENCARTA_MODE            = 1;
   FSB_REGULAR_MODE            = 0;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 {$IFDEF IP_LAZARUS_DBG}
 procedure DumpTIpHtmlProps(aProps: TIpHtmlProps);
 var
@@ -1842,6 +1850,8 @@ begin
           FElementQueue.Delete(i-1);
         end;
         // nothing to do for etHardLF
+    else
+      NoOp
     end;
     dec(i);
   end;
@@ -4356,6 +4366,8 @@ begin
         AddLF(S);
         LFDone := True;
       end;
+    else
+      NoOp
     end;
     LastY := R.Top;
     LastNode := CurElem.Owner;
@@ -4809,6 +4821,8 @@ begin
       case ACSSProps.Font.Style of
         cfsItalic,cfsOblique: Props.FontStyle := Props.FontStyle + [fsItalic];
         cfsInherit: ; // what to do?: search through parent nodes looking for a computed value
+      else
+        NoOp
       end;
     end;
 
@@ -4826,6 +4840,8 @@ begin
         cfw700     : ;
         cfw800     : ;
         cfw900     : ;
+      else
+        NoOp
       end;
     end;
 

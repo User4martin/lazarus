@@ -438,6 +438,8 @@ begin
   case FOrientation of
     tboHorizontal: exit(False);
     tboVertical:   exit(True);
+  else
+    NoOp
   end;
 
   if (Parent is TCoolBar) then
@@ -1346,6 +1348,8 @@ begin
   case Operation of
     ooFree: if Assigned(DoOnFree) then DoOnFree(ASender);
     ooChange: if Assigned(DoOnChange) then DoOnChange(ASender);
+  else
+    NoOp
   end;
 end;
 

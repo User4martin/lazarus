@@ -126,6 +126,14 @@ function dbgs(r: TSPFileMaskRelation): string; overload;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure CleanUpFileList(Files: TStringList);
 var
   i: Integer;
@@ -199,6 +207,8 @@ begin
             continue; // already exists -> skip
           TSPFileMaskRelation.RightMoreGeneral:
             ; // first search in a specific, then in all -> keep
+          else
+            NoOp
           end;
       end;
       if Result<>'' then
@@ -1112,13 +1122,14 @@ end;
 
 function dbgs(r: TSPFileMaskRelation): string;
 begin
+  Result:='?'; //fixes Warning: (6018) Unreachable code
   case r of
     TSPFileMaskRelation.None: Result:='None';
     TSPFileMaskRelation.Equal: Result:='Equal';
     TSPFileMaskRelation.LeftMoreGeneral: Result:='LeftMoreGeneral';
     TSPFileMaskRelation.RightMoreGeneral: Result:='RightMoreGeneral';
-  else
-    Result:='?'{%H-};
+  //else       //fixes Warning: (6018) Unreachable code
+  //  Result:='?'{%H-};
   end;
 end;
 

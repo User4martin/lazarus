@@ -291,6 +291,14 @@ function ParseString(Options: TParsedCompilerOptions;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function EnumToStr(opt: TParsedCompilerOptString): string;
 begin
   Result:='';
@@ -468,6 +476,8 @@ begin
   pcosOutputDir,pcosCompilerPath,pcosWriteConfigFilePath:
     if Vars.IsDefined(PChar(VarName)) then
       Result:=GetForcedPathDelims(Vars[VarName]);
+  else
+    NoOp
   end
 end;
 
@@ -900,8 +910,8 @@ begin
     icoSrcPath: Result:=SrcPath;
     icoLinkerOptions: Result:=LinkerOptions;
     icoCustomOptions: Result:=CustomOptions;
-  else
-    RaiseGDBException(''){%H-}; // inconsistency detected
+  //else                          //Warning: (6018) Unreachable code
+  //  RaiseGDBException(''){%H-}; // inconsistency detected
   end;
 end;
 

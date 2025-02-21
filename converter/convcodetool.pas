@@ -112,6 +112,14 @@ type
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TCodeToolLink }
 
 constructor TCodeToolLink.Create(ACode: TCodeBuffer);
@@ -372,6 +380,8 @@ begin
                 //if not SrcCache.ReplaceEx(gtNone, gtNone, CleanPos, CleanPos+1,
                 //                          Code, CleanPos, CleanPos+1, '{.') then exit;
               end;
+          else
+            NoOp
           end;
         end;
         // Change a single resource name.
@@ -670,7 +680,7 @@ var
   procedure ReadFuncCall(MaxPos: Integer);
   var
     FuncDefInfo, FuncCallInfo: TFuncReplacement;
-    IdentName: string;
+    IdentName: String = ''; //fixes Hint: (5091) Local variable "IdentName" of a managed type does not seem to be initialized
     i, IdentEndPos, IdentLen: Integer;
   begin
     IdentEndPos:=xStart;

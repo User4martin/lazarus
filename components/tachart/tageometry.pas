@@ -129,6 +129,7 @@ function CopyPoints(
 var
   i: Integer;
 begin
+  Result:= Default(TPointArray); //fixes Warning: (5093) Function result variable of a managed type does not seem to be initialized
   Assert(ANumPts >= 0);
   SetLength(Result{%H-}, ANumPts);
   for i := 0 to ANumPts - 1 do
@@ -732,6 +733,7 @@ end;
 
 function TesselateRect(const ARect: TRect): TPointArray;
 begin
+  Result:= Default(TPointArray); //fixes Warning: (5093) Function result variable of a managed type does not seem to be initialized
   SetLength(Result{%H-}, 4);
   with ARect do begin
     Result[0] := TopLeft;

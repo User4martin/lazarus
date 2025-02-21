@@ -1156,6 +1156,7 @@ end;
 function TSynEditStrings.GetPhysicalCharWidths(Line: PChar; LineLen,
   Index: Integer): TPhysicalCharWidths;
 begin
+  Result:= Default(TPhysicalCharWidths); //fixes Warning: (5093) Function result variable of a managed type does not seem to be initialized
   SetLength(Result{%H-}, LineLen);
   if LineLen = 0 then
     exit;
@@ -1196,7 +1197,7 @@ var
   p: PChar;
   Last: PChar;
   sl: TStringList;
-  s: string;
+  s: String = ''; //fixes Hint: (5091) Local variable "s" of a managed type does not seem to be initialized
 begin
   if Value='' then begin
     Clear;

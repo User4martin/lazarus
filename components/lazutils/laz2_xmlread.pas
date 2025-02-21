@@ -507,6 +507,15 @@ type
 const
   NullLocation: TLocation = (Line: 0; LinePos: 0);
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
+
 { Decoders }
 
 var
@@ -1219,6 +1228,7 @@ var
   NewDecoder: TDecoder;
 begin
   Result := True;
+  NewDecoder:= Default(TDecoder);
   {$IFDEF UseWideString}
   if (FFixedUCS2 = '') and Is_UTF8(AEncoding) then
     Exit;
@@ -3595,7 +3605,9 @@ begin
           Element.SetAttributeNode(Attr);
           ValidateAttrValue(Attr, Attr.Value);
         end;
-        adRequired:  ValidationError('Required attribute ''%s'' of element ''%s'' is missing',[AttDef.Name, Element.TagName], 0)
+        adRequired:  ValidationError('Required attribute ''%s'' of element ''%s'' is missing',[AttDef.Name, Element.TagName], 0);
+      else
+        NoOp
       end;
     end;
   end;
@@ -3797,6 +3809,8 @@ begin
         StartPos := EndPos + 1;
       end;
     end;
+  else
+    NoOp
   end;
 end;
 
@@ -3846,6 +3860,8 @@ begin
           StandaloneError(-1);
     ctEmpty:
       ValidationError('Character data is not allowed in EMPTY elements', []);
+    else
+      NoOp
   end;
 
   // Document builder part
@@ -3976,6 +3992,8 @@ begin
           FFailed := True;  // used to prevent extra error at the end of element
       end;
       // ctAny, ctUndeclared: returns True by default
+      else
+        NoOp
     end;
   end;
 end;

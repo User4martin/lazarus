@@ -161,7 +161,7 @@ end;
   an error }
 function ReadNext() : Longint; inline;
 var
-  bytesread : integer;
+  bytesread : Integer = 0; //fixes Hint: (5057) Local variable "bytesread" does not seem to be initialized
 begin
   ReadNext := -1;
   if EBufPos >= EBufCnt then begin
@@ -186,7 +186,8 @@ end;
   returning false. }
 function ReadNext(var dest; size : SizeInt) : Boolean; //inline;
 var
-  bytesread, totalread : SizeInt;
+  bytesread : SizeInt = 0; //fixes Hint: (5057) Local variable "bytesread" does not seem to be initialized
+  totalread : SizeInt;
   r: Boolean;
   d: PByte;
 begin
@@ -264,6 +265,7 @@ end;
 { Reads an address from the current input stream }
 function ReadAddress() : PtrUInt;
 begin
+  Result:= 0; //fixes Hint: (5060) Function result variable does not seem to be initialized
   ReadNext(ReadAddress{%H-}, sizeof(ReadAddress));
 end;
 
@@ -301,6 +303,7 @@ end;
 { Reads an unsigned Half from the current input stream }
 function ReadUHalf() : Word;
 begin
+  Result:= 0; //fixes Hint: (5060) Function result variable does not seem to be initialized
   ReadNext(ReadUHalf{%H-}, sizeof(ReadUHalf));
 end;
 
@@ -423,6 +426,8 @@ end;
 
 function ParseCompilationUnit(const addr : PtrUInt; const file_offset : QWord;
   var source : String; var line : longint; var found : Boolean) : QWord;
+type
+  TByteArray = array[1..255] of Byte;
 var
   state : TMachineState;
   { we need both headers on the stack, although we only use the 64 bit one internally }
@@ -440,13 +445,13 @@ var
   s : ShortString;
   {$endif}
 
-  numoptable : array[1..255] of Byte;
+  numoptable : TByteArray;
   { the offset into the file where the include directories are stored for this compilation unit }
   include_directories : QWord;
   { the offset into the file where the file names are stored for this compilation unit }
   file_names : Int64;
 
-  temp_length : DWord;
+  temp_length : DWord = 0; //fixes Hint: (5057) Local variable "temp_length" does not seem to be initialized
   unit_length : QWord;
   header_length : SizeInt;
 
@@ -456,6 +461,9 @@ var
   prev_file : DWord;
 
 begin
+  header32 := Default(TLineNumberProgramHeader32); //fixes Hint: (5057) Local variable "header32" does not seem to be initialized
+  numoptable := Default(TByteArray); //fixes Hint: (5057) Local variable "numoptable" does not seem to be initialized
+  state := Default(TMachineState); //fixes Hint: (5057) Local variable "state" does not seem to be initialized
   prev_line := 0;
   prev_file := 0;
   first_row := true;
@@ -738,12 +746,13 @@ var
 
 function GetLineInfoStabs(addr:ptruint;var func,source:string;var line:longint) : boolean;
 var
-  res,
+  res: longint = 0; //Hint: (5057) Local variable "res" does not seem to be initialized
   stabsleft,
   stabscnt,i : longint;
   found : boolean;
   lastfunc : tstab;
 begin
+  lastfunc := Default(tstab); //Hint: (5057) Local variable "lastfunc" does not seem to be initialized
   GetLineInfoStabs:=false;
 {$ifdef DEBUG_LINEINFO}
   writeln(stderr,'GetLineInfo called');
@@ -911,6 +920,9 @@ end;
 function GetLineInfo(addr: ptruint; out func, source: string; out line: longint): boolean;
 begin
   Result := False;
+  line:= 0; //fixes Hint: (5058) Variable "line" does not seem to be initialized
+  func:= ''; //fixes Hint: (5058) Variable "func" does not seem to be initialized
+  source:= ''; //fixes Hint: (5058) Variable "source" does not seem to be initialized
   if HasDwarf then
     Result := GetLineInfoDwarf(addr, func{%H-}, source{%H-}, line{%H-});
   if (not Result) and HasStabs then

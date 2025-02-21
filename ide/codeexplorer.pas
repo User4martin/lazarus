@@ -327,6 +327,14 @@ type
     procedure CreateParams(ACodeTool: TCodeTool);
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function CompareViewNodeDataStartPos(Node1, Node2: TTreeNode): integer;
 var
   NodeData1: TViewNodeData;
@@ -695,6 +703,8 @@ begin
             CanRename:=true;
         cepDirectives:
           ;
+        else
+          NoOp
         end;
       end;
       if (CurNode.ImplementationNode<>nil)
@@ -1942,6 +1952,8 @@ begin
   case AValue of
   cepCode:       MainNotebook.ActivePage:=CodePage;
   cepDirectives: MainNotebook.ActivePage:=DirectivesPage;
+  else
+    NoOp
   end;
 end;
 

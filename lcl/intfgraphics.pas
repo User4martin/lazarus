@@ -713,6 +713,14 @@ type
 var
   IsSpaceChar, IsNumberChar, IsHexNumberChar: array[char] of Boolean;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function ReadCompleteStreamToString(Str: TStream; StartSize: integer): string;
 var
   NewLength: Integer;
@@ -2031,6 +2039,8 @@ begin
             FSetInternalColorProc := @SetColor_GrayAlpha_NoPalette;
           end;
         end;
+        else
+          NoOp
       end;
     end
     else begin

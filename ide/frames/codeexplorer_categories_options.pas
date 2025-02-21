@@ -63,6 +63,7 @@ procedure TCodeExplorerCategoriesOptionsFrame.Setup(
 var
   c: TCodeExplorerCategory;
 begin
+  ADialog:= ADialog; //fixes Hint: (5024) Parameter "ADialog" not used
   CategoriesCheckGroup.Caption := lisCEOnlyUsedInCategoryMode;
   for c := FirstCodeExplorerCategory to high(TCodeExplorerCategory) do
     CategoriesCheckGroup.Items.Add(CodeExplorerLocalizedString(c));

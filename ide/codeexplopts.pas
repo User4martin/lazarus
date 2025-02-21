@@ -289,6 +289,14 @@ function dbgs(c: TCodeExplorerCategory): string; overload;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function CodeExplorerPageNameToEnum(const s: string): TCodeExplorerPage;
 begin
   for Result:=Low(TCodeExplorerPage) to High(TCodeExplorerPage) do
@@ -341,6 +349,7 @@ end;
 
 function CodeExplorerLocalizedString(const c: TCEObserverCategory): string;
 begin
+  Result:='?'; //fixes Warning: (6018) Unreachable code
   case c of
   cefcLongProcs: Result:=lisCELongProcedures;
   cefcLongParamLists: Result:=lisCEManyParameters;
@@ -354,7 +363,7 @@ begin
   cefcEmptyClassSections: Result:=lisCEEmptyClassSections;
   cefcUnsortedClassMembers: Result:=lisCEUnsortedMembers;
   cefcToDos: Result:=lisCEToDos;
-  else Result:='?';
+  //else Result:='?';   //Warning: (6018) Unreachable code
   end;
 end;
 
@@ -646,6 +655,8 @@ begin
           List.Free;
         end;
       end;
+    else
+      NoOp
     end;
   end;
 end;
@@ -721,6 +732,8 @@ begin
           List.Free;
         end;
       end;
+    else
+      NoOp
     end;
   end;
 end;

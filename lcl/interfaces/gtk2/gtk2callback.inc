@@ -293,6 +293,7 @@ var
   Mess : TLMShowWindow;
 begin
   Result := True;
+  Mess := Default(TLMShowWindow); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
 
   {$IFDEF EventTrace}
   EventTrace('show', data);
@@ -309,6 +310,7 @@ var
   Mess : TLMShowWindow;
 begin
   Result := True;
+  Mess := Default(TLMShowWindow); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
 
   {$IFDEF EventTrace}
   EventTrace('hide', data);
@@ -327,7 +329,8 @@ begin
   {$IFDEF EventTrace}
   EventTrace('activate', data);
   {$ENDIF}
-  
+  Mess:= Default(TLMActivate);
+
   ResetDefaultIMContext;
   
   if LockOnChange(PgtkObject(Widget),0) > 0 then Exit;
@@ -381,6 +384,7 @@ var
   Mess : TLMessage;
 begin
   Result := CallBackDefaultReturn;
+  Mess := Default(TLMessage); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
 
   if ComponentIsDestroyingHandle(TWinControl(Data))
   or (LockOnChange(PgtkObject(Widget),0)>0) then exit;
@@ -472,6 +476,7 @@ var
 begin
   //debugln('gtkchanged_editbox');
   Result := CallBackDefaultReturn;
+  Mess := Default(TLMessage); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
 
   if g_object_get_data(PGObject(Widget), 'lcl-lock-changed-signal') <> nil then
   begin
@@ -707,6 +712,7 @@ begin
   {$IFDEF EventTrace}
   EventTrace('activate after', data);
   {$ENDIF}
+  Mess:= Default(TLMActivate); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
 
   ResetDefaultIMContext;
 
@@ -761,6 +767,7 @@ begin
   {$IFDEF EventTrace}
   EventTrace('deactivate after', data);
   {$ENDIF}
+  Mess:= Default(TLMActivate); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
   {$IFDEF VerboseFocus}
   LCLObject := TControl(GetLCLObject(Widget));
   DebugLnEnter(['gtkfrmDeactivate INIT Widget=',DbgS(Widget),' ',Event^._in,
@@ -877,7 +884,7 @@ begin
   EventTrace('focus', data);
   {$ENDIF}
   //DebugLn('GTKFocusCB ',DbgSName(TObject(Data)),' ',GetWidgetDebugReport(Widget));
-
+  Mess := Default(TLMessage);
   LCLObject:=TObject(data);
 
   if (widget<>nil) and GTK_IS_WINDOW(widget) and (LCLObject is TCustomForm) then
@@ -999,6 +1006,8 @@ begin
   {$IFDEF EventTrace}
   EventTrace('killfocusCBAfter', data);
   {$ENDIF}
+  Mess:= Default(TLMessage); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
+
   //DebugLn('GTKKillFocusCBAfter ',DbgSName(TObject(Data)),' ',GetWidgetDebugReport(Widget));
   {$IFDEF VerboseFocus}
   LCLObject:=TObject(data);
@@ -1206,6 +1215,7 @@ var
 begin
   Result := CallBackDefaultReturn;
   //DebugLn(['gtkdestroyCB ',GetWidgetDebugReport(Widget)]);
+  Mess:= Default(TLMessage);
 
   // Cancel any pending idle callbacks for the widget
   while g_idle_remove_by_data(Widget) <> gFALSE do;
@@ -1253,6 +1263,7 @@ function gtkdeleteCB( {%H-}widget : PGtkWidget; {%H-}event : PGdkEvent;
   data : gPointer) : GBoolean; cdecl;
 var Mess : TLMessage;
 begin
+  Mess:= Default(TLMessage); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
   FillChar(Mess{%H-},SizeOf(Mess),0);
   Mess.Msg:= LM_CLOSEQUERY;
   { Message results : True - do nothing, False - destroy or hide window }
@@ -1278,6 +1289,7 @@ var
   Mess: TLMessage;
 begin
   Result := CallBackDefaultReturn;
+  Mess:= Default(TLMessage); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
   {$IFDEF EventTrace}
   EventTrace('month changed', data);
   {$ENDIF}
@@ -2104,6 +2116,7 @@ var
   Old: TObject;
   Msg: TLMContextMenu;
 begin
+  Msg:= Default(TLMContextMenu); //fixes Hint: (5057) Local variable "Msg" does not seem to be initialized
   Result:=CallBackDefaultReturn;
   W := Widget;
   gdk_display_get_pointer(gtk_widget_get_display(Widget), nil, @x, @y, nil);
@@ -2397,6 +2410,7 @@ var
   MessE : TLMMouseEvent;
 begin
   Result := False;
+  MessE := Default(TLMMouseEvent);
 
   AWinControl:=TWinControl(Data);
   CheckTransparentWindow({%H-}TLCLHandle(widget), AWinControl);
@@ -2416,8 +2430,8 @@ begin
     GDK_SCROLL_DOWN: begin MessE.Msg := LM_MOUSEWHEEL; MessE.WheelDelta := -120; end;
     GDK_SCROLL_LEFT: begin MessE.Msg := LM_MOUSEHWHEEL; MessE.WheelDelta := -120; end;
     GDK_SCROLL_RIGHT: begin MessE.Msg := LM_MOUSEHWHEEL; MessE.WheelDelta := 120; end;
-  else
-    exit;
+  //else     //Warning: (6018) Unreachable code
+  //  exit;
   end;
   MessE.X := MappedXY.X;
   MessE.Y := MappedXY.Y;
@@ -2584,6 +2598,7 @@ begin
     This event is fired when the form is sized, moved or changes Z order.
   }
 
+  Allocation := Default(TGtkAllocation); //fixes Hint: (5057) Local variable "Allocation" does not seem to be initialized
   FillChar(Allocation{%H-},SizeOf(TGtkAllocation),0);
   with Allocation do begin
     X:= Event^.X;
@@ -3155,6 +3170,7 @@ var
   LastPos: PtrInt;
 begin
   Result := CallBackDefaultReturn;
+  Msg:= Default(TLMVScroll);
   AWidgetInfo:=PWidgetInfo(Data);
 
   //debugln(['Gtk2RangeUbuntuScrollCB ',DbgSName(AWidgetInfo^.LCLObject)]);
@@ -3396,17 +3412,20 @@ end;
 
 procedure GtkDragDataReceived(widget:PGtkWidget; context:PGdkDragContext;
   x:gint; y:gint; selection_data:PGtkSelectionData; info:guint; time:guint; Data: gPointer);cdecl;
+type
+  TStringArray = Array of String;
 var
   S: TStringList;
   I: Integer;
   FileName, DecodedFileName: String;
-  Files: Array of String;
+  Files: TStringArray;
   Form: TControl;
   Result: Boolean;
   U: TURI;
 begin
   //DebugLn('GtkDragDataReceived ' + PChar(selection_data^.data));
   Result := False;
+  Files:= Default(TStringArray); //fixes Hint: (5091) Local variable "Files" of a managed type does not seem to be initialized
   
   if selection_data^.data <> nil then // data is list of uri
   try
@@ -3705,6 +3724,7 @@ var
   GtkList: PGtkList;
 begin
   Result := CallBackDefaultReturn;
+  Mess:= Default(TLMessage);
   {$IFDEF EventTrace}
   EventTrace('gtkListSelectionChangedAfter', data);
   {$ENDIF}
@@ -3790,6 +3810,7 @@ var
 begin
   Result := True;
   EventTrace('ComboBoxShowAfter', data);
+  Mess := Default(TLMCommand);
 
   AComboBox.IntfGetItems;
 
@@ -3806,6 +3827,7 @@ var
 begin
   Result := True;
   EventTrace('ComboBoxHideAfter', data);
+  Mess := Default(TLMCommand);
   FillChar(Mess{%H-},SizeOf(Mess),0);
   Mess.Msg := CN_Command;
   Mess.NotifyCode := CBN_CLOSEUP;

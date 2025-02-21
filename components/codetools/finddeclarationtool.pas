@@ -1174,6 +1174,14 @@ function StringTypesOrderList: TTypeAliasOrderList;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 var
   FBooleanTypesOrderList: TTypeAliasOrderList;
   FIntegerTypesOrderList: TTypeAliasOrderList;
@@ -3075,8 +3083,8 @@ var
   NewInFilename: String;
   NewCompiledUnitname: String;
   ErrMsg: string;
-  curSrc: string;
-  Node:TCodeTreeNode;
+  //curSrc: string;
+  //Node:TCodeTreeNode;
 begin
   {$IF defined(ShowTriedFiles) or defined(ShowTriedUnits)}
   DebugLn('TFindDeclarationTool.FindUnitSource Self="',MainFilename,'" AnUnitName="',AnUnitName,'" AnUnitInFilename="',AnUnitInFilename,'"');
@@ -5939,6 +5947,8 @@ begin
   xtConstOrdInteger: FullExprType.Desc:=xtLongint;
   xtConstBoolean: FullExprType.Desc:=xtBoolean;
   xtConstReal: FullExprType.Desc:=xtDouble;
+  else
+    NoOp
   end;
   //debugln(['TFindDeclarationTool.FindIdentifierInBasicTypeHelpers ',ExprTypeToString(FullExprType)]);
 
@@ -6242,6 +6252,7 @@ function TFindDeclarationTool.FindIdentifierInAncestors(
 var
   IdentFoundResult: TIdentifierFoundResult;
 begin
+  IdentFoundResult:= Default(TIdentifierFoundResult);
   Result := FindIdentifierInAncestors(ClassNode, Params, IdentFoundResult{%H-});
 end;
 
@@ -6689,7 +6700,8 @@ var
     IdentStripped: string;
     aComment: string;
     UnitInFilename: ansistring;
-    Node, aClassNode, ProcNode: TCodeTreeNode;
+    Node: TCodeTreeNode;
+    //aClassNode, ProcNode: TCodeTreeNode;
     IsDotted: boolean;
     dLen: integer;
   begin
@@ -7511,7 +7523,8 @@ var
   function CheckComment(var StartPos: integer; MaxPos: integer): boolean;
   var
     c: Char;
-    AtomStart, CommentLvl, l: Integer;
+    AtomStart, CommentLvl: Integer;
+    //l: Integer;
     InStrConst, LastTokenWasPoint, IsDirective: Boolean;
   begin
     Result:=true;
@@ -7623,7 +7636,8 @@ var
   function CheckSource(MinPos, MaxPos: integer): boolean;
   var
     StartPos, AtomStart: Integer;
-    LastTokenWasPoint, LastCommentTokenWasPoint: Boolean;
+    LastTokenWasPoint: Boolean;
+    //LastCommentTokenWasPoint: Boolean;
   begin
     Result:=true;
     if MinPos<LocalSrcNamePos then
@@ -7702,7 +7716,7 @@ var
   var
     i, p: Integer;
     CodePos: TCodeXYPosition;
-    Node: TAVLTreeNode;
+    //Node: TAVLTreeNode;
   begin
     for i:=0 to CleanPosCount-1 do begin
       p:=CleanPositions[i];
@@ -7718,6 +7732,7 @@ var
   StartPos, MaxPos: Integer;
 begin
   Result:=false;
+  SyntaxExceptions:= SyntaxExceptions; //fixes Hint: (5024) Parameter "SyntaxExceptions" not used
   {$IFDEF VerboseFindSourceNameReferences}
   debugln(['TFindDeclarationTool.FindSourceNameReferences Self="',Scanner.MainFilename,'" TargetFile="',TargetFilename,'" SkipComments=',SkipComments,' SyntaxExceptions=',SyntaxExceptions]);
   {$ENDIF}
@@ -8360,6 +8375,7 @@ function TFindDeclarationTool.FindIdentifierInContext(
 var
   IdentFoundResult: TIdentifierFoundResult;
 begin
+  IdentFoundResult:= Default(TIdentifierFoundResult);
   Result := FindIdentifierInContext(Params, IdentFoundResult{%H-});
 end;
 
@@ -9370,6 +9386,8 @@ begin
       case CheckEntry(CacheEntry) of
       ifrSuccess: exit(true);
       ifrAbortSearch: exit(false);
+      else
+        NoOp
       end;
       AVLNode:=FInterfaceIdentifierCache.Items.FindSuccessor(AVLNode);
     end;
@@ -9380,6 +9398,8 @@ begin
     case CheckEntry(CacheEntry) of
     ifrSuccess: exit(true);
     ifrAbortSearch: exit(false);
+    else
+      NoOp
     end;
   end;
 
@@ -10107,6 +10127,7 @@ var
     FirstParamAlias: TFindContext;
     FirstParamExprType: TExpressionType;
   begin
+    FirstParamAlias:= Default(TFindContext);
     MoveCursorToCleanPos(FirstParamStartPos);
     ReadNextAtom;
     if (CurPos.Flag=cafRoundBracketOpen) then
@@ -10496,7 +10517,7 @@ var
   procedure ResolveIdentifier;
   var
     ProcNode: TCodeTreeNode;
-    SrcNameNode: TCodeTreeNode;
+    //SrcNameNode: TCodeTreeNode;
     Node: TCodeTreeNode;
     OldFlags: TFindDeclarationFlags;
     ResultNode: TCodeTreeNode;
@@ -10505,8 +10526,8 @@ var
     IsEnd: Boolean;
     SearchForwardToo: Boolean;
     IdentFound: boolean;
-    IdentLength, DotsNumber, i: integer;
-    SrcNameString, IdentifierString: string;
+    //IdentLength, DotsNumber, i: integer;
+    //SrcNameString, IdentifierString: string;
   begin
     // for example  'AnObject[3]'
 
@@ -11122,6 +11143,8 @@ var
         cafNone:
           if CurPos.StartPos>SrcLen then
             ;
+        else
+          NoOp
         end;
         ReadNextAtom;
       until CurPos.Flag=cafEdgedBracketClose;
@@ -11403,6 +11426,8 @@ begin
     vatEdgedBracketOpen:  ResolveEdgedBracketOpen;
     vatRoundBracketOpen:  ResolveRoundBracketOpen;
     vatINHERITED:         ResolveINHERITED;
+    else
+      NoOp
     end;
     ReadNextExpressionAtom;
   until CurAtom.EndPos>EndPos;
@@ -11861,6 +11886,8 @@ begin
 
     xtString:
       Result.Desc:=GetDefaultStringType;
+    else
+      NoOp
     end;
   finally
     ParamList.Free;
@@ -12273,7 +12300,7 @@ var
   ClassNode, Node, FirstParameterNode: TCodeTreeNode;
   Params: TFindDeclarationParams;
   SearchParamTypes: TExprTypeList;
-  AncestorNode: Boolean;
+  //AncestorNode: Boolean;
   Identifier, CurIdentifier: PChar;
   CurTool: TFindDeclarationTool;
   CompListSize: Integer;
@@ -13348,6 +13375,7 @@ var
   Found: Boolean;
   ReferencePos: TCodeXYPosition;
 begin
+  Abort:= Abort; //fixes Hint: (5024) Parameter "Abort" not used
   if Range=epriInDirective then exit;
   if not (Node.Desc in (AllPascalTypeParts+AllPascalStatements)) then exit;
   Identifier:=@Src[IdentifierCleanPos];
@@ -14566,6 +14594,7 @@ function TFindDeclarationTool.CheckModifierEnumeratorCurrent(
   ): TIdentifierFoundResult;
 begin
   Result:=ifrProceedSearch;
+  Params:= Params; //fixes Hint: (5024) Parameter "Params" not used
   //DebugLn(['TFindDeclarationTool.CheckModifierEnumeratorCurrent ',FindContextToString(FoundContext)]);
   case FoundContext.Node.Desc of
   ctnProperty:

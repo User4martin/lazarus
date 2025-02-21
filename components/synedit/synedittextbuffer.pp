@@ -376,6 +376,13 @@ var
   SynEditUndoMarkModifiedOneSaved:    TSynEditStringFlagsArray; // = [sfSaved];
   SynEditUndoMarkModifiedOneModified: TSynEditStringFlagsArray; // = [sfModified];
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 { TLazSynDisplayBuffer }
 
@@ -1310,6 +1317,7 @@ var
   WasSaved: TSynEditStringFlagsArray;
   NeedUndo: Boolean;
 begin
+  WasSaved:= Default(TSynEditStringFlagsArray); //fixes Hint: (5091) Local variable "WasSaved" of a managed type does not seem to be initialized
   if IsUndoing or IsRedoing then
     exit;
   AFirst := ToIdx(AFirst);
@@ -1463,7 +1471,8 @@ end;
 
 function TSynEditStringList.EditReplace(LogX, LogY, ByteLen: Integer; AText: String): String;
 var
-  s, s2: string;
+  s: String = '';
+  s2: String = '';
 begin
   IncIsInEditAction;
 
@@ -1692,6 +1701,8 @@ begin
       senrLineCount:
         TLinesModifiedNotificationList(FNotifyLists[senrLinesModified])
           .CallRangeNotifyEvents(ASender, aIndex, aCount, 0);
+    else
+      NoOp
     end;
   end;
 
@@ -1913,6 +1924,9 @@ begin
 end;
 
 initialization
+  SynEditUndoMarkModifiedOneEmpty:= Default(TSynEditStringFlagsArray);
+  SynEditUndoMarkModifiedOneSaved:= Default(TSynEditStringFlagsArray);
+  SynEditUndoMarkModifiedOneModified:= Default(TSynEditStringFlagsArray);
   SetLength(SynEditUndoMarkModifiedOneEmpty, 1);
   SetLength(SynEditUndoMarkModifiedOneSaved, 1);
   SetLength(SynEditUndoMarkModifiedOneModified, 1);
@@ -1922,4 +1936,3 @@ initialization
 
 
 end.
-

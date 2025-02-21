@@ -157,6 +157,14 @@ procedure WriteComponentToXMLStream(AComponent: TComponent; AStream: TStream);
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure WriteComponentToXMLStream(AComponent: TComponent; AStream: TStream);
 var
   Driver: TXMLObjectWriter;
@@ -270,7 +278,7 @@ var
   PathLen: Integer;
   StartPos: Integer;
   EndPos: LongInt;
-  NodeName: string;
+  NodeName: String = ''; //fixes Hint: (5091) Local variable "NodeName" of a managed type does not seem to be initialized
   Child: TDOMNode;
   ParentNode: TDOMNode;
 begin
@@ -391,7 +399,7 @@ end;
 
 procedure TXMLObjectWriter.WriteBinary(const Buffer; Count: Longint);
 var
-  s: string;
+  s: String = ''; //fixes Hint: (5091) Local variable "s" of a managed type does not seem to be initialized
 begin
   SetLength(s{%H-},Count);
   if s<>'' then
@@ -778,6 +786,8 @@ begin
               if Assigned(FElement.FirstChild) and (FElement.FirstChild.NodeName='list') then
                 FElement:=FElement.FirstChild as TDOMElement;
             end;
+          else
+            NoOp
           end;
         end;
       end;
@@ -816,7 +826,7 @@ var
   PathLen: Integer;
   StartPos: Integer;
   EndPos: LongInt;
-  NodeName: string;
+  NodeName: String = ''; //fixes Hint: (5091) Local variable "NodeName" of a managed type does not seem to be initialized
   Child: TDOMNode;
 
   procedure RaiseMissingNode;

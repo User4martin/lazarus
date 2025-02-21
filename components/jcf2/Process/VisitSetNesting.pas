@@ -63,6 +63,14 @@ uses
   ParseTreeNode, ParseTreeNodeType,
   Tokens, SourceToken;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 constructor TVisitSetNestings.Create;
 begin
   inherited;
@@ -179,6 +187,8 @@ begin
         lbHasNesting := True;
       end;
     end;
+    else
+      NoOp
   end;
 
   { test for a begin..end block with no other indent }
@@ -219,6 +229,8 @@ begin
       fcRunningTotals.DecLevel(nlRoundBracket);
     ttCloseSquareBracket:
       fcRunningTotals.DecLevel(nlSquareBracket);
+  else
+    NoOp
   end;
 
 
@@ -230,6 +242,8 @@ begin
       fcRunningTotals.IncLevel(nlRoundBracket);
     ttOpenSquareBracket:
       fcRunningTotals.IncLevel(nlSquareBracket);
+    else
+      NoOp
   end;
 
 end;

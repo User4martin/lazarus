@@ -632,6 +632,7 @@ var
   AFixedWidthHeight: Boolean;
   clientRectFix: TRect;
 begin
+  Geometry:= Default(TGdkGeometry); //fixes Hint: (5057) Local variable "Geometry" does not seem to be initialized
   if not WSCheckHandleAllocated(AWinControl, 'SetBounds')
   then Exit;
   ResizeHandle(AWinControl);
@@ -1119,6 +1120,7 @@ procedure Gtk2WS_ListBoxChange({%H-}Selection: PGtkTreeSelection; WidgetInfo: PW
 var
   Mess: TLMessage;
 begin
+  Mess:= Default(TLMessage); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
   {$IFDEF EventTrace}
   EventTrace('Gtk2WS_ListBoxChange', WidgetInfo^.LCLObject);
   {$ENDIF}

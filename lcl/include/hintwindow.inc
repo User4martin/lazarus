@@ -156,6 +156,8 @@ begin
       case FAlignment of
         taLeftJustify: EffectiveAlignment := taRightJustify;
         taRightJustify: EffectiveAlignment := taLeftJustify;
+        else
+          NoOp
       end;
     end;
   end;

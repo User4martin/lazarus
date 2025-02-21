@@ -18,6 +18,14 @@
 //  {$DEFINE ASSERT_IS_ON}
 {$ENDIF}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TDeviceContext }
 
 procedure TGtkDeviceContext.SetClipRegion(const AValue: PGdiObject);
@@ -308,6 +316,8 @@ begin
     dcscPen: SelectPenProps;
     dcscBrush: SelectBrushProps;
     dcscFont: SelectTextProps;
+  else
+    NoOp
   end;
 end;
 
@@ -1039,9 +1049,9 @@ begin
           Visual := gdk_window_get_visual(NewDrawable);
           gdk_visual_ref(Visual);
         end;
-    else
-      DebugLn('[TGtkDeviceContext.SelectBitmap] - Unknown bitmaptype, DC=0x%p', [Pointer(Self)]);
-      Exit;
+    //else                   //Warning: (6018) Unreachable code
+    //  DebugLn('[TGtkDeviceContext.SelectBitmap] - Unknown bitmaptype, DC=0x%p', [Pointer(Self)]);
+    //  Exit;
     end;
 
   // no drawable: this is normal, when restoring the default bitmap (FreeDC)

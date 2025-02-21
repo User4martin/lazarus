@@ -65,6 +65,7 @@ end;
 procedure TCodeExplorerUpdateOptionsFrame.Setup(
   ADialog: TAbstractOptionsEditorDialog);
 begin
+  ADialog:= ADialog; //fixes Hint: (5024) Parameter "ADialog" not used
   ModeRadioGroup.Caption := lisCEOMode;
   with ModeRadioGroup do
   begin
@@ -88,19 +89,21 @@ procedure TCodeExplorerUpdateOptionsFrame.ReadSettings(
 begin
   with AOptions as TCodeExplorerOptions do
   begin
+    RefreshRadioGroup.ItemIndex := 1; //fixes Warning: (6018) Unreachable code
     case Refresh of
       cerManual: RefreshRadioGroup.ItemIndex := 0;
       cerSwitchEditorPage: RefreshRadioGroup.ItemIndex := 1;
       cerOnIdle: RefreshRadioGroup.ItemIndex := 2;
-    else
-      RefreshRadioGroup.ItemIndex := 1;
+    //else    //Warning: (6018) Unreachable code
+    //  RefreshRadioGroup.ItemIndex := 1;
     end;
 
+    ModeRadioGroup.ItemIndex := 0;  //fixes Warning: (6018) Unreachable code
     case Mode of
       cemCategory: ModeRadioGroup.ItemIndex := 0;
       cemSource: ModeRadioGroup.ItemIndex := 1;
-    else
-      ModeRadioGroup.ItemIndex := 0;
+    //else    //Warning: (6018) Unreachable code
+    //  ModeRadioGroup.ItemIndex := 0;
     end;
 
     FollowCursorCheckBox.Checked := FollowCursor;

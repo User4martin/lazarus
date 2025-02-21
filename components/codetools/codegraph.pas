@@ -636,8 +636,10 @@ function TCodeGraph.GetTopologicalSortedList(out ListOfGraphNodes: TFPList;
   if SortForStartPos=true the nodes will be sorted for Node.StartPos
     as secondary order, keeping the topologically order
 }
+type
+  TCodeGraphNodeArray = array of TCodeGraphNode;
 var
-  NodeQueue: array of TCodeGraphNode;
+  NodeQueue: TCodeGraphNodeArray;
   QueueStart: Integer;
   QueueEnd: Integer;
   
@@ -666,6 +668,7 @@ begin
 
   try
     // init queue
+    NodeQueue:= Default(TCodeGraphNodeArray);
     SetLength(NodeQueue{%H-},Nodes.Count);
     QueueStart:=0;
     QueueEnd:=0;

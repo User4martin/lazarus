@@ -327,8 +327,8 @@ begin
             lcCurrentSection.Sort(LengthNameSort);
           eLongToShort:
             lcCurrentSection.Sort(ReverseLengthNameSort);
-          else
-            Assert(False);
+          //else    //Warning: (6018) Unreachable code
+          //  Assert(False);
         end;
       end;
 

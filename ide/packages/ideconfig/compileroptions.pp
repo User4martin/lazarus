@@ -453,6 +453,14 @@ const
   // 7  TargetProcessor/Value
   // 6  SyntaxMode/Value
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function GetMakefileMacroValue(const MacroName: string): string;
 begin
   if SysUtils.CompareText('TargetCPU',MacroName)=0 then
@@ -574,8 +582,8 @@ begin
               CurOptions:=MergeWithDelimiter(CurOptions,UnparsedOption,';');
             icoLinkerOptions,icoCustomOptions:
               CurOptions:=MergeWithDelimiter(CurOptions,UnparsedOption,' ');
-            else
-              RaiseGDBException('GatherInheritedOptions'){%H-};
+            //else    //Warning: (6018) Unreachable code
+            //  RaiseGDBException('GatherInheritedOptions'){%H-};
             end;
             InheritedOptionStrings[o]:=CurOptions;
           end;
@@ -1796,8 +1804,8 @@ begin
     Result:=GetExecutableExt(fTargetOS);
   cetLibrary:
     Result:=GetLibraryExt(fTargetOS);
-  else
-    RaiseGDBException(''){%H-};
+  //else    //Warning: (6018) Unreachable code
+  //  RaiseGDBException(''){%H-};
   end;
   //DebugLn('TBaseCompilerOptions.GetTargetFileExt ',Result,' ',dbgs(ord(ExecutableType)),' ',fTargetOS);
 end;
@@ -1965,8 +1973,8 @@ begin
   coptUnparsed: CurNamespaces:=ParsedOpts.Values[pcosNamespaces].UnparsedValue;
   coptParsedPlatformIndependent:
                CurNamespaces:=ParsedOpts.GetParsedPIValue(pcosNamespaces);
-  else
-    RaiseGDBException(''){%H-};
+  //else       //Warning: (6018) Unreachable code
+  //  RaiseGDBException(''){%H-};
   end;
   // inherited namespaces
   InhNamespaces:=GetInheritedOption(icoNamespaces,false,Parsed);
@@ -2046,8 +2054,8 @@ begin
     end;
   coptParsedPlatformIndependent:
     Result:=GetParsedPIPath(Option,InheritedOption,RelativeToBaseDir);
-  else
-    RaiseGDBException(''){%H-};
+  //else   //Warning: (6018) Unreachable code
+  //  RaiseGDBException(''){%H-};
   end;
   if WithBaseDir then begin
     if RelativeToBaseDir then
@@ -2194,8 +2202,8 @@ begin
   coptUnparsed: CurCustomOptions:=ParsedOpts.Values[pcosCustomOptions].UnparsedValue;
   coptParsedPlatformIndependent:
                CurCustomOptions:=ParsedOpts.GetParsedPIValue(pcosCustomOptions);
-  else
-    RaiseGDBException(''){%H-};
+  //else   ////Warning: (6018) Unreachable code
+  //  RaiseGDBException(''){%H-};
   end;
   // inherited custom options
   InhCustomOptions:=GetInheritedOption(icoCustomOptions,true,Parsed);

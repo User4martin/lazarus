@@ -915,10 +915,13 @@ begin
 end;
 
 procedure TDesktopForm.ExportAllActionClick(Sender: TObject);
+type
+  TCustomDesktopOptArray = array of TCustomDesktopOpt;
 var
-  xDesktops: array of TCustomDesktopOpt;
+  xDesktops: TCustomDesktopOptArray;
   I: Integer;
 begin
+  xDesktops:= Default(TCustomDesktopOptArray); //fixes Hint: (5091) Local variable "xDesktops" of a managed type does not seem to be initialized
   SetLength(xDesktops{%H-}, EnvironmentGuiOpts.Desktops.Count);
   for I := 0 to Length(xDesktops)-1 do
     xDesktops[I] := EnvironmentGuiOpts.Desktops[I];

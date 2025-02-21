@@ -292,7 +292,7 @@ end;
 
 function SimpleFormat(const Fmt: String; const Args: array of const): String;
 var
-  Used: array of boolean;
+  Used: array of boolean=(False,False,False,False,False,False,False,False,False);
   p: Integer;
   StartPos: Integer;
 
@@ -746,7 +746,7 @@ begin
             CurUnitName:=ExtractFileNameOnly(FileInfo.Name);
             if CurUnitName=AnUnitName then
               break;
-          end;
+          end
 
         else
           RaiseNotImplemented;
@@ -875,10 +875,10 @@ begin
           if SysUtils.CompareText(ShortFilename,FileInfo.Name)=0 then begin
             Result:=FileInfo.Name;
             if ShortFilename=FileInfo.Name then break;
-          end;
+          end
 
         else
-          RaiseNotImplemented;
+          RaiseNotImplemented
         end;
       until FindNextUTF8(FileInfo)<>0;
     finally
@@ -1104,8 +1104,8 @@ begin
       end;
       if Result<>'' then Result:=Base+Result;
     end;
-  else
-    RaiseNotImplemented;
+  //else
+  //  RaiseNotImplemented
   end;
 end;
 
@@ -1185,7 +1185,8 @@ function FilenameIsMatching(const Mask, Filename: string;
 
   function CompareUTF8AnyCase(AP: PChar; LenA: integer; BP: PChar; LenB: integer): PtrInt;
   var
-    A, B: string;
+    A: string = '';
+    B: string = '';
   begin
     SetLength(A{%H-},LenA);
     if LenA>0 then

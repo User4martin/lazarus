@@ -455,6 +455,14 @@ const
 var
   DBGMI_TYPE_INFO, DBG_WARNINGS: PLazLoggerLogGroup;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function GDBMIMaybeApplyBracketsToExpr(e: string): string;
 var
   i: Integer;
@@ -846,6 +854,8 @@ begin
     ptprkProcedure, ptprkFunction: begin
         SetPCharLen(Result.Declaration, DeclPtr, LineEndPtr);
       end;
+  else
+    NoOp
   end;
   finally
     DebugLn(DBGMI_TYPE_INFO, ['ParseTypeFromGdb: Flags=', dbgs(Result.Flags), ' Kind=', dbgs(Result.Kind), ' Name="', PCLenToString(Result.Name),'"' ]);
@@ -3162,6 +3172,8 @@ var
       end;
       //ptprkProcedure: ;
       //ptprkFunction: ;
+    else
+      NoOp
     end;
 
     if (ptprfPointer in PTypeResult.Flags)
@@ -3284,6 +3296,8 @@ var
           Result := True;
           // ====> DONE
       end;
+    else
+      NoOp
     end;
   end;
 
@@ -3392,6 +3406,8 @@ begin
     gtpsEvalExprArray:      EvaluateExpressionArray;
     gtpsEvalExprDynArray:   EvaluateExpressionDynArray;
     gtpsEvalExprDynArrayGetData: EvaluateExpressionDynArrayGetData;
+  else
+    NoOp
   end;
 
   FreeAndNil(Lines);

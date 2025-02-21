@@ -73,6 +73,7 @@ var
   Mess: TLMessage;
 begin
   Result := False;
+  Mess:= Default(TLMessage); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
   if WidgetInfo^.ChangeLock > 0 then
     Exit;
   FillChar(Mess{%H-},SizeOf(Mess),0);
@@ -108,6 +109,7 @@ var
   Path: PGtkTreePath;
   AState: TCheckBoxState;
 begin
+  Mess:= Default(TLMessage); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
   {$IFDEF EventTrace}
   EventTrace('Gtk2WS_CheckListBoxToggle', WidgetInfo^.LCLObject);
   {$ENDIF}

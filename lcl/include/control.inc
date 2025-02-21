@@ -476,6 +476,8 @@ begin
         alTop: Types.OffsetRect(ARect,0,-ARect.Top);
         alRight: Types.OffsetRect(ARect,NewDockSite.ClientWidth-ARect.Right,0);
         alBottom: Types.OffsetRect(ARect,0,NewDockSite.ClientHeight-ARect.Bottom);
+        else
+          NoOp
       end;
     end;
     //DebugLn('TControl.DoDock AFTER Adjusting ',DbgSName(Self),' ',dbgs(ARect),' Align=',DbgS(Align),' NewDockSite.ClientRect=',dbgs(NewDockSite.ClientRect));
@@ -1791,6 +1793,8 @@ begin
         else
           DragDrop(GetDragObject, P.X, P.Y);
       end;
+    else
+      NoOp
   end;
 end;
 

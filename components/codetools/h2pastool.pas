@@ -592,12 +592,15 @@ procedure TH2PasTool.ConvertVariable(CNode: TCodeTreeNode; ParentNode: TH2PNode)
 var
   CurName: String;
   TypeH2PNode: TH2PNode;
-  {%H-}CurType: String;
+  {%H-}CurType: String = '';
   SimpleType: String;
   {%H-}H2PNode: TH2PNode;
   SubTypeName: String;
   CurCName: String;
 begin
+  H2PNode:= Default(TH2PNode);
+  H2PNode:= H2PNode; //fixes Note: (5027) Local variable "H2PNode" is assigned but never used
+  CurType:= CurType; //fixes Note: (5027) Local variable "CurType" is assigned but never used
   if (CNode.FirstChild<>nil) and (CNode.FirstChild.Desc=ccnUnion)
   then begin
     CurName:=CTool.ExtractDefinitionName(CNode);
@@ -675,6 +678,8 @@ var
   {%H-}H2PNode: TH2PNode;
   CurCName: String;
 begin
+  H2PNode:= Default(TH2PNode);
+  H2PNode:= H2PNode; //fixes Note: (5027) Local variable "H2PNode" is assigned but never used
   CurName:=CTool.ExtractEnumBlockName(CNode);
   if CurName='' then begin
     // this is an anonymous enum block => auto generate a name
@@ -710,7 +715,7 @@ end;
 procedure TH2PasTool.ConvertFunction(CNode: TCodeTreeNode; ParentNode: TH2PNode);
 var
   CurName: String;
-  {%H-}CurType: String;
+  {%H-}CurType: String = '';
   SimpleType: String;
   IsPointerToFunction: Boolean;
   Ok: Boolean;
@@ -721,6 +726,9 @@ var
   ParamsNode: TCodeTreeNode;
   CurCName: String;
 begin
+  H2PNode:= Default(TH2PNode);
+  H2PNode:= H2PNode; //fixes Note: (5027) Local variable "H2PNode" is assigned but never used
+  CurType:= CurType; //fixes Note: (5027) Local variable "CurType" is assigned but never used
   CurName:=CTool.ExtractFunctionName(CNode);
   CurType:=CTool.ExtractFunctionResultType(CNode);
   SimpleType:=GetSimplePascalResultTypeOfCFunction(CNode);
@@ -788,12 +796,15 @@ procedure TH2PasTool.ConvertFuncParameter(CNode: TCodeTreeNode;
   ParentNode: TH2PNode);
 var
   CurName: String;
-  CurType: String;
+  CurType: String = '';
   SimpleType: String;
   TypeH2PNode: TH2PNode;
   {%H-}H2PNode: TH2PNode;
   CurCName: String;
 begin
+  H2PNode:= Default(TH2PNode);
+  H2PNode:= H2PNode; //fixes Note: (5027) Local variable "H2PNode" is assigned but never used
+  CurType:= CurType; //fixes Note: (5027) Local variable "CurType" is assigned but never used
   CurName:=CTool.ExtractParameterName(CNode);
   CurType:=CTool.ExtractParameterType(CNode);
   if CurType='void' then begin
@@ -828,7 +839,7 @@ procedure TH2PasTool.ConvertTypedef(CNode: TCodeTreeNode; ParentNode: TH2PNode);
 var
   CurName: String;
   ChildNode: TCodeTreeNode;
-  {%H-}CurType: String;
+  {%H-}CurType: String = '';
   TypeH2PNode: TH2PNode;
   IsPointerToFunction: Boolean;
   SimpleType: String;
@@ -839,6 +850,9 @@ var
   TypeNode: TCodeTreeNode;
   SubTypeName: String;
 begin
+  H2PNode:= Default(TH2PNode);
+  H2PNode:= H2PNode; //fixes Note: (5027) Local variable "H2PNode" is assigned but never used
+  CurType:= CurType; //fixes Note: (5027) Local variable "CurType" is assigned but never used
   if CNode.FirstChild=nil then begin
     exit;
   end;
@@ -2340,7 +2354,7 @@ end;
 procedure TH2PasTool.WritePascal(PascalCode: TCodeBuffer);
 var
   ms: TMemoryStream;
-  NewSrc: string;
+  NewSrc: string = '';
 begin
   ms:=TMemoryStream.Create;
   try

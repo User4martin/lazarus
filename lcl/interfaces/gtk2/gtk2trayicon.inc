@@ -87,6 +87,7 @@ function TGtk2TrayIconHandle.SendMessage(window: TWindow; msg: Integer; data1, d
 var
   Ev: TXEvent;
 begin
+  Ev:= Default(TXEvent); //fixes Hint: (5057) Local variable "Ev" does not seem to be initialized
   FillChar(Ev{%H-}, SizeOf(TXEvent), 0);
 
   ev.xclient._type := ClientMessage;

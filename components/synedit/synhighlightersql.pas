@@ -1190,6 +1190,14 @@ const
     'WEEK,WEEKDAY,WHEN,WHERE,WHILE,WINDOW,WITH,WITHOUT,WORK,WRITE,YEAR,YEARDAY,'+
     'ZONE';
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 procedure MakeIdentTable;
 var
   c: char;
@@ -2087,6 +2095,8 @@ begin
         #13#10 +
         '  SELECT SCOPE_IDENTITY()'#13#10 +
         'GO';
+    else
+      NoOp
   end;
 end;
 

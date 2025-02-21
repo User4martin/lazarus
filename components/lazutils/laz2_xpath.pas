@@ -472,6 +472,14 @@ function EvaluateXPathExpression(const AExpressionString: DOMString;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 const
   XPathKeywords: array [TXPathKeyword] of DOMPChar = (
     '',
@@ -640,6 +648,7 @@ function NodeToText(Node: TDOMNode): DOMString;
 var
   Child: TDOMNode;
 begin
+  Result:= Default(DOMString); //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   case Node.NodeType of
     DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE{, ELEMENT_NODE}:
       begin
@@ -1178,6 +1187,8 @@ var
         if (Node.NodeType <> PROCESSING_INSTRUCTION_NODE) or
          ((NodeTestString <> '') and (Node.nodeName <> NodeTestString)) then
           exit;
+      else
+       NoOp
     end;
     if ResultNodes.IndexOf(Node) < 0 then
       ResultNodes.Add(Node);
@@ -1324,6 +1335,8 @@ begin
         ResultNodes.Add(ANode)
       else
         ResultNodes.Add(ANode.ownerDocument);
+    else
+     NoOp
   end;
 end;
 
@@ -2636,6 +2649,7 @@ var
   i: Integer;
   s: DOMString;
 begin
+  s:= Default(DOMString);
   if Args.Count < 2 then
     EvaluationError(lrsEvalInvalidArgCount);
   SetLength(s{%H-}, 0);

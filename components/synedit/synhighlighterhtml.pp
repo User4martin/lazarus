@@ -2526,6 +2526,7 @@ var
   R: LongInt;
   s: string;
 begin
+  s:= EmptyStr; //fixes Hint: (5091) Local variable "s" of a managed type does not seem to be initialized
   case fRange of
   rsKey:
     begin

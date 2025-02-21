@@ -390,6 +390,14 @@ type
     procedure Draw(ADrawer: IChartDrawer; const ARect: TRect); override;
   end;
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 { TLegendItemOHLCLine }
 
 constructor TLegendItemOHLCLine.Create(ASeries: TOpenHighLowCloseSeries; const AText: String);
@@ -924,6 +932,8 @@ begin
                   rvec := np - sp;
                   r := sqrt(sqr(rvec.x) + sqr(rvec.y));
                 end;
+            else
+              NoOp
             end;
             ListSource.SetYList(AIndex, [r]);
           end;

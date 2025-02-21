@@ -264,15 +264,18 @@ end;
 
 procedure RingSector(Canvas: TFPCustomCanvas; x1, y1, x2, y2, InnerSize, StartAngle,
   EndAngle: single);
+type
+  TPointsArray = array of TPoint;
 var
   OuterCnt: integer;
   centerx, centery: single;
   i: Integer;
   Ang, sinAng, cosAng: single;
   OuterRadiusX, OuterRadiusY, InnerRadiusX, InnerRadiusY: single;
-  Points: array of TPoint;
+  Points: TPointsArray;
   j: Integer;
 begin
+  Points:= Default(TPointsArray);
   OuterCnt:=Round(SQRT((Abs(x2-x1)+Abs(y2-y1))*Abs(EndAngle-StartAngle)/FullCircle16)+0.5);
   centerx:=(x1+x2)/2;
   centery:=(y1+y2)/2;
@@ -529,6 +532,7 @@ end;
 
 procedure TCustomCircleDiagramControl.EraseBackground(DC: HDC);
 begin
+  DC:= DC; //fixes Hint: (5024) Parameter "DC" not used
   // do not erase background, Paint will paint the whole area
 end;
 

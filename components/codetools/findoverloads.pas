@@ -471,11 +471,12 @@ end;
 
 function TOverloadsGraphEdge.Cost: integer;
 begin
+  Result:= 100;
   case Typ of
   ogetParentChild: Result:=10;
   ogetAncestorInherited: Result:=1;
   ogetAliasOld: Result:=1;
-  else Result:=100{%H-};
+  //else Result:=100{%H-};
   end;
 end;
 

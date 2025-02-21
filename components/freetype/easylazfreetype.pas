@@ -776,6 +776,8 @@ var
   bbox: TT_BBox;
   error: TT_Error;
 begin
+  outline:= Default(TT_Outline);
+  bbox:= Default(TT_BBox);
 
   if FOrientation<>0 then
   begin
@@ -839,6 +841,7 @@ var mono: TFreeTypeMonochromeMap;
     buf: pointer;
     glyphBounds: TRect;
 begin
+  Result:= False; //fixes Unreachable code at bottom of case stmt
   if ClearType then
   begin
     Rect.Left *= 3;
@@ -896,8 +899,8 @@ begin
                   round((x-rect.left)*64), round((rect.bottom-y)*64),
                   rect.left, rect.top, rect.right-rect.left, rect.bottom-rect.top,
                   OnRender, ARasterizer) = TT_Err_Ok;
-  else
-    result := false{%H-};
+  //else      //fixes Warning: (6018) Unreachable code
+  //  result := false{%H-};
   end;
 end;
 
@@ -1784,6 +1787,7 @@ var
   prevCharcode,glyphIndex: integer;
   g: TFreeTypeGlyph;
 begin
+  Result:= Default(ArrayOfSingle);// fixes Warning: (5093) Function result variable of a managed type does not seem to be initialized
   if AText = '' then
   begin
     setlength(result{%H-}, 0);
@@ -1989,7 +1993,8 @@ const
   maxNameIndex = 22;
 var i,j: integer;
   nrPlatformID,nrEncodingID,nrLanguageID,nrNameID,len: integer;
-  value,value2: string;
+  value: String = '';
+  value2: String = '';
 
 begin
   // setlength(FNamesArray, maxNameIndex+1);

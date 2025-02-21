@@ -520,6 +520,7 @@ procedure TFPCMsgFile.LoadFromList(List: TStrings);
     c: Char;
     StartPos: PChar;
   begin
+    s:= EmptyStr;
     StartPos:=p;
     repeat
       c:=p^;

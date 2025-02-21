@@ -18,7 +18,7 @@ interface
 uses
   Classes, SysUtils, LCLProc, Forms, Graphics, Controls, Dialogs, ExtCtrls, Menus,
   IpMsg, Ipfilebroker, IpHtml, IpHtmlNodes,
-  IDEHelpIntf, LazHelpIntf, LazIDEIntf, ObjInspStrConsts;
+  IDEHelpIntf, LazHelpIntf, LazIDEIntf, ObjInspStrConsts, LazLogger;
 
 type
   TLazIPHtmlControl = class;
@@ -226,7 +226,7 @@ begin
   except
     on E: Exception do begin
       FreeAndNil(Picture);
-      DebugLn(['TIPLazHtmlControl.HTMLGetImageX ERROR: ',E.Message]);
+      DebugLogger.DebugLn(['TIPLazHtmlControl.HTMLGetImageX ERROR: ',E.Message]);
     end;
   end;
 end;

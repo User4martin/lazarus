@@ -177,7 +177,7 @@ procedure TDebuggerClassOptionsFrame.cmdOpenDebuggerPathClick(Sender: TObject);
 var
   OpenDialog: TOpenDialog;
   AFilename, ParsedFName: string;
-  lDirText : string;
+  lDirText : String = ''; //fixes Warning: (5089) Local variable "lDirText" of a managed type does not seem to be initialized
   lExpandedName: string; // Expanded name before Dialog
   lDirName, lDirNameF : string;
 begin

@@ -270,12 +270,13 @@ end;
 
 function TPackageIntegrationOptionsFrame.PkgTypeToCaption(t: TLazPackageType): string;
 begin
+  Result:='?'+IntToStr(ord(t)); //fixes Warning: (6018) Unreachable code
   case t of
   lptRunTime: Result:=lisPckOptsRuntime;
   lptDesignTime: Result:=lisPckOptsDesigntime;
   lptRunAndDesignTime: Result:=lisPckOptsDesigntimeAndRuntime;
   lptRunTimeOnly: Result:=lisRuntimeOnlyCanNotBeInstalledInIDE;
-  else Result:='?'+IntToStr(ord(t)){%H-};
+  //else Result:='?'+IntToStr(ord(t)){%H-};  //Warning: (6018) Unreachable code
   end;
 end;
 

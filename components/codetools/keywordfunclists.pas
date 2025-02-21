@@ -197,6 +197,7 @@ function UpperCaseStr(const s: string): string;
 var i, l, l2: integer;
   pSrc, pDest: PWord;
 begin
+  Result:= EmptyStr;
   l:=length(s);
   SetLength(Result{%H-},l);
   if l>0 then begin

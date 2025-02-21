@@ -316,8 +316,8 @@ begin
       WriteTextFile(lsOut, fcConverter.OutputCode, leContentType);
 
     end;
-    else
-      Assert(False, 'Bad backup mode');
+    //else      //Warning: (6018) Unreachable code
+    //  Assert(False, 'Bad backup mode');
   end;
 
 end;
@@ -386,6 +386,7 @@ var
   lsName, lsExt, lsSearch: string;
   bDone:   boolean;
 begin
+  rSearch:= Default(TSearchRec); //fixes Hint: (5091) Local variable "rSearch" of a managed type does not seem to be initialized
   Assert(psDir <> '');
   Assert(psFiles <> nil);
   lsSearch := psDir + AllFilesMask;   { for all pas files in the dir }
@@ -414,6 +415,7 @@ var
   lsSearch: string;
   bDone:    boolean;
 begin
+  rSearch:= Default(TSearchRec); //fixes Hint: (5091) Local variable "rSearch" of a managed type does not seem to be initialized
   Assert(psDir <> '');
   Assert(psFiles <> nil);
   lsSearch := psDir + AllFilesMask;
@@ -456,8 +458,8 @@ begin
     begin
       ProcessDirectory(Input);
     end
-    else
-      raise Exception.Create(lisMsgBadFileRecurseType);
+    //else       //Warning: (6018) Unreachable code
+    //  raise Exception.Create(lisMsgBadFileRecurseType);
   end;
 
   if GetRegSettings.LogTime then

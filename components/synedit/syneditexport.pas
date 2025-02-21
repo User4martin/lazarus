@@ -472,6 +472,7 @@ var
   Replace: string;
   c: char;                                                                      //mh 2000-10-10
 begin
+  Result:= EmptyStr; //fixes Hint: (5094) Function result variable of a managed type does not seem to be initialized
   IsSpace := TRUE;
   if AToken <> '' then begin
     SrcLen := Length(AToken);

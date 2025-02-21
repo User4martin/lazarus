@@ -1518,8 +1518,8 @@ begin
                  C := LineTermChar;
                  Write(C, 1);
                end;
-    else
-      raise EIpBaseException.Create(SBadLineTerminator);
+    //else   //Warning: (6018) Unreachable code
+    //  raise EIpBaseException.Create(SBadLineTerminator);
     end;
   end;
 end;

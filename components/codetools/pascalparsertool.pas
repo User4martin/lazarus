@@ -331,6 +331,14 @@ type
   TTryType = (ttNone, ttFinally, ttExcept);
   TIfType = (itNone, itThen, itElse);
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function ProcHeadAttributesToStr(Attr: TProcHeadAttributes): string;
 var
   a: TProcHeadAttribute;
@@ -2543,6 +2551,8 @@ begin
             end;
           end;
         end;
+        else
+          NoOp
       end;
     until false;
   finally
@@ -2608,6 +2618,8 @@ begin
     cafSemicolon: break;
     cafEnd:       break;
     cafWord:  if WordIsPropertyEnd then break;
+    else
+      NoOp
     end;
     ReadNextAtom;
   end;
@@ -3083,6 +3095,8 @@ begin
       ebtBegin,ebtTry,ebtIf,ebtCase,ebtRepeat:
         if UnexpectedKeyWordInBeginBlock.DoIdentifier(@Src[CurPos.StartPos]) then
           SaveRaiseUnexpectedKeyWordInBeginEndBlock;
+      else
+        NoOp
       end;
     end;
   until false;
@@ -3315,6 +3329,8 @@ begin
             exit;
           end;
         end;
+      else
+        NoOp
       end;
       if CurPos.StartPos>SrcLen then exit;
       ReadNextAtom;
@@ -5578,6 +5594,7 @@ end;
 
 function TPascalParserTool.GetExtraction(InUpperCase: boolean): string;
 begin
+  Result:= EmptyStr;
   SetLength(Result{%H-},ExtractMemStream.Position);
   ExtractMemStream.Position:=0;
   if Result<>'' then
@@ -5608,8 +5625,8 @@ var
   LastStreamPos: TFPCStreamSeekType;
   p, StartP, EndP: PChar;
 
-const
-  {%H-}space: char = ' ';
+//const
+//  {%H-}space: char = ' ';
 begin
   LastStreamPos:=ExtractMemStream.Position;
   if LastAtoms.HasPrior then begin
@@ -5642,7 +5659,7 @@ begin
              and ExtractStreamEndIsIdentChar)
          )
       then begin
-        ExtractMemStream.Write(space,1);
+        ExtractMemStream.Write(Space(1),1);
         LastStreamPos:=ExtractMemStream.Position;
       end;
     end;

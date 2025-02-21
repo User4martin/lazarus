@@ -536,10 +536,13 @@ begin
 end;
 
 procedure TSynPluginSyncroEditWordsHash.Resize(ANewSize: Integer);
+type
+  TSynPluginSyncroEditWordsHashEntryArray = Array of TSynPluginSyncroEditWordsHashEntry;
 var
-  OldTable: Array of TSynPluginSyncroEditWordsHashEntry;
+  OldTable: TSynPluginSyncroEditWordsHashEntryArray;
   OldSize, i, j, k: Integer;
 begin
+  OldTable:= Default(TSynPluginSyncroEditWordsHashEntryArray);
   FEntryCount := 0;
   FWordCount := 0;
   FMultiWordCount := 0;
@@ -960,6 +963,7 @@ function TSynPluginSyncroEdit.GetContextAt(APos: TPoint): String;
 var
   Ctx: Integer;
 begin
+  Result:= EmptyStr;
   TCustomSynEdit(FriendEdit).GetHighlighterAttriAtRowColEx(APos, Ctx, FLastContextLine = APos.Y);
   FLastContextLine := APos.Y;
   SetLength(Result, SizeOf(Integer));

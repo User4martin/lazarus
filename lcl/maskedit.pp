@@ -397,6 +397,13 @@ procedure Register;
 
 implementation
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
 
 //Define this to prevent validation when the control looses focus
 { $DEFINE MASKEDIT_NOVALIDATEONEXIT}
@@ -1274,6 +1281,8 @@ begin
     Char_Set                 : Ok := (Ch = FSpaceChar) or ((Length(Ch) = 1) and (Ch[1] in FMask[Position].CharSet));
     Char_SetNegateFixed      : OK := not ((Length(Ch) = 1) and (Ch[1] in FMask[Position].CharSet));
     Char_IsLiteral           : OK := (Ch = FMask[Position].Literal);  // no need to use GetMask() here, since FMask[FPosition] has already been validated
+  else
+    NoOp
   end;//case
   //DebugLn('Position = ',DbgS(Position),' Current = ',DbgS(Current),' Ch = "',Ch,'" Ok = ',DbgS(Ok));
   Result := Ok;

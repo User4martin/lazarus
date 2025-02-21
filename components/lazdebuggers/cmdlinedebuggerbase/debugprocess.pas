@@ -368,7 +368,7 @@ procedure TDebugProcess.DoReadData(Sender: TObject);
 
 var
   LineEndIdx, LineEndLen: Integer;
-  Line: String;
+  Line: String = ''; //Hint: (5091) Local variable "Line" of a managed type does not seem to be initialized
 begin
   if not DebugProcessRunning then begin
     StopDebugProcess;

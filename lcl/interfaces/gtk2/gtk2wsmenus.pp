@@ -79,6 +79,14 @@ implementation
 
 {$I gtk2defines.inc}
 
+//NoOp fixes Warning: (6060) Case statement does not handle all possible cases
+procedure NoOp;
+begin
+  asm
+    NOP
+  end;
+end;
+
 function Gtk2MenuItemButtonPress(widget: PGtkWidget; event: PGdkEventButton;
  {%H-}user_data: gpointer): gboolean; cdecl;
 var
@@ -111,6 +119,7 @@ var
   LCLMenuItem: TMenuItem;
 begin
   Result:= True;
+  Mess:= Default(TLMActivate); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
   {$IFDEF EventTrace}
   EventTrace('activate', data);
   {$ENDIF}
@@ -148,6 +157,7 @@ var
   WidgetInfo: PWidgetInfo;
 begin
   Result := CallBackDefaultReturn;
+  Mess:= Default(TLMessage); //fixes Hint: (5057) Local variable "Mess" does not seem to be initialized
   {$IFDEF EventTrace}
   EventTrace('toggled', AData);
   {$ENDIF}
@@ -601,6 +611,8 @@ begin
     case Alignment of
       paCenter: X^ := X^ - Requisition.width div 2;
       paRight: X^ := X^ - Requisition.width;
+    else
+      NoOp
     end;
   end;
 end;

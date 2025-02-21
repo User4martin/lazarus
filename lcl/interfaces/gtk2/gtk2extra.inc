@@ -33,6 +33,7 @@ function gtk_cell_view_get_model(cell_view: PGtkCellView): PGtkTreeModel;
 var
   Value: TGvalue;
 begin
+  Value:= Default(TGvalue);  //fixes Hint: (5057) Local variable "Value" does not seem to be initialized
   FillByte(Value{%H-},SizeOf(Value),0);
   g_value_init(@Value,GTK_TYPE_TREE_MODEL);
   g_object_get_property(PGObject(Cell_View),'model',@Value);
