@@ -4773,6 +4773,7 @@ begin
   FMemManager.MemLimits.MaxArrayLen := TFpDebugDebuggerProperties(GetProperties).MemLimits.MaxArrayLen;
   FMemManager.MemLimits.MaxStringLen := TFpDebugDebuggerProperties(GetProperties).MemLimits.MaxStringLen;
   FMemManager.MemLimits.MaxNullStringSearchLen := TFpDebugDebuggerProperties(GetProperties).MemLimits.MaxNullStringSearchLen;
+  FMemManager.SetCacheManager(TFpDbgMemCacheManagerSimple.Create);
   FDbgController := TDbgController.Create(FMemManager, FMemModel);
   FDbgController.OnCreateProcessEvent:=@FDbgControllerCreateProcessEvent;
   FDbgController.OnHitBreakpointEvent:=@FDbgControllerHitBreakpointEvent;
