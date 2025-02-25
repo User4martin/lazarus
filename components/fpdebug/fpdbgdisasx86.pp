@@ -5652,6 +5652,7 @@ var
   Val: Int64;
   ClearRecValList, ForceDifferentBranch: Boolean;
   FullName: String;
+  PushedNewFrame, PushedNewFrameAddr: TDBGPtr;
 begin
   Result := False;
   NewAddr    := AnAddress;
@@ -5677,6 +5678,7 @@ begin
     if ClearRecValList then ARegisterValueList.Clear;
 
     if ForceDifferentBranch or (NewAddr >= MaxAddr) or( NewAddr > MaxAddrCurrentBlock) then begin
+      PushedNewFrameAddr := 0;
       CheckConditionalForwAddr;
       FinishCurAddrBlock;
       while (CurConditionalForwardAddr >= 0) and
@@ -5758,6 +5760,10 @@ begin
           if NewStack <> 0 then
             NewStack := NewStack - RegisterSize(instr.X86Instruction.Operand[1].Value);
           {$POP}
+          if (IsRegister(instr.X86Instruction.Operand[1].Value, 'bp')) and (NewFrame <> 0) then begin
+            PushedNewFrame := NewFrame;
+            PushedNewFrameAddr := NewStack;
+          end;
         end;
       OPpusha:
         begin
@@ -5806,6 +5812,11 @@ begin
               RSize := RegisterSize(instr.X86Instruction.Operand[1].Value);
               if not FProcess.ReadData(NewStack, RSize, NewFrame, RSize) then
                 exit;
+            end
+            else
+            if (PushedNewFrameAddr = NewStack) then begin
+              NewFrame := PushedNewFrame;
+              PushedNewFrameAddr := 0;
             end;
           end
           else
@@ -5817,6 +5828,8 @@ begin
               ARegisterValueList.DbgRegisterAutoCreate[FullName].SetValue(Tmp, IntToStr(Tmp), RSize, 0);
             end;
           end;
+          if NewStack >= PushedNewFrameAddr then
+            PushedNewFrameAddr := 0;
           {$PUSH}{$R-}{$Q-}
           if NewStack <> 0 then
             NewStack := NewStack + RegisterSize(instr.X86Instruction.Operand[1].Value);
