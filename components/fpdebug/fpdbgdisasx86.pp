@@ -5481,15 +5481,19 @@ var
       if IsLea and not (ofMemory in Oper.Flags) then exit(False);
       OpVal := ValueFromMem(CurAddr[Oper.CodeIndex], Oper.ByteCount, Oper.FormatFlags);
 
-      if (IsRegister(Oper.Value, 'bp%s')) then
+      if (IsRegister(Oper.Value, 'bp%s')) then begin
+        if NewFrame = 0 then exit(False);
         {$PUSH}{$R-}{$Q-}
-        AVal := NewFrame + OpVal
+        AVal := NewFrame + OpVal;
         {$POP}
+      end
       else
-      if (IsRegister(Oper.Value, 'sp%s')) then
+      if (IsRegister(Oper.Value, 'sp%s')) then begin
+        if NewStack = 0 then exit(False);
         {$PUSH}{$R-}{$Q-}
-        AVal := NewStack + OpVal
+        AVal := NewStack + OpVal;
         {$POP}
+      end
       else
       if (Oper.Value = '%s') and (not(ofMemory in Oper.Flags))
       then begin
@@ -5729,7 +5733,7 @@ begin
               exit;
             inc(NewStack, 8 + Val);
           end;
-          Result := True;
+          Result := NewStack <> 0;
           AnAddress := NewAddr;
           AStackPtr := NewStack;
           AFramePtr := NewFrame;
@@ -5740,15 +5744,19 @@ begin
           ClearRecValList := False;
           if AQuick then
             exit;
-          if (instr.X86Instruction.OperCnt <> 1) or
-             IsRegister(instr.X86Instruction.Operand[1].Value, 'bp') or
-             IsRegister(instr.X86Instruction.Operand[1].Value, 'sp')
+          if (instr.X86Instruction.OperCnt <> 1)
+          //or
+          //   IsRegister(instr.X86Instruction.Operand[1].Value, 'bp') or
+          //   IsRegister(instr.X86Instruction.Operand[1].Value, 'sp')
           then begin
             ForceDifferentBranch := True;
             continue;
           end;
+          if StartStack < NewStack then
+            StartStack := NewStack;
           {$PUSH}{$R-}{$Q-}
-          NewStack := NewStack - RegisterSize(instr.X86Instruction.Operand[1].Value);
+          if NewStack <> 0 then
+            NewStack := NewStack - RegisterSize(instr.X86Instruction.Operand[1].Value);
           {$POP}
         end;
       OPpusha:
@@ -5759,8 +5767,11 @@ begin
             continue;
           end;
           // push 8 registers
+          if StartStack < NewStack then
+            StartStack := NewStack;
           {$PUSH}{$R-}{$Q-}
-          NewStack := NewStack - (8*4);
+          if NewStack <> 0 then
+            NewStack := NewStack - (8*4);
           {$POP}
         end;
       OPpushf:
@@ -5790,12 +5801,12 @@ begin
           end;
           if IsRegister(instr.X86Instruction.Operand[1].Value, 'bp')
           then begin
-            if NewStack < StartStack then
-              exit;
             NewFrame := 0;
-            RSize := RegisterSize(instr.X86Instruction.Operand[1].Value);
-            if not FProcess.ReadData(NewStack, RSize, NewFrame, RSize) then
-              exit;
+            if NewStack >= StartStack then begin
+              RSize := RegisterSize(instr.X86Instruction.Operand[1].Value);
+              if not FProcess.ReadData(NewStack, RSize, NewFrame, RSize) then
+                exit;
+            end;
           end
           else
           if NewStack >= StartStack then begin
@@ -5807,7 +5818,8 @@ begin
             end;
           end;
           {$PUSH}{$R-}{$Q-}
-          NewStack := NewStack + RegisterSize(instr.X86Instruction.Operand[1].Value);
+          if NewStack <> 0 then
+            NewStack := NewStack + RegisterSize(instr.X86Instruction.Operand[1].Value);
           {$POP}
         end;
       OPleave:
@@ -5818,12 +5830,14 @@ begin
           if FProcess.Mode = dm32 then begin
             if not FProcess.ReadData(NewStack, 4, NewFrame, RSize) then
               exit;
-            inc(NewStack, 4);
+            if NewStack <> 0 then
+              inc(NewStack, 4);
           end
           else begin
             if not FProcess.ReadData(NewStack, 8, NewFrame, RSize) then
               exit;
-            inc(NewStack, 8);
+            if NewStack <> 0 then
+              inc(NewStack, 8);
           end;
         end;
       OPmov:
@@ -5882,13 +5896,17 @@ begin
             Val := ValueFromMem(CurAddr[Instr.X86Instruction.Operand[2].CodeIndex], Instr.X86Instruction.Operand[2].ByteCount, Instr.X86Instruction.Operand[2].FormatFlags);
             if (IsRegister(instr.X86Instruction.Operand[2].Value, 'sp%s')) then begin
               {$PUSH}{$R-}{$Q-}
-              NewFrame := NewStack + Val;
+              if NewStack <> 0 then
+                NewFrame := NewStack + Val
+              else
+                NewFrame := 0;
               {$POP}
             end
             else
             if (IsRegister(instr.X86Instruction.Operand[2].Value, 'bp%s')) then begin
               {$PUSH}{$R-}{$Q-}
-              NewFrame := NewFrame + Val;
+              if NewFrame <> 0 then
+                NewFrame := NewFrame + Val;
               {$POP}
             end
             else
@@ -5910,13 +5928,17 @@ begin
             Val := ValueFromMem(CurAddr[Instr.X86Instruction.Operand[2].CodeIndex], Instr.X86Instruction.Operand[2].ByteCount, Instr.X86Instruction.Operand[2].FormatFlags);
             if (IsRegister(instr.X86Instruction.Operand[2].Value, 'sp%s')) then begin
               {$PUSH}{$R-}{$Q-}
-              NewStack := NewStack + Val;
+              if NewStack <> 0 then
+                NewStack := NewStack + Val;
               {$POP}
             end
             else
             if (IsRegister(instr.X86Instruction.Operand[2].Value, 'bp%s')) then begin
               {$PUSH}{$R-}{$Q-}
-              NewStack := NewFrame + Val;
+              if NewFrame <> 0 then
+                NewStack := NewFrame + Val
+              else
+                NewStack := 0;
               {$POP}
             end
             else
@@ -5962,7 +5984,8 @@ begin
               continue;
             end;
             {$PUSH}{$R-}{$Q-}
-            NewStack := NewStack + int64(Tmp);
+            if NewStack <> 0 then
+              NewStack := NewStack + int64(Tmp);
             {$POP}
           end;
           if IsRegister(instr.X86Instruction.Operand[1].Value, 'bp') and
@@ -5973,7 +5996,8 @@ begin
               continue;
             end;
             {$PUSH}{$R-}{$Q-}
-            NewFrame := NewFrame + int64(Tmp);
+            if NewFrame <> 0 then
+              NewFrame := NewFrame + int64(Tmp);
             {$POP}
           end;
         end;
@@ -5994,7 +6018,8 @@ begin
               continue;
             end;
             {$PUSH}{$R-}{$Q-}
-            NewStack := NewStack - int64(Tmp);
+            if NewStack <> 0 then
+              NewStack := NewStack - int64(Tmp);
             {$POP}
           end;
           if IsRegister(instr.X86Instruction.Operand[1].Value, 'bp') and
@@ -6005,7 +6030,8 @@ begin
               continue;
             end;
             {$PUSH}{$R-}{$Q-}
-            NewFrame := NewFrame - int64(Tmp);
+            if NewFrame <> 0 then
+              NewFrame := NewFrame - int64(Tmp);
             {$POP}
           end;
         end;
