@@ -38,6 +38,8 @@ type
     //function MonitorFromWindow(hWnd: HWND; dwFlags: DWord): HMONITOR; override;
 
     function GetTextMetrics(DC: HDC; var TM: TTextMetric): Boolean; override;
+
+    //procedure AppProcessMessages; override;
   end;
 
 
