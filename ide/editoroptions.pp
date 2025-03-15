@@ -1603,6 +1603,7 @@ type
     // Wordwrap
     FWordWrapCaretWrapPos: TLazSynEditWrapCaretPos;
     FWordWrapEnabled: Boolean;
+    FWordWrapHLList: TStringList;
     FWordWrapFixedWidth: boolean;
     FWordWrapForceHomeEnd: Boolean;
     FWordWrapIndent: Integer;
@@ -1676,6 +1677,7 @@ type
     property GutterPartOver: TEditorSynGutterOptions read FGutterPartOver;
     property GutterPartList: TEditorSynGutterOptionsList read FGutterPartList;
     property GutterRightPartList: TEditorSynGutterOptionsList read FGutterRightPartList;
+    property WordWrapHLList: TStringList read FWordWrapHLList;
   published { use RTTIConf}
     // general options
     property MultiLineTab: Boolean read fMultiLineTab write fMultiLineTab default False;
@@ -1910,6 +1912,7 @@ type
     procedure GetHighlighterSettings(Syn: TSrcIDEHighlighter); // read highlight settings from config file
     procedure GetSynEditorSettings(ASynEdit: TObject; SimilarEdit: TObject = nil); override;
     procedure GetSynEditSettings(ASynEdit: TSynEdit; SimilarEdit: TSynEdit = nil); // read synedit settings from config file
+    procedure UpdateSynEditSettingsForHighlighter(ASynEdit: TSynEdit; AHighlighterId: TIdeSyntaxHighlighterID);
     procedure GetSynEditPreviewSettings(APreviewEditor: TObject);
     procedure SetMarkupColor(Syn: TSrcIDEHighlighter;
                              AddHilightAttr: TAdditionalHilightAttribute;
@@ -5486,6 +5489,11 @@ begin
   FGutterPartList.Add(FGutterPartSep);
   FGutterPartList.Add(FGutterPartFold);
   FGutterRightPartList.Add(FGutterPartOver);
+
+  FWordWrapHLList := TStringList.Create;
+  FWordWrapHLList.Duplicates := dupIgnore;
+  FWordWrapHLList.Sorted := True;
+  FWordWrapHLList.CaseSensitive := False;
 end;
 
 destructor TEditorOptionsBase.Destroy;
@@ -5494,6 +5502,7 @@ begin
   FreeAndNil(FGutterRightPartList);
   FreeAndNil(FScrollOnEditLeftOptions);
   FreeAndNil(FScrollOnEditRightOptions);
+  FreeAndNil(FWordWrapHLList);
   inherited Destroy;
 end;
 
@@ -5961,6 +5970,10 @@ begin
     for i := IdeHighlighterStartId to HighlighterList.Count - 1 do
       GetHighlighterSettings(HighlighterList.SharedSynInstances[i]);
 
+    //Wordwrap
+    FWordWrapHLList.DelimitedText :=
+      XMLConfig.GetValue('EditorOptions/Misc/WordWrapHighlighters', '');
+
   except
     on E: Exception do
       DebugLn('[TEditorOptions.Load] ERROR: ', e.Message);
@@ -6164,6 +6177,10 @@ begin
 
     FMultiWinEditAccessOrder.SaveToXMLConfig(XMLConfig, 'EditorOptions/MultiWin/');
     UserColorSchemeGroup.SaveToXml(XMLConfig, 'EditorOptions/Color/', ColorSchemeFactory);
+
+    //WordWrap
+    XMLConfig.SetDeleteValue('EditorOptions/Misc/WordWrapHighlighters'
+      , FWordWrapHLList.DelimitedText, '');
 
     InvalidateFileStateCache;
     XMLConfig.Flush;
@@ -6875,7 +6892,6 @@ begin
     ASynEdit.Gutter.Width := fGutterWidth;
 
     if ASynEdit is TIDESynEditor then begin
-      TIDESynEditor(ASynEdit).WordWrapEnabled       := WordWrapEnabled;
       TIDESynEditor(ASynEdit).WordWrapCaretWrapPos  := WordWrapCaretWrapPos;
       TIDESynEditor(ASynEdit).WordWrapForceHomeEnd  := FWordWrapForceHomeEnd;
       TIDESynEditor(ASynEdit).WordWrapMinWidth      := WordWrapMinWidth;
@@ -6888,10 +6904,6 @@ begin
       TIDESynEditor(ASynEdit).WordWrapIndentMin        := WordWrapIndentMin;
       TIDESynEditor(ASynEdit).WordWrapIndentMax        := WordWrapIndentMax;
       TIDESynEditor(ASynEdit).WordWrapIndentMaxRel     := WordWrapIndentMaxRel;
-      if WordWrapEnabled then begin
-        ASynEdit.Options  := ASynEdit.Options  - [eoScrollPastEol];
-        ASynEdit.Options2 := ASynEdit.Options2 - [eoScrollPastEolAddPage, eoScrollPastEolAutoCaret];
-      end;
     end;
 
     ASynEdit.RightEdge := fRightMargin;
@@ -6977,6 +6989,20 @@ begin
   finally
     ASynEdit.EndUpdate;
   end;
+end;
+
+procedure TEditorOptions.UpdateSynEditSettingsForHighlighter(
+  ASynEdit: TSynEdit; AHighlighterId: TIdeSyntaxHighlighterID);
+begin
+  if WordWrapEnabled and ((FWordWrapHLList = nil) or (FWordWrapHLList.Count = 0) or
+    (FWordWrapHLList.IndexOf(HighlighterList.Names[AHighlighterId]) < 0)) then
+  begin
+    TIDESynEditor(ASynEdit).WordWrapEnabled := True;
+    ASynEdit.Options  := ASynEdit.Options  - [eoScrollPastEol];
+    ASynEdit.Options2 := ASynEdit.Options2 - [eoScrollPastEolAddPage, eoScrollPastEolAutoCaret];
+  end
+  else
+    TIDESynEditor(ASynEdit).WordWrapEnabled := False;
 end;
 
 procedure TEditorOptions.GetSynEditPreviewSettings(APreviewEditor: TObject);

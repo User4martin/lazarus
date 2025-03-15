@@ -5134,6 +5134,10 @@ begin
       FEditor.Beautifier := nil; // use default
     EditorOpts.GetSynEditSettings(FEditor, nil);
   end;
+  if AHighlighterId = IdeHighlighterNotSpecifiedId then 
+    EditorOpts.UpdateSynEditSettingsForHighlighter(FEditor, FDefaultSyntaxHighlighterId)
+  else
+    EditorOpts.UpdateSynEditSettingsForHighlighter(FEditor, AHighlighterId);
   FSyntaxHighlighterId:=AHighlighterId;
   SourceNotebook.UpdateActiveEditColors(FEditor);
   SourceEditorManager.SendEditorReconfigured(Self);
