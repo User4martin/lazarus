@@ -2287,6 +2287,7 @@ var
   len: Integer;
 begin
   len := Length(aLine);
+debugln(['TSynWordBreaker.NextWordStart ',len]);
   if (aX < 1) then exit(-1);
   if not aIncludeCurrent then
     inc(aX);
@@ -2297,6 +2298,7 @@ begin
   if aX > len then
     exit(-1);
   Result := aX;
+debugln(['TSynWordBreaker.NextWordStart ',Result, ' // ',len]);
 end;
 
 function TSynWordBreaker.NextWordEnd(aLine: String; aX: Integer;
@@ -2305,6 +2307,7 @@ var
   len: Integer;
 begin
   len := Length(aLine);
+debugln(['TSynWordBreaker.NextWordEnd ',len]);
   if (aX < 1) then exit(-1);
   if not aIncludeCurrent then
     inc(aX);
@@ -2315,6 +2318,7 @@ begin
   end;
   while (aX <= len) and (aLine[aX] in FWordChars) do Inc(aX);
   Result := aX;
+debugln(['TSynWordBreaker.NextWordEnd ',Result, ' // ',len]);
 end;
 
 function TSynWordBreaker.PrevWordStart(aLine: String; aX: Integer;
@@ -2323,6 +2327,7 @@ var
   len: Integer;
 begin
   len := Length(aLine);
+debugln(['TSynWordBreaker.PrevWordStart ',len]);
   if (aX < 1) or (aX > len + 1) then exit(-1);
   if not aIncludeCurrent then
     dec(aX);
@@ -2331,6 +2336,7 @@ begin
     exit(-1);
   while (aX >= 1) and ( (aX > len) or (aLine[aX] in FWordChars) ) do Dec(aX);
   Result := aX  + 1;
+debugln(['TSynWordBreaker.PrevWordStart ',Result, ' // ',len]);
 end;
 
 function TSynWordBreaker.PrevWordEnd(aLine: String; aX: Integer;
@@ -2339,6 +2345,7 @@ var
   len: Integer;
 begin
   len := Length(aLine);
+debugln(['TSynWordBreaker.PrevWordEnd ',len]);
   if (aX < 1) or (aX > len + 1) then exit(-1);
   if not aIncludeCurrent then
     dec(aX);
@@ -2348,6 +2355,7 @@ begin
   if aX = 0 then
     exit(-1);
   Result := aX + 1;
+debugln(['TSynWordBreaker.PrevWordEnd ',Result, ' // ',len]);
 end;
 
 function TSynWordBreaker.NextBoundary(aLine: String; aX: Integer;
@@ -2356,6 +2364,7 @@ var
   len: Integer;
 begin
   len := Length(aLine);
+debugln(['TSynWordBreaker.NextBoundary ',len]);
   if (aX < 1) then exit(-1);
   if aIncludeCurrent then dec(aX);
   if (aX > len) then exit(-1);
@@ -2371,6 +2380,7 @@ begin
     if (aX > len) then exit(-1);
   end;
   Result := aX;
+debugln(['TSynWordBreaker.NextBoundary ',Result, ' // ',len]);
 end;
 
 function TSynWordBreaker.PrevBoundary(aLine: String; aX: Integer;
@@ -2379,6 +2389,7 @@ var
   len: Integer;
 begin
   len := Length(aLine);
+debugln(['TSynWordBreaker.PrevBoundary ',len]);
   if (aX > len + 1) then exit(-1);
   if not aIncludeCurrent then dec(aX);
   if (aX < 1) then exit(-1);
@@ -2394,6 +2405,7 @@ begin
     if aX = 0 then exit(-1);
   end;
   Result := aX + 1;
+debugln(['TSynWordBreaker.PrevBoundary ',Result, ' // ',len]);
 end;
 
 { TSynMethodList }

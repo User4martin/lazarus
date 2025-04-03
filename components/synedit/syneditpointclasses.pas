@@ -1829,6 +1829,7 @@ procedure TSynEditSelection.DoUnlock;
 begin
   inherited DoUnlock;
   FLastCarePos := Point(-1, -1);
+debugln(['TSynEditSelection.DoUnlock ',dbgs(StartBytePos), ' ',dbgs(FEndBytePos)]);
 end;
 
 function TSynEditSelection.GetSelText : string;
@@ -2036,11 +2037,13 @@ var
 begin
   // FIgnoreNextCaretMove => caret skip selection
   if FIgnoreNextCaretMove then begin
+debugln(['TSynEditSelection.DoCaretChanged  IGNORE',dbgs(StartBytePos), ' ',dbgs(FEndBytePos)]);
     FIgnoreNextCaretMove := False;
     FLastCarePos := Point(-1, -1);
     exit;
   end;
 
+debugln(['TSynEditSelection.DoCaretChanged ',dbgs(StartBytePos), ' ',dbgs(FEndBytePos)]);
   if (FCaret.IsAtLineByte(StartLineBytePos) or
       FCaret.IsAtLineByte(EndLineBytePos)) and
      FCaret.WasAtLineChar(FLastCarePos)
@@ -2067,6 +2070,7 @@ begin
         SortSelectionPoints;
     end;
     FStickyAutoExtend := f;
+debugln(['TSynEditSelection.DoCaretChanged <<< ',dbgs(StartBytePos), ' ',dbgs(FEndBytePos)]);
     exit;
   end;
 
@@ -2921,10 +2925,12 @@ begin
   if SelAvail then begin
     FAltStartLinePos := FEndLinePos;
     FAltStartBytePos := FEndBytePos;
+debugln(['TSynEditSelection.BeginMinimumSelection ',dbgs(FAltStartBytePos)]);
   end
   else begin
     FAltStartLinePos := -1;
     FAltStartBytePos := -1;
+debugln(['TSynEditSelection.BeginMinimumSelection OFF']);
   end;
 end;
 

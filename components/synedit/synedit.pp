@@ -40,7 +40,7 @@ Known Issues:
   -DragAcceptFiles
 
 -------------------------------------------------------------------------------}
-
+{$DEFINE LOG_SynMouseEvents}
 unit SynEdit;
 {$IFDEF WINCE} {$IFnDEF WinIME}   {$DEFINE WithoutWinIME}   {$ENDIF} {$ENDIF}
 {$IFDEF Windows}
@@ -3397,6 +3397,7 @@ begin
 
     if AnAction = nil then exit(False);
 
+debugln(['TCustomSynEdit.DoHandleMouseAction ', DbgSName(AnAction), ' ', ord(AnAction.Command), ' # ', AnAction.MoveCaret, ' #inf# ', dbgs(AnInfo.NewCaret.LineCharPos), ' ', dbgs(AnInfo.NewCaret.LineBytePos), ' #caret# ', dbgs(FCaret.LineCharPos)]);
     if (FConfirmMouseDownMatchAct <> nil) then begin
       // simulated up click at the coordinates of the down click
       if FConfirmMouseDownMatchAct = AnAction then begin
@@ -3540,6 +3541,7 @@ begin
                         if p2.X < 1 then p2.X := i;
                       end;
                     emcStartSelectWords: begin
+debugln(['emcStartSelectWords len(s)=',Length(s)]);
                         if (AnAction.Option <> emcoSelectionContinue) or (not SelAvail) then
                           p1.X := Max(1, Max(FWordBreaker.PrevWordEnd(s, p1.X, True),
                                              FWordBreaker.PrevWordStart(s, p1.X, True)));
@@ -3556,6 +3558,7 @@ begin
                       end;
                   end;
                 end;
+debugln(['emcStartSelectWords  ', dbgs(p1), ' ',dbgs(p2)]);
                 if (AnAction.Option <> emcoSelectionContinue) or (not SelAvail) then
                   FBlockSelection.StartLineBytePos := p1;
                 FBlockSelection.AutoExtend := True;
@@ -3578,6 +3581,7 @@ begin
         end;
       emcSelectWord:
         begin
+debugln(['emcSelectWord ']);
           if AnAction.MoveCaret then
             MoveCaret;
           SetWordBlock(AnInfo.NewCaret.LineBytePos);
@@ -4216,7 +4220,7 @@ begin
   DoHandleMouseActionResult(AnActionResult);
 
   SelAvailChange(nil);
-  //DebugLn('TCustomSynEdit.MouseUp END Mouse=',X,',',Y,' Caret=',CaretX,',',CaretY,', BlockBegin=',BlockBegin.X,',',BlockBegin.Y,' BlockEnd=',BlockEnd.X,',',BlockEnd.Y);
+  DebugLn(['TCustomSynEdit.MouseUp END Mouse=',X,',',Y,' Caret=',CaretX,',',CaretY,', BlockBegin=',BlockBegin.X,',',BlockBegin.Y,' BlockEnd=',BlockEnd.X,',',BlockEnd.Y]);
 end;
 
 procedure TCustomSynEdit.DragTimerHandler;
@@ -5809,6 +5813,7 @@ begin
   { Value is the position of the Caret in bytes }
   Value.y := MinMax(Value.y, 1, FTheLinesView.Count);
   TempString := FTheLinesView[Value.Y - 1];
+debugln(['TCustomSynEdit.SetWordBlock ', Length(TempString)]);
   if TempString = '' then exit;
   x := MinMax(Value.x, 1, Length(TempString)+1);
 
