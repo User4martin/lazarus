@@ -19,6 +19,7 @@
 unit LazEditTextGridPainter;
 
 {$mode objfpc}{$H+}
+{$DEFINE LazEditDebugFont}
 
 interface
 
@@ -221,7 +222,7 @@ end;
 procedure GetCharMetrics(DC: HDC; out AWidth, AHeight: Integer; ANeedEto: Boolean);
   Procedure DebugFont(s: String; a: array of const); inline;
   begin
-    DebugLn(DBG_FONTMETRIC, DBG_FontName + Format(s, a));
+    DebugLn(DBG_FontName + Format(s, a));
   end;
 
   procedure GetWHOForChar(s: char; out w, h ,o : Integer; var eto: Boolean);
@@ -429,6 +430,7 @@ begin
   if Result <= 0 then begin
     InitWidthAndEto(AFontStyles);
     Result := FFontStyleInfos[OrdFontStyles(AFontStyles)].CharWidth;
+debugln(['TLazEditTextGridPainterFontInfo.GetCharWidth CALC ', Result]);
   end;
 end;
 
@@ -880,14 +882,18 @@ end;
 
 procedure TLazEditTextGridPainter.SetBaseFont(AFont: TFont);
 begin
+  debugln(['TLazEditTextGridPainter.SetBaseFont old ', dbghex(PtrUInt(FFontInfo)), ' ', AFont.Size ]);
+  if FFontInfo <> nil then debugln(['is: ', FFontInfo.IsInfoFor(AFont)]);
   FFontInfo.ReleaseReference;
   FFontInfo := LazEditTextGridPainterFontInfoList.FindFontInfo(AFont);
+  debugln(['new ', dbghex(PtrUInt(FFontInfo)) ]);
   if FFontInfo = nil then
     FFontInfo := TLazEditTextGridPainterFontInfo.Create(AFont);
   FFontInfo.AddReference;
 
   FCharWidth  := FFontInfo.CharWidth[AFont.Style];
   FCharHeight := FFontInfo.CharHeight[AFont.Style];
+  debugln(['new 2', dbghex(PtrUInt(FFontInfo)), ' / ',FCharWidth ]);
 end;
 
 procedure TLazEditTextGridPainter.AddBaseStyle(const AStyle: TFontStyles);

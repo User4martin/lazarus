@@ -10,7 +10,7 @@ uses
   // LCL
   Graphics, Controls, LCLType, LCLIntf,
   // LazUtils
-  LazMethodList,
+  LazMethodList, LazLoggerBase,
   // SynEdit
   SynEditTypes, SynEditMiscProcs, SynEditMiscClasses, LazSynEditText, SynEditMarkup,
   SynEditHighlighter, LazEditMiscProcs, LazEditTextAttributes,
@@ -1550,6 +1550,7 @@ var
 begin
   // ToDo: wait for handle creation
   // Report FLinesInWindow=-1 if no handle
+DebugLn(['TLazSynTextArea.FontChanged ',FCharWidth , ' > ',FTextDrawer.CharWidth]);
   FCharWidth := FTextDrawer.CharWidth;  // includes extra
   FTextHeight := FTextDrawer.CharHeight + ExtraLineSpacing;
 

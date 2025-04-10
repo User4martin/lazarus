@@ -2830,9 +2830,11 @@ end;
 
 procedure TCustomSynEdit.FontChanged(Sender: TObject);
 begin // TODO: inherited ?
+DebugLnEnter(['>>> TCustomSynEdit.FontChanged ',DbgSName(self), ' ',FLastSetFontSize, ' > ',font.Height]);
   FPaintArea.ForegroundColor := Font.Color;
   FLastSetFontSize := Font.Height;
   RecalcCharExtent;
+DebugLnExit('<<< Fontchanged');
 end;
 
 function TCustomSynEdit.GetTextBuffer: TSynEditStrings;
@@ -3698,6 +3700,7 @@ begin
           else begin
             j := 1;
             if ACommand = emcWheelZoomIn then j := -1;
+debugln(['TCustomSynEdit.zoom ',DbgSName(self), ' ',j]);
             i := FLastSetFontSize;
             if Font.Height < 0
             then Font.Height := Font.Height + j
@@ -3707,6 +3710,7 @@ begin
         end;
       emcWheelZoomNorm:
         begin
+debugln(['TCustomSynEdit.zoom reset ',DbgSName(self)]);
           Font.Height := FLastSetFontSize;
         end;
       else
