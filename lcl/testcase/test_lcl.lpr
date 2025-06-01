@@ -4,7 +4,7 @@ program test_lcl;
 
 uses
   Interfaces,
-  Classes, consoletestrunner, Test_ChildSizing, Test_AnchorDock, anchordockpkg;
+  Classes, consoletestrunner, Test_ChildSizing, Test_Grid, Test_AnchorDock, anchordockpkg;
 
 type
 
