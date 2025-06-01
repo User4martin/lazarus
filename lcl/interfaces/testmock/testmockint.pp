@@ -40,6 +40,10 @@ type
     function GetTextMetrics(DC: HDC; var TM: TTextMetric): Boolean; override;
 
     //procedure AppProcessMessages; override;
+
+    function GetDC(hWnd: HWND): HDC; override;
+    function RestoreDC(DC: HDC; SavedDC: Integer): Boolean; override;
+    function SaveDC(DC: HDC): Integer; override;
   end;
 
 
@@ -93,6 +97,21 @@ begin
   TM.tmPitchAndFamily   := 0;
   TM.tmCharSet          := 0;
   Result := True;
+end;
+
+function TTestMockWidgetSet.GetDC(hWnd: HWND): HDC;
+begin
+  Result := 1;
+end;
+
+function TTestMockWidgetSet.RestoreDC(DC: HDC; SavedDC: Integer): Boolean;
+begin
+  Result := True;
+end;
+
+function TTestMockWidgetSet.SaveDC(DC: HDC): Integer;
+begin
+  Result := 1;
 end;
 
 
