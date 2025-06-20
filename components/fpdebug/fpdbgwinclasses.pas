@@ -1173,17 +1173,43 @@ begin
 end;
 
 function TDbgWinProcess.WaitForDebugEvent(out ProcessIdentifier, ThreadIdentifier: THandle): boolean;
+const
+  DBG_POLL_WAIT_TIMEOUT = 1000;
 var
   t: TDbgWinThread;
   Done: Boolean;
+  LastErr: DWORD;
 begin
   repeat
     Done := True;
-    if _WaitForDebugEventEx <> nil then
-      result := _WaitForDebugEventEx(MDebugEvent, INFINITE)
-    else
-      result := Windows.WaitForDebugEvent(MDebugEvent, INFINITE);
-    DebugLn(FPDBG_WINDOWS and (not Result), 'WaitForDebugEvent failed: %d', [Windows.GetLastError]);
+    repeat
+      MDebugEvent:=Default(TDebugEvent);
+      Result := False;
+      if _WaitForDebugEventEx <> nil then
+        result := _WaitForDebugEventEx(MDebugEvent, DBG_POLL_WAIT_TIMEOUT)
+      else
+        result := Windows.WaitForDebugEvent(MDebugEvent, DBG_POLL_WAIT_TIMEOUT);
+
+      if not Result then begin
+        LastErr := Windows.GetLastError;
+        if (LastErr = ERROR_SEM_TIMEOUT) then begin
+          if FProcProcess.WaitOnExit(0) then begin
+            MDebugEvent.dwDebugEventCode := EXIT_PROCESS_DEBUG_EVENT;
+            MDebugEvent.ExitProcess.dwExitCode := 0;
+            MDebugEvent.dwProcessId := FProcProcess.ProcessID;
+            //ProcessIdentifier:=MDebugEvent.dwProcessId;
+            ProcessIdentifier:=0;
+            GotExitProcess := True;
+            exit(True);
+          end;
+          system.continue;
+        end;
+        DebugLn( 'WaitForDebugEvent failed: %d', [LastErr]);
+      end;
+      DebugLn(FPDBG_WINDOWS and (not Result), 'WaitForDebugEvent failed: %d', [Windows.GetLastError]);
+
+      break;
+    until False;
 
     if Result and FTerminated and (MDebugEvent.dwDebugEventCode <> EXIT_PROCESS_DEBUG_EVENT)
        and (MDebugEvent.dwDebugEventCode <> EXIT_THREAD_DEBUG_EVENT)
