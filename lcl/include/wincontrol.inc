@@ -4901,6 +4901,7 @@ begin
     if TheMessage.PaintStruct <> nil then
       NeedErase := TheMessage.PaintStruct^.fErase;
   end;
+if NeedErase then writeln('!!!! NEED ERASE ',Name);
 
   try
     // check if child controls need clipping
