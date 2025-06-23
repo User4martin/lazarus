@@ -911,6 +911,14 @@ var
   MPos: TPoint;
 begin
   case Msg of
+  WM_ERASEBKGND:begin
+//(*
+    WindowInfo := GetWin32WindowInfo(Window);
+    ListView := TListView(WindowInfo^.WinControl);
+    ListView.EraseUnpaintedBackground(HDC(WParam));
+    exit(0);
+//*)
+  end;
     WM_CONTEXTMENU:
       begin
         if ListViewWindProcInfo.ActiveListView <> nil then begin
