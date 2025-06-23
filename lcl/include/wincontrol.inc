@@ -4950,8 +4950,6 @@ begin
   finally
     if TheMessage.DC = 0 then
       EndPaint(Handle, PS);
-    FUnpaintedBackgroundStartPos.y := ClientHeight;
-    FUnpaintedBackgroundStartPos.x := ClientWidth;
   end;
   //DebugLn(Format('Trace:< [TWinControl.PaintHandler] %s', [ClassName]));
 //DebugLn('[TWinControl.PaintHandler] END  ',Name,':',ClassName,'  DC=',DbgS(Message.DC,8));
@@ -5119,6 +5117,8 @@ begin
   if DC = 0 then Exit;
   ARect := Rect(0, 0, Width, Height);
   FillRect(DC, ARect, HBRUSH(Brush.Reference.Handle));
+  FUnpaintedBackgroundStartPos.y := ClientHeight;
+  FUnpaintedBackgroundStartPos.x := ClientWidth;
 end;
 
 procedure TWinControl.EraseUnpaintedBackground(DC: HDC);
