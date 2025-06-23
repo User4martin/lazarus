@@ -4937,6 +4937,8 @@ begin
   finally
     if TheMessage.DC = 0 then
       EndPaint(Handle, PS);
+    FUnpaintedBackgroundStartPos.y := ClientHeight;
+    FUnpaintedBackgroundStartPos.x := ClientWidth;
   end;
   //DebugLn(Format('Trace:< [TWinControl.PaintHandler] %s', [ClassName]));
 //DebugLn('[TWinControl.PaintHandler] END  ',Name,':',ClassName,'  DC=',DbgS(Message.DC,8));
@@ -5104,6 +5106,32 @@ begin
   if DC = 0 then Exit;
   ARect := Rect(0, 0, Width, Height);
   FillRect(DC, ARect, HBRUSH(Brush.Reference.Handle));
+end;
+
+procedure TWinControl.EraseUnpaintedBackground(DC: HDC);
+var
+  ARect: TRect;
+begin
+  if DC = 0 then Exit;
+
+  ARect := Rect(0, 0, Width, Height);
+  if (FUnpaintedBackgroundStartPos.x = 0) and (FUnpaintedBackgroundStartPos.y=0) then begin
+    FillRect(DC, ARect, HBRUSH(Brush.Reference.Handle));
+  end
+  else begin
+    ARect.Left := FUnpaintedBackgroundStartPos.x;
+    if ARect.Left <= ARect.Right then
+      FillRect(DC, ARect, HBRUSH(Brush.Reference.Handle));
+
+    ARect.Left := 0;
+    ARect.Right := FUnpaintedBackgroundStartPos.x;
+    ARect.Top := FUnpaintedBackgroundStartPos.y;
+    if ARect.Top <= ARect.Bottom then
+      FillRect(DC, ARect, HBRUSH(Brush.Reference.Handle));
+  end;
+
+  FUnpaintedBackgroundStartPos.y := ClientHeight;
+  FUnpaintedBackgroundStartPos.x := ClientWidth;
 end;
 
 {------------------------------------------------------------------------------
@@ -7137,6 +7165,8 @@ begin
     ' BoundsRealized=',dbgs(FBoundsRealized),' ClientRect=',dbgs(ClientRect),
     ' ']);
   {$ENDIF}
+  FUnpaintedBackgroundStartPos.y := Min(FUnpaintedBackgroundStartPos.y, ClientHeight);
+  FUnpaintedBackgroundStartPos.x := Min(FUnpaintedBackgroundStartPos.x, ClientWidth);
 end;
 
 {------------------------------------------------------------------------------
@@ -8416,6 +8446,8 @@ end;
  ------------------------------------------------------------------------------}
 procedure TWinControl.CMVisibleChanged(var Message : TLMessage);
 begin
+  FUnpaintedBackgroundStartPos.y := 0;
+  FUnpaintedBackgroundStartPos.x := 0;
   if not FVisible and Assigned(Parent) then
     RemoveFocus(False);
 
@@ -8564,6 +8596,9 @@ begin
   // this can trigger WMSize messages
   TWSWinControlClass(WidgetSetClass).SetBounds(Self, Left, Top, Width, Height);
   NewClientRect := ClientRect;
+  FUnpaintedBackgroundStartPos.y := Min(FUnpaintedBackgroundStartPos.y, NewClientRect.Bottom);
+  FUnpaintedBackgroundStartPos.x := Min(FUnpaintedBackgroundStartPos.x, NewClientRect.Right);
+
   if Visible and (not SameRect(@OldClientRect,@NewClientRect)) then
   begin
     // the widgetset has changed the clientrect in an unexpected way

@@ -2069,6 +2069,7 @@ type
 
   TWinControl = class(TControl)
   private
+    FUnpaintedBackgroundStartPos: TPoint;
     FAlignOrder: TFPList; // list of TControl. Last moved (SetBounds) comes first. Used by AlignControls.
     FBorderWidth: TBorderWidth;
     FBoundsLockCount: Integer;
@@ -2424,6 +2425,7 @@ type
     procedure HandleNeeded;
     function BrushCreated: Boolean;
     procedure EraseBackground(DC: HDC); virtual;
+    procedure EraseUnpaintedBackground(DC: HDC); virtual;
     function IntfUTF8KeyPress(var UTF8Key: TUTF8Char;
                               RepeatCount: Integer; SystemKey: Boolean): Boolean; virtual;
     function IntfGetDropFilesTarget: TWinControl; virtual;
