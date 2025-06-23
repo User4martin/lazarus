@@ -4951,6 +4951,8 @@ if NeedErase then writeln('!!!! NEED ERASE ',Name);
   finally
     if TheMessage.DC = 0 then
       EndPaint(Handle, PS);
+    FUnpaintedBackgroundStartPos.y := ClientHeight;
+    FUnpaintedBackgroundStartPos.x := ClientWidth;
   end;
   //DebugLn(Format('Trace:< [TWinControl.PaintHandler] %s', [ClassName]));
 //DebugLn('[TWinControl.PaintHandler] END  ',Name,':',ClassName,'  DC=',DbgS(Message.DC,8));
@@ -5144,8 +5146,8 @@ begin
       FillRect(DC, ARect, HBRUSH(Brush.Reference.Handle));
   end;
 
-  FUnpaintedBackgroundStartPos.y := ClientHeight;
-  FUnpaintedBackgroundStartPos.x := ClientWidth;
+  //FUnpaintedBackgroundStartPos.y := ClientHeight;
+  //FUnpaintedBackgroundStartPos.x := ClientWidth;
 end;
 
 {------------------------------------------------------------------------------
