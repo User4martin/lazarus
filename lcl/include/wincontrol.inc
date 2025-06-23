@@ -4877,6 +4877,7 @@ var
   PS: TPaintStruct; //defined in LCLIntf.pp
   ControlsNeedsClipping: boolean;
   CurControl: TControl;
+  NeedErase: Boolean;
 begin
   //DebugLn('[TWinControl.PaintHandler] ',Name,':',ClassName,'  DC=',DbgS(TheMessage.DC,8));
   if (csDestroying in ComponentState) or (not HandleAllocated) then exit;
@@ -4891,8 +4892,15 @@ begin
 
   //DebugLn(Format('Trace:> [TWinControl.PaintHandler] %s --> Msg.DC: 0x%x', [ClassName, TheMessage.DC]));
   DC := TheMessage.DC;
-  if DC = 0 then
+  NeedErase := False;
+  if DC = 0 then begin
     DC := BeginPaint(Handle, PS);
+    NeedErase := PS.fErase;
+  end
+  else begin
+    if TheMessage.PaintStruct <> nil then
+      NeedErase := TheMessage.PaintStruct^.fErase;
+  end;
 
   try
     // check if child controls need clipping
@@ -4910,6 +4918,8 @@ begin
       //debugln(['TWinControl.PaintHandler ControlsNeedsClipping=',ControlsNeedsClipping,' ControlCount=',ControlCount]);
     if not ControlsNeedsClipping then begin
       //DebugLn('[TWinControl.PaintHandler] ',DbgSName(Self),' no clipping ...');
+      if NeedErase then
+        EraseBackground(dc);
       PaintWindow(DC)
     end else
     begin
@@ -4925,8 +4935,11 @@ begin
           end;
       end;
       //DebugLn('[TWinControl.PaintHandler] ',DbgSName(Self),' with clipping ...');
-      if Clip <> NullRegion then
+      if Clip <> NullRegion then begin
+        if NeedErase then
+          EraseBackground(dc);
         PaintWindow(DC);
+      end;
       RestoreDC(DC, SaveIndex);
     end;
     // paint controls
