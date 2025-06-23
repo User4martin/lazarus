@@ -7439,7 +7439,9 @@ begin
   begin
     EraseBackground(Message.DC);
     Message.Result := 1;
-  end;
+  end
+  else
+  EraseUnpaintedBackground(Message.DC);
 end;
 
 {------------------------------------------------------------------------------
