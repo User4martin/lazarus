@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fpdoc-descriptions><package name="SynEdit"><module name="SynEditMiscClasses"><element name="TSynEditBase.TopLine"><short>Linenumber of the text at the top of the visible area of the editor.</short><descr><p>The <var>TopLine</var> is the number of the line shown at the top of the visible (scrolled in) area of the Editor.
+</p><p>If the text in that line is wrapped into several sub-lines, then the first visible sub-line can be any of them. It does not have to be the first sub-line. Some of the wrapped sub-lines may be outside the visible area. <var>TopLine</var> does not indicate which wrapped sub-line is at the top.
+</p><p>The text of this line can be accessed using<br/><code>SynEdit.Lines[TopLine - 1];</code><br/>
+Note: The <var>TopLine</var>  is 1-based. But the <var>Lines</var> property expects a 0-based index.
+</p>
+        </descr><seealso><link id="synedit.TCustomSynEdit.TopView">TopView</link>
+        </seealso>
+      </element><element name="TSynEditBase.BottomLine"><short>Linenumber of the text at the bottom of the visible area of the editor. (Excluding the clipped partially visible line)</short>
+      </element><element name="TSynEditBase.PartialBottomLine"><short>Linenumber of the text at the bottom of the visible area of the editor. (Including the clipped partially visible line)</short>
+      </element>
+    </module>
+  </package>
+</fpdoc-descriptions>

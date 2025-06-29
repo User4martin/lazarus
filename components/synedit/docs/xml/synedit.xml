@@ -75,6 +75,8 @@ It also allows one to insert code like the begin and end of a multiline comment 
     <element name="TCustomSynEdit.RowColumnToPixels"><short>Converts row, column to pixel on client area</short><descr>The pixel is the leftmost, upmost pixel of the character rectangular area.
 For example row, colum 1,1 translates to 0,0 on client area if there is no gutter, no borderwidth, no scrolling etc.</descr>
       </element>
+    <element name="TCustomSynEdit.TopView"><short>"Viewed" linenumber at the top the visible area of the  editor. The "viewed" text counts each wrapped line-part separately and omits folded lines.</short>
+      </element>
     </module>
   </package>
 </fpdoc-descriptions>
