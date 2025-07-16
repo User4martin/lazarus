@@ -2002,6 +2002,8 @@ end;
 
 // This is called from the actual WindowProc.
 
+var   lll: QWord;
+
 function TWindowProcHelper.DoWindowProc: LResult;
 var
   ChildWindowInfo: PWin32WindowInfo;
@@ -2015,7 +2017,12 @@ var
   ACtl: TWinControl;
   LMouseEvent: TTRACKMOUSEEVENT;
   MaximizedActiveChild: WINBOOL;
+  xxx : boolean;
+function www: string; begin
+Result := ''; if WindowInfo <> nil then Result := dbgs(WindowInfo^.IMEComposed);
+end;
 begin
+xxx := false;
   try
   LMessage := Default(TLMessage);
   PLMsg := @LMessage;
@@ -2023,6 +2030,46 @@ begin
   NotifyUserInput := False;
 
   WindowInfo := GetWin32WindowInfo(Window);
+
+case msg of
+     WM_IME_CHAR,
+     WM_IME_COMPOSITION,
+     WM_IME_COMPOSITIONFULL,
+     WM_IME_CONTROL,
+     WM_IME_ENDCOMPOSITION,
+     WM_IME_KEYDOWN,
+     WM_IME_KEYUP,
+     WM_IME_NOTIFY,
+     WM_IME_REQUEST,
+     WM_IME_SELECT,
+     WM_IME_SETCONTEXT,
+     WM_IME_STARTCOMPOSITION,
+       //WM_KEYDOWN,
+       //WM_KEYUP,
+       //WM_CHAR,
+       //WM_DEADCHAR,
+       //WM_SYSCHAR,
+       WM_KEYFIRST..WM_KEYLAST,
+     WM_SYSCOMMAND,
+     WM_MENUCHAR,
+     WM_KILLFOCUS,
+     WM_CANCELMODE
+     : begin
+       xxx := true;
+if GetTickCount64-lll > 800 then debugln('..............')
+else if GetTickCount64-lll > 100 then debugln('.');
+lll := GetTickCount64;
+       debugln([DbgSTime, ' Received ',WM_To_String(Msg), ' L:', IntToHex(LParam), ' W:', IntToHex(WParam), ' # ' , www    , ' ',dbgs(IgnoreNextCharWindow) , ' ## ', dbgs(CurrentIMEWindow), ' ', dbgs(Window)  ]);
+       if (Msg = WM_IME_NOTIFY) and (WParam =0) then xxx := False;
+     end;
+end;
+if (msg = WM_KEYUP) and (WParam=13) then begin
+DebugLn('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+end;
+if (msg = WM_Char) and (CurrentIMEWindow<>0) then begin
+DebugLn('---char----------');
+end;
+
   if WindowInfo^.isChildEdit then
   begin
     if DoChildEdit(Result) then Exit;
@@ -2311,6 +2358,11 @@ begin
       *)
       //if Word(WParam) <> VK_PROCESSKEY then
       //  CurrentIMEWindow := 0;
+      if Word(WParam) <> VK_PROCESSKEY then
+begin
+debugln('!!!!!!!!!!!!!!!');
+if CurrentWindow <> 0 then debugln('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+end;
     end;
     WM_KEYUP:
     begin
@@ -2549,8 +2601,10 @@ begin
   if WinProcess then
   begin
     PLMsg^.Result := CallDefaultWindowProc(Window, Msg, WParam, LParam);
+if xxx then debugln(['   >> DefWinProc ', PLMsg^.Result ]);
     WinProcess := False;
-  end;
+  end
+else if xxx then DebugLn(['  >>> !!! NO WinProcess']);
 
   case Msg of
     WM_ACTIVATEAPP: DoMsgActivateApp;
@@ -2640,7 +2694,10 @@ begin
   end;
 
   if Assigned(lWinControl) and (PLMsg^.Msg <> LM_NULL) then
+begin
     DeliverMessage(lWinControl, PLMsg^);
+if xxx then debugln(['  >> LCL Deliver ', PLMsg^.Result]);
+end;
 
   // respond to result of LCL handling the message
   case PLMsg^.Msg of
@@ -2711,9 +2768,14 @@ begin
        ))
        or (Msg=WM_SYSCHAR)      // Windows message processing is postponed
     then
+begin if xxx then debugln(['  >> 2: SKIP Def wind proc ']);
+end
       // this thing will beep, don't call defaultWindowProc
     else
+begin
       PLMsg^.Result := CallDefaultWindowProc(Window, Msg, WParam, LParam);
+if xxx then debugln(['  >> 2: Def wind proc ', PLMsg^.Result]);
+end;
 
     case Msg of
       WM_CHAR, WM_KEYDOWN, WM_KEYUP,
@@ -2751,18 +2813,28 @@ begin
         if (lWinControl <> nil) and (PLMsg^.Result = 0) and CharCodeNotEmpty and
            (PLMsg^.Msg <> LM_NULL)
         then
+begin
           DeliverMessage(lWinControl, PLMsg^);
+if xxx then debugln(['  >> 2: LCL deliver ', PLMsg^.Result]);
+end;
 
         // Windows message processing for WM_SYSCHAR not processed (will get WM_MENUCHAR)
         if (Msg=WM_SYSCHAR) and (PLMsg^.Result = 0) and CharCodeNotEmpty then
+begin
           PLMsg^.Result := CallDefaultWindowProc(Window, Msg, WParam, LParam);
+if xxx then debugln(['  >> 3: Def wind proc ', PLMsg^.Result]);
+end;
 
         // handle Ctrl-A for edit controls
         if (PLMsg^.Result = 0) and (Msg = WM_KEYDOWN) and (WParam = Ord('A'))
           and (GetKeyState(VK_CONTROL) < 0) and (GetKeyState(VK_MENU) >= 0) then
         begin
           if WndClassName(Window) = EditClsName then
+begin
+if xxx then DebugLnEnter(['  >> sent ctrl A ', PLMsg^.Result]);
             Windows.SendMessage(Window, EM_SETSEL, 0, -1);  // select all
+if xxx then DebugLnExit(['  << sent ctrl A ', PLMsg^.Result]);
+end;
         end;
       end;
     end;
