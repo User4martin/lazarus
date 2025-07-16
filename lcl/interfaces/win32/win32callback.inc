@@ -2068,11 +2068,20 @@ begin
           TApplicationAccess(Application).ProcessAsyncCallQueue;
       end;
     WM_ENTERIDLE: Application.Idle(False);
-    WM_ACTIVATE:  SetLMessageAndParams(LM_ACTIVATE);
+    WM_ACTIVATE:  begin
+      if WParam = WA_INACTIVE then
+        CurrentIMEWindow := 0;
+      SetLMessageAndParams(LM_ACTIVATE);
+    end;
     WM_DPICHANGED: SetLMessageAndParams(LM_DPICHANGED);
     WM_IME_ENDCOMPOSITION:
     begin
       {IME Windows the composition has finished}
+      CurrentIMEWindow := 0;
+      (* IMEComposed:
+         The IME may send the composed text as sequence WM_Char or it may be retrived via API
+         After that the IME may send a WM_Keyup for VK_RETURN => this must be ignored.
+      *)
       WindowInfo^.IMEComposed:=True;
       SetLMessageAndParams(Msg);  //WinProcess := False;
     end;
@@ -2296,11 +2305,19 @@ begin
       WindowInfo^.IMEComposed:=False;
       IgnoreNextCharWindow := Window;
       IgnoreKeyUp := False;
+      (* At least Win-10 may sent some keys (WM_KeyDown AND WM_CHar) during IME, e.g. Shift-Return.
+         Those are also noticeable received by other apps, e.g. MS-Notepad.
+         Win-11 seems to not do that.
+      *)
+      //if Word(WParam) <> VK_PROCESSKEY then
+      //  CurrentIMEWindow := 0;
     end;
     WM_KEYUP:
     begin
       DoMsgKeyDownUp(CN_KEYUP, Result);
-      if WindowInfo^.IMEComposed then
+      if WindowInfo^.IMEComposed or
+         ( (CurrentIMEWindow <> 0) and (CurrentIMEWindow = Window) )
+      then
         LMKey.Msg:=LM_NULL;
     end;
     WM_KILLFOCUS:
@@ -2308,6 +2325,7 @@ begin
 {$ifdef DEBUG_CARET}
       DebugLn(['WM_KILLFOCUS received for window ', IntToHex(Window, 8), ' NewFocus = ', IntToHex(WParam, 8), ' Text = ', WndText(WParam)]);
 {$endif}
+      CurrentIMEWindow := 0;
       LMessage.Msg := LM_KILLFOCUS;
       LMessage.WParam := WParam;
     end;
@@ -2498,7 +2516,11 @@ begin
     WM_IME_SELECT,
     WM_IME_SETCONTEXT,
     WM_IME_STARTCOMPOSITION:
+    begin
+      if msg = WM_IME_STARTCOMPOSITION then
+        CurrentIMEWindow := Window;
       SetLMessageAndParams(Msg, True);
+    end;
     WM_ACTIVATEAPP:
     begin
       if (Application<>nil) and Application.MainFormOnTaskBar and not Win32WidgetSet.AppMinimizing then
@@ -2654,7 +2676,12 @@ begin
     WM_IME_REQUEST,
     WM_IME_SELECT,
     WM_IME_SETCONTEXT,
-    WM_IME_STARTCOMPOSITION,
+    WM_IME_STARTCOMPOSITION:
+    begin
+      WinProcess := LMessage.Result = 0;
+      if not WinProcess then
+        CurrentIMEWindow := 0;
+    end;
     LM_CUT,
     LM_COPY,
     LM_PASTE,
@@ -2702,7 +2729,12 @@ begin
           end;
           WM_SYSCHAR:    SetLMCharData(LM_SYSCHAR);
           WM_KEYDOWN:    SetLMKeyData(LM_KEYDOWN);
-          WM_KEYUP:      SetLMKeyData(LM_KEYUP);
+          WM_KEYUP:
+          begin
+            SetLMKeyData(LM_KEYUP);
+            if ( (CurrentIMEWindow <> 0) and (CurrentIMEWindow = Window) ) then
+              LMKey.Msg:=LM_NULL;
+          end;
           WM_SYSKEYDOWN: SetLMKeyData(LM_SYSKEYDOWN);
           WM_SYSKEYUP:   SetLMKeyData(LM_SYSKEYUP);
         end;
@@ -2716,7 +2748,9 @@ begin
         // we cannot tell for sure windows didn't want the key
         // for WM_CHAR check WM_GETDLGCODE/DLGC_WANTCHARS
         // winapi too inconsistent about return value
-        if (lWinControl <> nil) and (PLMsg^.Result = 0) and CharCodeNotEmpty then
+        if (lWinControl <> nil) and (PLMsg^.Result = 0) and CharCodeNotEmpty and
+           (PLMsg^.Msg <> LM_NULL)
+        then
           DeliverMessage(lWinControl, PLMsg^);
 
         // Windows message processing for WM_SYSCHAR not processed (will get WM_MENUCHAR)
