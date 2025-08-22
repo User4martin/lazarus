@@ -12,7 +12,8 @@ uses
   TestHighlightPas, TestHighlightXml, TestHighlightMulti, TestMarkupwordGroup,
   TestMarkupHighAll, TestFoldedView, TestSynSharedEdits, TestHighlighterLfm,
   TestNestedFoldsList, TestMarkupIfDef, testPaintColorMerging,
-  TestMarkupFoldColoring, TestWordWrap
+  TestMarkupFoldColoring, TestWordWrap,
+  LazLogger
   ;
 
 {$IFDEF WINDOWS}{  $R SynTest.rc}{$ENDIF}
