@@ -2612,6 +2612,7 @@ begin
   {$PUSH}{$R-}{$Q-}FChangeStamp := FChangeStamp+1;{$POP}
 
   if AnIndex = GapStartIndex then begin
+debugln('+++++++++++++++++++++++ reusing gap');
     i := GapEndIndex - GapStartIndex;
     GapStartIndex := GapStartIndex + ACount;
     if ACount < i then
@@ -2713,6 +2714,7 @@ begin
   NewGapEnd := IndexOfLastMatchForLine(AnLastInvalidMatchLine) + 1;
   if NewGapEnd <= NewGapStart then
     exit;
+debugln(['new gap indexes ', NewGapStart, ' .. ', NewGapEnd, ' ## OLD ',GapStartIndex,'..',GapEndIndex]);
 
   // the first/last newly invalidated point
   AFirstInvalidPoint := StartPoint[NewGapStart];
@@ -2753,6 +2755,9 @@ begin
   GapStartIndex := NewGapStart;
   GapEndIndex := NewGapEnd;
 
+
+debugln(['set gap indexes ', NewGapStart, ' .. ', NewGapEnd]);
+
   d := AnMatchLinesDiffCount;
   if d > 0 then begin
     p := ItemPointerRaw[NewGapEnd];
@@ -2776,6 +2781,8 @@ begin
   if GapEndIndex > GapStartIndex then begin
     s := GapStartIndex;
     e := GapEndIndex;
+debugln(['EndValidation >> ',s, ',',e ]);
+
     GapStartIndex := -1;
     GapEndIndex   := -1;
 
@@ -2783,6 +2790,7 @@ begin
       FOwner.SendMatchLineInvalidation(s, e-1);
 
     if e > s + MAX_GAP_SIZE then begin
+debugln(['   EndValidation REDUCE GAP']);
       i := e;
       e := s + MAX_GAP_SIZE;
       MoveRaw(i, e, CountRaw - i);
@@ -2794,6 +2802,7 @@ begin
 
     GapStartIndex := s;
     GapEndIndex   := e;
+debugln(['   EndValidation ',s, ',',e ]);
   end;
 end;
 
@@ -3006,6 +3015,8 @@ begin
     FLastInvalidMatchLine := ALastLine;
 
   FMatchLinesDiffCount := FMatchLinesDiffCount + ALineDiffCount;
+
+if SynEdit.HandleAllocated then debugln('InvalidateMatches %4d..%d +/-%3d  (%d..%d +/-%d) ', [FFirstInvalidMatchLine, FLastInvalidMatchLine, FMatchLinesDiffCount,AFirstLine, ALastLine,  ALineDiffCount]);
 end;
 
 procedure TSynEditMarkupHighlightAllBase.AssertGapsValid;
@@ -3024,15 +3035,21 @@ end;
 
 procedure TSynEditMarkupHighlightAllBase.DoAsyncScan(Data: PtrInt);
 begin
+  DebugLnEnter(['...... DoAsyncScan ',ptruint(self),DbgSName(self)]);
+
   if FPaintLock > 0 then begin
+DebugLnExit(['!!!!!!!! LOCKED DoAsyncScan !!!!']);
     Include(FFlags, smfNeedAsync);
     exit;
   end;
   Exclude(FFlags, smfNeedAsync);
 
   if not ValidateFillGaps then begin
+DebugLnExit(['<><><> schedule async <><><>  Cnt=',FMatches.Count, '  ', dbgs(FValidRanges), ' <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<']);
     Application.QueueAsyncCall(@DoAsyncScan, 0);
-  end;
+  end //;
+else
+DebugLnExit(['<><><> DONE async <><><>  Cnt=',FMatches.Count, '  ', dbgs(FValidRanges), ' <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<']);
 end;
 
 function TSynEditMarkupHighlightAllBase.ValidateFillGaps: boolean;
@@ -3070,6 +3087,7 @@ var
       if AGap.EndPoint = AGap.StartPoint then
         exit;
     end;
+debugln(['FillGap ** ',  dbgs(AGap), ' ',AStopAfterLine]);
     assert(AGap.EndPoint > AGap.StartPoint, 'FillGap: AGap.EndPoint > AGap.StartPoint');
 
     DoneSearch := True;
@@ -3094,6 +3112,8 @@ var
     end;
     if AStopAfterLine > AGap.EndPoint.Y then
       AStopAfterLine := -1;
+
+debugln(['Find ** ',  dbgs(AGap), ' # ',i,' / ',AStopAfterLine]);
 
     AGap.EndPoint := FindMatches(AGap.StartPoint, AGap.EndPoint, i, AStopAfterLine, False);
 
@@ -3164,6 +3184,7 @@ begin
   if HideSingleMatch and (FMatches.Count = 1) and (FScanOffScreenLimit <> 0) and
      not(ScanMode in [smsmDirectForceAll, smsmASyncForceAll])
   then begin
+debugln('extend single');
     // find before/after screen
     if (FScanOffScreenLimit = -1) or (FScanOffScreenLimit >= TopScreenLine) then
       ExtStartLine := 1
@@ -3263,6 +3284,7 @@ var
       Idx := FMatches.IndexOfFirstMatchForLine(TopLine - MATCHES_CLEAN_LINE_KEEP);
       // Using the Idx as Count => Delete only "up to before that Idx"
       if Idx > 0 then begin
+debugln(['MaybeDropOldMatches ',Idx, ' ## ',dbgs(FValidRanges), ' ## ', FirstKeptValidIdx]);
         FMatches.Delete(0, Idx);
         if FMatches.Count > 0 then
           FValidRanges.RemoveBefore(FMatches.StartPoint[0])
@@ -3270,6 +3292,7 @@ var
           FValidRanges := nil;
         if FirstKeptValidIdx >= Idx then
           FirstKeptValidIdx := max(0, FirstKeptValidIdx - Idx);
+debugln(['          --Matches  ## ',dbgs(FValidRanges), ' ## ', FirstKeptValidIdx]);
           {$IFOPT C+} AssertGapsValid; {$ENDIF}
         if FMatches.Count = 0 then
           exit
@@ -3279,6 +3302,7 @@ var
       Idx := FMatches.IndexOfLastMatchForLine(LastScreenLine  + MATCHES_CLEAN_LINE_KEEP) + 1;
       // Deleting above the Idx (Idx is already "+ 1")
       if Idx < FMatches.Count then begin
+debugln(['MaybeDropOldMatches E ',Idx, ' ..',FMatches.Count , ' ## ',dbgs(FValidRanges), ' ## ', FirstKeptValidIdx]);
         FMatches.Delete(Idx, FMatches.Count - Idx);
         if FMatches.Count > 0 then
           FValidRanges.RemoveAfter(FMatches.EndPoint[FMatches.Count-1])
@@ -3286,6 +3310,7 @@ var
           FValidRanges := nil;
         if FirstKeptValidIdx >= Idx then
           FirstKeptValidIdx := Idx;
+debugln(['          --Matches  ## ',dbgs(FValidRanges), ' ## ', FirstKeptValidIdx]);
         {$IFOPT C+} AssertGapsValid; {$ENDIF}
       end;
     end;
@@ -3314,10 +3339,12 @@ begin
   try
 
     if (not HasSearchData) or (not MarkupInfo.IsEnabled) then begin
+debugln(FMatches.Count > 0, ['TSynEditMarkupHighlightAllBase.ValidateMatches (clear only) >>>>>>>>>>>>>>>>>>> Cnt: ', FMatches.Count, ' rng: ', dbgs(FValidRanges), ' ',DbgS(ptruint(self)),DbgSName(self), ' /// inv:',FFirstInvalidMatchLine,'..',FLastInvalidMatchLine,' ',FMatchLinesDiffCount, ' # ',HasSearchData]);
       fMatches.Clear;
       FValidRanges := nil;
       exit;
     end;
+debugln(['TSynEditMarkupHighlightAllBase.ValidateMatches >>>>>>>>>>>>>>>>>>> Cnt: ', FMatches.Count, ' rng: ', dbgs(FValidRanges), ' ',DbgS(ptruint(self)),DbgSName(self), ' /// inv:',FFirstInvalidMatchLine,'..',FLastInvalidMatchLine,' ',FMatchLinesDiffCount, ' # ',HasSearchData]);
 
     LastScreenLine := SynEdit.PartialBottomLine;
 
@@ -3330,6 +3357,7 @@ begin
     if FFirstInvalidMatchLine > 0 then begin
       Assert(FirstKeptValidIdx >= 0);
       // remove extra valid lines before the gap, in case a multiline match now goes into the gap
+debugln(['G_S:  ', dbgs(GapStartPoint), ' -- ', dbgs(GapEndPoint)]);
       if (not GapStartPoint.HasData) or (GapEndPoint.Y >= FFirstInvalidMatchLine) then begin
         GapStartPoint := point(1, FFirstInvalidMatchLine);
         assert((FirstKeptValidIdx=0) or (FMatches.EndPoint[FirstKeptValidIdx-1] < GapStartPoint), 'TSynEditMarkupHighlightAllBase.ValidateMatches: (FirstKeptValidIdx=0) or (FMatches.EndPoint[FirstKeptValidIdx-1] < GapStartPoint)');
@@ -3346,10 +3374,15 @@ begin
       FValidRanges.RemoveBetween(GapStartPoint, GapEndPoint);
     end;
 
+DebugLn('>>>>>>>>> valid ranges are '+dbgs(FValidRanges)+' <<');
+
     if not ValidateFillGaps then begin
+debugln(['schedule async ']);
       Application.QueueAsyncCall(@DoAsyncScan, 0);
     end;
 
+
+    //finally  DebugLnExit(['  < ValidateMatches Cnt=',FMatches.Count, '  <<< # ', dbgs(FValidRanges)]); end;
   finally
     FFirstInvalidMatchLine := -1;
     FLastInvalidMatchLine  := -1;
@@ -3359,6 +3392,7 @@ begin
     EndSendingInvalidation;
     if SkipPaint then
       EndSkipSendingInvalidation;
+if MarkupInfo.IsEnabled and HasSearchData then debugln(['TSynEditMarkupHighlightAllBase.ValidateMatches  Cnt=',FMatches.Count, '  ', dbgs(FValidRanges), ' <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<']);
     {$IFOPT C+} AssertGapsValid; {$ENDIF}
   end;
 end;
