@@ -77,6 +77,17 @@ For example row, colum 1,1 translates to 0,0 on client area if there is no gutte
       </element>
     <element name="TCustomSynEdit.TopView"><short>"Viewed" linenumber at the top the visible area of the  editor. The "viewed" text counts each wrapped line-part separately and omits folded lines.</short>
       </element>
+    <element name="TCustomSynEdit.OnGutterClick"><short>Event for clicks on the gutter (left gutter only)</short><descr>This will be called when the left gutter is clicked (mouse down).
+
+If MouseActions are configured, this will be called for the action emcOnMainGutterClick.
+
+This property is from before the introduction of the dedicated gutter object. It is now a forwarder to SynEdit.Gutter.OnGutterClick. Changing the property on the Gutter directly will change this value and vice versa.
+
+</descr><seealso>
+  <link id="#SynEdit.SynEdit.TSynEdit.Gutter.OnGutterClick">SynEdit.Gutter.OnGutterClick</link>
+  <link id="#SynEdit.SynEdit.TSynEdit.MouseActions">MouseActions</link>
+</seealso>
+      </element>
     </module>
   </package>
 </fpdoc-descriptions>
