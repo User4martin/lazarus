@@ -2079,8 +2079,8 @@ begin
       begin
         CheckSynchronize;
         TWin32Widgetset(Widgetset).CheckPipeEvents;
-        if Assigned(Application) then
-          Application._ProcessAsyncCallQueue;
+        //if Assigned(Application) then
+        //  Application._ProcessAsyncCallQueue;
       end;
     WM_ENTERIDLE: Application.Idle(False);
     WM_ACTIVATE:  begin

@@ -421,12 +421,17 @@ begin
           DispatchMessageW(@AMessage);
         end;
       end;
+      // The loop will be entered for the WM_NULL from WakeMainThread, process loop first, then ASync
+      if Assigned(Application) then
+        Application._ProcessAsyncCallQueue;
     end else
     if retVal = WAIT_TIMEOUT then
     begin
       // check for pending to-be synchronized methods
       CheckSynchronize;
       CheckPipeEvents;
+      if Assigned(Application) then
+        Application._ProcessAsyncCallQueue;
       break;
     end else
     if retVal = $FFFFFFFF then

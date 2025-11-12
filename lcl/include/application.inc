@@ -484,7 +484,7 @@ begin
       DoIdleActions;
     Include(FFlags,AppWaiting);
     Exclude(FFlags,AppIdleEndSent);
-    if Wait then
+    if Wait and not (FAsyncCall.Next.Top <> nil) then // dirty read is ok, if we get nil, then we will react to WakeMainThread;
       WidgetSet.AppWaitMessage;
     if (FIdleLockCount=0) then
       DoOnIdleEnd;
