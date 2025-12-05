@@ -7254,6 +7254,7 @@ begin
         TSynHighlighterLazCustomPasAttribute(aDest).CustomWords.Assign(CustomWords);
         TSynHighlighterLazCustomPasAttribute(aDest).CustomWordTokenKind := CustomWordTokenKind;
       end;
+      if aDest.StoredName = '' then aDest.StoredName := Src.StoredName;
     end;
 
     if hafPrior in Src.AttrFeatures then begin
