@@ -123,6 +123,7 @@ end;
 procedure TSynEditMarkupCtrlMouseLink.LinesChanged(Sender: TSynEditStrings; AIndex, ANewCount,
   AOldCount: Integer);
 begin
+  if not Enabled then Exit;
   If LastMouseCaret.Y < 0 then exit;
   LastMouseCaret := Point(-1, -1);
   UpdateCtrlMouse;
@@ -132,6 +133,7 @@ procedure TSynEditMarkupCtrlMouseLink.UpdateCtrlState(aShift: TShiftState);
 var
   NewCtrlIsPressed: Boolean;
 begin
+  if not Enabled then Exit;
   NewCtrlIsPressed := IsCtrlMouseShiftState(aShift, True);
   if FLastControlIsPressed <> NewCtrlIsPressed then begin
     FLastControlIsPressed := NewCtrlIsPressed;
@@ -141,6 +143,7 @@ end;
 
 procedure TSynEditMarkupCtrlMouseLink.UpdateCtrlMouse;
 begin
+  if not Enabled then Exit;
   FLastControlIsPressed := IsCtrlMouseShiftState(GetKeyShiftState, True);
   InternalUpdateCtrlMouse;
 end;
@@ -187,6 +190,7 @@ procedure TSynEditMarkupCtrlMouseLink.UpdateSynCursor(Sender: TObject;
   const AMouseLocation: TSynMouseLocationInfo; var AnCursor: TCursor; var APriority: Integer;
   var AChangedBy: TObject);
 begin
+  if not Enabled then Exit;
   if (Cursor = crDefault) or (APriority > LINK_CURSOR_PRIORITY) then exit;
   AnCursor := Cursor;
   APriority := LINK_CURSOR_PRIORITY;
