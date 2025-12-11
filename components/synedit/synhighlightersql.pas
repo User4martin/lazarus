@@ -52,11 +52,9 @@ unit SynHighlighterSQL;
 interface
 
 uses
-  SysUtils, Classes,
-  LCLIntf, LCLType,
-  Controls, Graphics,
-  SynEditTypes, SynEditHighlighter, SynEditStrConst,
-  SynHighlighterHashEntries, SynEditMiscProcs, LazEditTextAttributes;
+  SysUtils, Classes, LCLIntf, LCLType, Controls, Graphics, SynEditTypes, SynEditHighlighter,
+  SynEditStrConst, SynHighlighterHashEntries, SynEditMiscProcs, SynEditHighlighterFoldBase,
+  LazEditTextAttributes, LazEditHighlighterUtils;
 
 type
   TtkTokenKind = (tkComment, tkDatatype, tkDefaultPackage, tkException,         // DJLP 2000-08-11
@@ -64,7 +62,17 @@ type
     tkSQLPlus, tkString, tkSymbol, tkTableName, tkUnknown, tkVariable,          // DJLP 2000-08-11
     tkCharSet, tkCollation);
 
-  TRangeState = (rsUnknown, rsComment, rsString);
+  TRangeState = (
+    rsUnknown,
+    rsComment, rsString,
+    rsAtStatementBegin
+  );
+
+  TSqlCodeFoldBlockType = (
+    cfbtNone,
+    cfbtSelect,
+    cfbtFrom
+  );
 
   TProcTableProc = procedure of object;
 
@@ -81,11 +89,27 @@ type
 
 type
 
+  { TSynSQLSynRange }
+
+  TSynSQLSynRange = class(TSynCustomHighlighterRange)
+  private
+    FBracketNestLevel: Integer;
+  public
+    procedure Clear; override;
+    function Compare(Range: TLazHighlighterRange): integer; override;
+    procedure Assign(Src: TLazHighlighterRange); override;
+    function MaxFoldLevel: Integer; override;
+    procedure ResetBracketNestLevel;
+    procedure IncBracketNestLevel;
+    procedure DecBracketNestLevel;
+    property BracketNestLevel: integer read FBracketNestLevel write FBracketNestLevel;
+  end;
+
   { TSynSQLSyn }
 
-  TSynSQLSyn = class(TSynCustomHighlighter)
+  TSynSQLSyn = class(TSynCustomFoldHighlighter)
   private
-    fRange: TRangeState;
+    fRange, FPreviousRange: TRangeState;
     fLine: PChar;
     fLineNumber: Integer;
     fProcTable: array[#0..#255] of TProcTableProc;
@@ -116,6 +140,7 @@ type
     fCollationAttri: TSynHighlighterAttributesModifier;
     fIdentifiersPtr: PIdentifierTable;
     fmHashTablePtr: PHashTable;
+    function GetSqlCodeFoldRange: TSynSqlSynRange;
     function KeyHash(ToHash: PChar): Integer;
     function KeyComp(const aKey: string): Boolean;
     procedure AndSymbolProc;
@@ -135,6 +160,9 @@ type
     procedure SpaceProc;
     procedure StringProc;
     procedure SymbolProc;
+    procedure RoundOpenProc;
+    procedure RoundCloseProc;
+    procedure SemicolonProc;
     procedure SymbolAssignProc;
     procedure VariableProc;
     procedure UnknownProc;
@@ -150,6 +178,9 @@ type
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource : String; override;
+    function StartSqlCodeFoldBlock(ABlockType: TSqlCodeFoldBlockType): TSqlCodeFoldBlockType;
+    function TopSqlCodeFoldBlockType(DownIndex: Integer = 0): TSqlCodeFoldBlockType;
+    property SqlCodeFoldRange: TSynSqlSynRange read GetSqlCodeFoldRange;
   public
     class function GetLanguageName: string; override;
   public
@@ -160,6 +191,7 @@ type
       override;
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
+    function GetRangeClass: TLazHighlighterRangeClass; override;
     function GetToken: string; override;
     procedure GetTokenEx(out TokenStart: PChar; out TokenLength: integer); override;
 
@@ -1352,6 +1384,46 @@ begin
   mHashTableMSSQL7['@'] := mHashTableMSSQL7['Z'] + 1;
 end;
 
+{ TSynSQLSynRange }
+
+procedure TSynSQLSynRange.Clear;
+begin
+  inherited Clear;
+  FBracketNestLevel := 0;
+end;
+
+function TSynSQLSynRange.Compare(Range: TLazHighlighterRange): integer;
+begin
+  Result := DoCompare(Range, TSynSQLSynRange.InstanceSize);
+end;
+
+procedure TSynSQLSynRange.Assign(Src: TLazHighlighterRange);
+begin
+  inherited Assign(Src);
+  if Src is TSynSQLSynRange then
+    FBracketNestLevel := TSynSQLSynRange(Src).FBracketNestLevel;
+end;
+
+function TSynSQLSynRange.MaxFoldLevel: Integer;
+begin
+  Result := 100;
+end;
+
+procedure TSynSQLSynRange.ResetBracketNestLevel;
+begin
+  FBracketNestLevel := 0;
+end;
+
+procedure TSynSQLSynRange.IncBracketNestLevel;
+begin
+  inc(FBracketNestLevel);
+end;
+
+procedure TSynSQLSynRange.DecBracketNestLevel;
+begin
+  dec(FBracketNestLevel);
+end;
+
 function TSynSQLSyn.KeyHash(ToHash: PChar): Integer;
 var
   Start: PChar;
@@ -1365,6 +1437,11 @@ begin
   end;
   Result := Result and $FF; // 255
   fStringLen := ToHash - Start;
+end;
+
+function TSynSQLSyn.GetSqlCodeFoldRange: TSynSqlSynRange;
+begin
+  Result := TSynSQLSynRange(CodeFoldRange);
 end;
 
 function TSynSQLSyn.KeyComp(const aKey: string): Boolean;
@@ -1436,8 +1513,14 @@ begin
         fProcTable[I] := @SpaceProc;
       '^', '%', '*', '!':
         fProcTable[I] := @SymbolAssignProc;
-      '{', '}', '.', ',', ';', '?', '(', ')', '[', ']', '~':
+      '{', '}', '.', ',', '?', '[', ']', '~':
         fProcTable[I] := @SymbolProc;
+      '(':
+        fProcTable[I] := @RoundOpenProc;
+      ')':
+        fProcTable[I] := @RoundCloseProc;
+      ';':
+        fProcTable[I] := @SemicolonProc;
       else
         fProcTable[I] := @UnknownProc;
     end;
@@ -1605,7 +1688,21 @@ begin
       Inc(Run);
   end else
 {end}                                                                           // DJLP 2000-08-11
-    while fIdentifiersPtr^[fLine[Run]] do inc(Run);
+  begin
+    if SqlCodeFoldRange.BracketNestLevel = 0 then begin
+      if (rsAtStatementBegin = FPreviousRange) and (fStringLen = 6) and
+         (strlicomp((fLine+fTokenPos), PChar('select'), 6) = 0) and // todo
+         (TopSqlCodeFoldBlockType = cfbtNone)
+      then
+        StartSqlCodeFoldBlock(cfbtSelect)
+      else
+      if (fStringLen = 4) and
+         (strlicomp((fLine+fTokenPos), PChar('from'), 4) = 0) and // todo
+         (TopSqlCodeFoldBlockType = cfbtSelect)
+      then
+        StartSqlCodeFoldBlock(cfbtFrom)
+    end;
+  end;
 end;
 
 procedure TSynSQLSyn.LFProc;
@@ -1733,6 +1830,27 @@ begin
   fTokenID := tkSymbol;
 end;
 
+procedure TSynSQLSyn.RoundOpenProc;
+begin
+  SymbolProc;
+  SqlCodeFoldRange.IncBracketNestLevel;
+end;
+
+procedure TSynSQLSyn.RoundCloseProc;
+begin
+  SymbolProc;
+  SqlCodeFoldRange.DecBracketNestLevel;
+end;
+
+procedure TSynSQLSyn.SemicolonProc;
+begin
+  SymbolProc;
+  fRange := rsAtStatementBegin;
+  SqlCodeFoldRange.ResetBracketNestLevel;
+  while TopSqlCodeFoldBlockType <> cfbtNone do
+    EndCodeFoldBlock;
+end;
+
 procedure TSynSQLSyn.SymbolAssignProc;
 begin
   fTokenID := tkSymbol;
@@ -1830,6 +1948,10 @@ end;
 
 procedure TSynSQLSyn.Next;
 begin
+  FPreviousRange := fRange;
+  if (FRange in [rsAtStatementBegin]) then
+    fRange := rsUnknown;
+
   fTokenPos := Run;
   case fRange of
     rsComment:
@@ -1839,6 +1961,11 @@ begin
   else
     fProcTable[fLine[Run]]();
   end;
+
+  if not (fTokenID in [tkSpace]) and
+    (FPreviousRange in [rsAtStatementBegin])
+  then
+    fRange := FPreviousRange;
 end;
 
 function TSynSQLSyn.GetDefaultAttribute(Index: integer):
@@ -1865,7 +1992,13 @@ end;
 
 function TSynSQLSyn.GetRange: Pointer;
 begin
-  Result := Pointer(PtrInt(fRange));
+  CodeFoldRange.RangeType:=Pointer(PtrUInt(Integer(fRange)));
+  Result := inherited GetRange;
+end;
+
+function TSynSQLSyn.GetRangeClass: TLazHighlighterRangeClass;
+begin
+  Result := TSynSQLSynRange;
 end;
 
 function TSynSQLSyn.GetToken: string;
@@ -1940,12 +2073,14 @@ end;
 
 procedure TSynSQLSyn.ResetRange;
 begin
-  fRange := rsUnknown;
+  fRange := rsAtStatementBegin;
+  inherited ResetRange;
 end;
 
 procedure TSynSQLSyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(PtrUInt(Value));
+  inherited SetRange(Value);
+  fRange := TRangeState(Integer(PtrUInt(CodeFoldRange.RangeType)));
 end;
 
 function TSynSQLSyn.GetIdentChars: TSynIdentChars;
@@ -2282,6 +2417,17 @@ begin
         '  SELECT SCOPE_IDENTITY()'#13#10 +
         'GO';
   end;
+end;
+
+function TSynSQLSyn.StartSqlCodeFoldBlock(ABlockType: TSqlCodeFoldBlockType
+  ): TSqlCodeFoldBlockType;
+begin
+  Result := TSqlCodeFoldBlockType(PtrUInt(StartCodeFoldBlock(Pointer(PtrInt(ABlockType)))));
+end;
+
+function TSynSQLSyn.TopSqlCodeFoldBlockType(DownIndex: Integer): TSqlCodeFoldBlockType;
+begin
+  Result := TSqlCodeFoldBlockType(PtrUInt(TopCodeFoldBlockType(DownIndex)));
 end;
 
 initialization
