@@ -204,10 +204,12 @@ type
     FIgnoreCodeBufferLock: integer;
     FEditorStampCommitedToCodetools: int64;
     FCodeBuffer: TCodeBuffer;
+    FNeedApplyCodeBuffer: boolean;
     FLinkScanners: TFPList; // list of TLinkScanner
     FMainLinkScanner: TLinkScanner;
     FLastWarnedMainLinkFilename: string;
     function GetModified: Boolean;
+    procedure ApplyCodeBuffer(AForce: boolean = False);
     procedure SetCodeBuffer(const AValue: TCodeBuffer);
     procedure SetModified(const AValue: Boolean);
     procedure OnCodeBufferChanged(Sender: TSourceLog; SrcLogEntry: TSourceLogEntry);
@@ -3229,6 +3231,33 @@ begin
     SrcEdit.SourceNotebook.FSrcEditsSortedForFilenames.Add(SrcEdit);
   end;
 
+  FNeedApplyCodeBuffer := FCodeBuffer <> nil;
+  ApplyCodeBuffer;
+end;
+
+function TSourceEditorSharedValues.GetModified: Boolean;
+begin
+  Result := FModified or SynEditor.Modified;
+end;
+
+procedure TSourceEditorSharedValues.ApplyCodeBuffer(AForce: boolean);
+var
+  i: Integer;
+  SrcEdit: TSourceEditor;
+  SharedEdit: TSourceEditor;
+  ETChanges: TETSingleSrcChanges;
+begin
+  if not FNeedApplyCodeBuffer then
+    exit;
+  if not AForce then begin
+    i := FSharedEditorList.Count - 1;
+    while (i >= 0) and (not SharedEditors[i].FEditor.HandleAllocated) do dec(i);
+    if i < 0 then
+      exit;
+  end;
+
+  FNeedApplyCodeBuffer := False;
+
   if FCodeBuffer <> nil then
   begin
     DebugBoss.LockCommandProcessing;
@@ -3288,11 +3317,6 @@ begin
       DebugBoss.UnLockCommandProcessing;
     end;
   end;
-end;
-
-function TSourceEditorSharedValues.GetModified: Boolean;
-begin
-  Result := FModified or SynEditor.Modified;
 end;
 
 procedure TSourceEditorSharedValues.SetModified(const AValue: Boolean);
@@ -9687,6 +9711,7 @@ Begin
     DebugLn(SRCED_PAGES, ['TSourceNotebook.NotebookPageChanged TempEdit=', DbgSName(SrcEdit), ' Vis=', dbgs(IsVisible), ' Hnd=', dbgs(HandleAllocated)]);
     if SrcEdit <> nil then
     begin
+      SrcEdit.SharedValues.ApplyCodeBuffer(True);
       if not SrcEdit.Visible then begin
         // As long as SynEdit had no Handle, it had kept all those Values untouched
         CaretXY := SrcEdit.EditorComponent.CaretXY;
