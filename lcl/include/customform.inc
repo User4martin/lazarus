@@ -70,19 +70,11 @@ end;
   Gets called after the construction of the object
  ------------------------------------------------------------------------------}
 procedure TCustomForm.AfterConstruction;
-var
-  MonPPI: Integer;
 begin
   SetRestoredBounds(Left, Top, Width, Height, True);
   DoCreate;
   EndFormUpdate; // the BeginFormUpdate is in CreateNew
   inherited AfterConstruction;
-
-  MonPPI := Monitor.PixelsPerInch;
-  if Application.Scaled and Scaled and (MonPPI > 0) and (MonPPI <> PixelsPerInch)
-  and not (csDesigning in ComponentState) then
-    AutoAdjustLayout(lapAutoAdjustForDPI, PixelsPerInch, MonPPI,
-                     Width, MulDiv(Width, MonPPI, PixelsPerInch));
 end;
 
 {------------------------------------------------------------------------------
@@ -404,6 +396,8 @@ end;
        TCustomForm SetVisible
 ------------------------------------------------------------------------------}
 procedure TCustomForm.SetVisible(Value : boolean);
+var
+  MonPPI: Integer;
 begin
   if (Value=(fsVisible in FFormState)) and (Visible=Value) then exit;
   //DebugLn(['[TCustomForm.SetVisible] START ',Name,':',ClassName,' Old=',Visible,' New=',Value,' ',(fsCreating in FFormState)]);
@@ -416,6 +410,13 @@ begin
     // will be done when finished loading
   else
   begin
+    if Value and HandleAllocated then begin
+      MonPPI := Monitor.PixelsPerInch;
+      if Application.Scaled and Scaled and (MonPPI > 0) and (MonPPI <> PixelsPerInch) then
+        AutoAdjustLayout(lapAutoAdjustForDPI, PixelsPerInch, MonPPI,
+                         Width, MulDiv(Width, MonPPI, PixelsPerInch));
+    end;
+
     inherited SetVisible(Value);
     Application.UpdateVisible;
   end;
@@ -2293,14 +2294,7 @@ end;
   procedure TCustomForm.Show;
 ------------------------------------------------------------------------------}
 procedure TCustomForm.Show;
-var
-  MonPPI: Integer;
 begin
-  MonPPI := Monitor.PixelsPerInch;
-  if Application.Scaled and Scaled and (MonPPI > 0) and (MonPPI <> PixelsPerInch) then
-    AutoAdjustLayout(lapAutoAdjustForDPI, PixelsPerInch, MonPPI,
-                     Width, MulDiv(Width, MonPPI, PixelsPerInch));
-
   Visible := True;
   { wxMaximized secondary forms are not being shown maximized }
   if (not (csDesigning in ComponentState)) and Showing then
@@ -2734,7 +2728,16 @@ end;
 
 procedure TCustomForm.CreateWnd;
 // Creates the interface object.
+var
+  MonPPI: Integer;
 begin
+  if Visible then begin
+    MonPPI := Monitor.PixelsPerInch;
+    if Application.Scaled and Scaled and (MonPPI > 0) and (MonPPI <> PixelsPerInch) then
+      AutoAdjustLayout(lapAutoAdjustForDPI, PixelsPerInch, MonPPI,
+                       Width, MulDiv(Width, MonPPI, PixelsPerInch));
+  end;
+
   //DebugLn('TCustomForm.CreateWnd START ',ClassName);
   FFormState := FFormState - [fsBorderStyleChanged, fsFormStyleChanged];
   inherited CreateWnd;
