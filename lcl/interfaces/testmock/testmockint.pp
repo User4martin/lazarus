@@ -114,8 +114,11 @@ var
 begin
   if MockCreatedTimerList <> nil then begin
     // TODO: sort by interval
-    for i := 0 to MockCreatedTimerList.Count - 1 do
+    i := MockCreatedTimerList.Count - 1;
+    while i >= 0 do begin
       MockCreatedTimerList[i].Proc();
+      dec(i);
+    end;
   end;
 end;
 
