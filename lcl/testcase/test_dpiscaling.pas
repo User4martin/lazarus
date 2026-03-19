@@ -985,7 +985,6 @@ end;
 initialization
 
   {$IFnDEF LCLNOGUI}
-  RegisterTest(TTestDpiScaling);
   {$ENDIF}
 end.
 

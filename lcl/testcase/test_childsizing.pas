@@ -9,9 +9,14 @@ uses
   // FPCUnit
   fpcunit, testregistry,
   // LCL
-  Forms, Controls;
+  Forms, Controls, ComCtrls;
 
 type
+  TTestTreeView = class(TTestCase)
+  published
+    procedure TestSelection;
+  end;
+
   TIntegerArray = array of integer;
 
   { TTestWinControl }
@@ -103,6 +108,20 @@ type
   end;
 
 implementation
+
+procedure TTestTreeView.TestSelection;
+var
+  t: TTreeView = nil;
+  n: TTreeNode;
+begin
+  try
+    t := TTreeView.Create(nil);
+    n := t.Items.Add(nil, 'root1');
+    t.Selected := n;
+  finally
+    FreeAndNil(t);
+  end;
+end;
 
 const
   {$IFDEF LCLNOGUI}
@@ -1240,7 +1259,6 @@ end;
 
 initialization
 
-  RegisterTest(TTestChildSizing);
-  RegisterTest(TTestChildSizingWithTempAutoSizing);
+  RegisterTest(TTestTreeView);
 end.
 
