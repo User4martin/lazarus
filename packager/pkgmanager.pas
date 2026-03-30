@@ -90,6 +90,19 @@ type
   TPackagePackageArray = specialize TObjectArray<TLazPackageID, TLazPackageID>;
   TOwnerPackageArray = specialize TObjectArray<TObject, TLazPackageID>;
 
+  { TIdePackageLinks }
+
+  TIdePackageLinks = class(TLazPackageLinks)
+  private
+    FQueueSaveUserLinks: boolean;
+    procedure SetQueueSaveUserLinks(AValue: boolean);
+    procedure OnAsyncSaveUserLinks({%H-}Data: PtrInt);
+  public
+    procedure Clear; override;
+    procedure SaveUserLinks(Immediately: boolean = false); override;
+    property QueueSaveUserLinks: boolean read FQueueSaveUserLinks write SetQueueSaveUserLinks;
+  end;
+
   { TPkgManager }
 
   TPkgManager = class(TBasePkgManager)
@@ -464,6 +477,40 @@ begin
   end else begin
     Directory:=''
   end;
+end;
+
+{ TIdePackageLinks }
+
+procedure TIdePackageLinks.SetQueueSaveUserLinks(AValue: boolean);
+begin
+  if FQueueSaveUserLinks=AValue then Exit;
+  FQueueSaveUserLinks:=AValue;
+  if Application=nil then exit;
+  if FQueueSaveUserLinks then
+    Application.QueueAsyncCall(@OnAsyncSaveUserLinks,0)
+  else
+    Application.RemoveAsyncCalls(Self);
+end;
+
+procedure TIdePackageLinks.OnAsyncSaveUserLinks(Data: PtrInt);
+begin
+  SaveUserLinks(true);
+end;
+
+procedure TIdePackageLinks.Clear;
+begin
+  QueueSaveUserLinks:=false;
+  inherited Clear;
+end;
+
+procedure TIdePackageLinks.SaveUserLinks(Immediately: boolean);
+begin
+  if not Immediately then begin
+    QueueSaveUserLinks:=false;
+    inherited SaveUserLinks(Immediately);
+  end
+  else
+    QueueSaveUserLinks := True;
 end;
 
 { TPkgManager }

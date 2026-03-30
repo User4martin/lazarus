@@ -116,7 +116,7 @@ type
     UserLinkLoadTimeValid: boolean;
     constructor Create;
     destructor Destroy; override;
-    procedure Clear;
+    procedure Clear; virtual;
     function GetUserLinkFile(WithPath: boolean = true): string;
     function GetGlobalLinkDirectory: string;
     procedure UpdateGlobalLinks; // reloads the lpl files, keeping LastUsed dates
