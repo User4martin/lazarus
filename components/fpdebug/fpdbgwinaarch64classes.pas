@@ -315,6 +315,13 @@ begin
   assert(MDebugEvent.dwProcessId <> 0, 'TDbgWinThread.ResetInstructionPointerAfterBreakpoint: MDebugEvent.dwProcessId <> 0');
 
   Result := ReadThreadState;
+  if not Result then exit;
+
+  FCurrentContext^.PC := FCurrentContext^.PC - 4;
+  FThreadContextChanged := True;
+
+  FHasResetInstructionPointerAfterBreakpoint := True;
+  FLastHardcodedSize := 4;
 end;
 
 function TDbgWinAarch64Thread.GetAdjustedInstructionPointerRegisterValue: TDbgPtr;
