@@ -2352,6 +2352,7 @@ end;
 
 function TCustomSynEdit.GetKeyStrokesStored: Boolean;
 begin
+  if Assigned(__IDE_Hook_CompatibleMode{%H-}) and __IDE_Hook_CompatibleMode{%H-}() then exit(True);
   Result := FKeyStrokes.IsModified or FKeyStrokes.ForceSaveToLfm;
 end;
 

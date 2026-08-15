@@ -451,6 +451,8 @@ function EditorCommandToIdent(Cmd: longint; var Ident: string): boolean;
 procedure RegisterKeyCmdIdentProcs(IdentToIntFn: TIdentToInt; IntToIdentFn: TIntToIdent);
 procedure RegisterExtraGetEditorCommandValues(AProc: TGetEditorCommandValuesProc);
 
+var __IDE_Hook_CompatibleMode: function: boolean experimental deprecated 'Only for 4.99 to 5.x';
+
 implementation
 
 { Command mapping routines }
@@ -1318,6 +1320,7 @@ begin
      assigned(TComponent(Owner).Owner) and
      (csLoading in TComponent(Owner).Owner.ComponentState)
   then begin
+    if Assigned(__IDE_Hook_CompatibleMode{%H-}) and __IDE_Hook_CompatibleMode{%H-}() then exit;
     if not IsModified then
       FForceSaveToLfm := True;
   end;

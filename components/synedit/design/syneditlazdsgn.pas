@@ -43,7 +43,7 @@ uses
   SynHighlighterVB, SynHighlighterAny, SynHighlighterDiff, SynHighlighterBat, SynHighlighterIni,
   SynHighlighterPo, SynPluginSyncroEdit, SynPopupMenu, SynPropertyEditObjectList, SynHighlighterMarkdown,
   SynDesignStringConstants, SynHighlighterJScript, SynPluginExternalLink, LazarusPackageIntf,
-  PropEdits, ComponentEditors;
+  PropEdits, ComponentEditors, ProjectIntf;
 
 procedure Register;
 
@@ -363,6 +363,14 @@ begin
       inherited ExecuteVerb(Index);
   end;
 end;
+
+function GetIdeProjectIsMaxCompatible: boolean;
+begin
+  Result := (LazProject1 <> nil) and (pfCompatibilityMode in LazProject1.Flags);
+end;
+
+initialization
+  __IDE_Hook_CompatibleMode := @GetIdeProjectIsMaxCompatible;
 
 end.
 
