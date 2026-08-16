@@ -42,7 +42,8 @@ unit SynEditKeyCmds;
 interface
 
 uses
-  Classes, Menus, SysUtils, Types, Math, LCLIntf, LCLType, LCLProc, LCLClasses, SynEditStrConst;
+  Classes, Menus, SysUtils, Types, Math, LCLIntf, LCLType, LCLProc, LCLClasses, LCLVersion,
+  SynEditStrConst;
 
 const
   //****************************************************************************
@@ -1318,6 +1319,7 @@ begin
      assigned(TComponent(Owner).Owner) and
      (csLoading in TComponent(Owner).Owner.ComponentState)
   then begin
+    if lcl_save_backward_compatible_lfm then exit;
     if not IsModified then
       FForceSaveToLfm := True;
   end;

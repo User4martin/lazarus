@@ -14291,6 +14291,7 @@ initialization
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('main.pp: initialization');{$ENDIF}
   DebugLogger.ParamForEnabledLogGroups := '--debug-enable=';
   EnvironmentOpts.GroupEnvironmentI18NCaption := @dlgGroupEnvironment;
+  lcl_save_backward_compatible_lfm_ptr := @lcl_save_backward_compatible_lfm_ptr;
 
 end.
 

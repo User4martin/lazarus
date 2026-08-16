@@ -954,6 +954,8 @@ function dbgs(Types: TUnitCompDependencyTypes): string; overload;
 function dbgs(Flag: TUnitInfoFlag): string; overload;
 function dbgs(Flags: TUnitInfoFlags): string; overload;
 
+var
+  lcl_save_backward_compatible_lfm_ptr: PBoolean = nil;
 
 implementation
 
@@ -3275,6 +3277,8 @@ end;
 procedure TProject.SetFlags(const AValue: TProjectFlags);
 begin
   inherited SetFlags(AValue);
+  if lcl_save_backward_compatible_lfm_ptr <> nil then
+    lcl_save_backward_compatible_lfm_ptr^ := pfCompatibilityMode in FFlags;
 end;
 
 procedure TProject.SetMainUnitID(const AValue: Integer);

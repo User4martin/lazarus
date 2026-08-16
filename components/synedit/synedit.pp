@@ -125,7 +125,7 @@ uses
   Types, SysUtils, Classes,
   // LCL
   LCLIntf, LCLType, LMessages, LResources, Messages, Controls, Graphics,
-  Forms, StdCtrls, ExtCtrls, Menus, Clipbrd, StdActns,
+  Forms, StdCtrls, ExtCtrls, Menus, Clipbrd, StdActns, LCLVersion,
   // LazUtils
   LazUtilities, LazMethodList, LazLoggerBase, LazTracer, LazUTF8,
   // SynEdit
@@ -2352,6 +2352,7 @@ end;
 
 function TCustomSynEdit.GetKeyStrokesStored: Boolean;
 begin
+  if lcl_save_backward_compatible_lfm then exit(True);
   Result := FKeyStrokes.IsModified or FKeyStrokes.ForceSaveToLfm;
 end;
 

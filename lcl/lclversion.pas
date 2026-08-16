@@ -36,6 +36,7 @@ const
 
 var
   lcl_revision_func: TStringFunc;
+  lcl_save_backward_compatible_lfm: boolean = False;
 
 implementation
 
