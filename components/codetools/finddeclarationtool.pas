@@ -15029,7 +15029,7 @@ begin
   end else  begin
     i:=0;
     repeat
-      if Params.NewNode.HasParentOfType(AllClassObjectsArray[i]) then begin
+      if (Params.NewNode <> nil) and  Params.NewNode.HasParentOfType(AllClassObjectsArray[i]) then begin
         i:=-1; // mark as found in AllClassObjects
         break;
       end;
