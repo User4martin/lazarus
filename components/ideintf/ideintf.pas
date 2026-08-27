@@ -22,7 +22,7 @@ uses
   ObjInspStrConsts, OIFavoriteProperties, PropEditConfig, PropEdits, 
   PropEditUtils, selectdatasetdlg, SelEdits, SrcEditorIntf, StatusBarPropEdit, 
   StringsPropEditDlg, ToolBarIntf, TreeViewPropEdit, UnitResources, 
-  LazarusPackageIntf;
+  IdeDebuggerPlugInIntf, LazarusPackageIntf;
 
 implementation
 
