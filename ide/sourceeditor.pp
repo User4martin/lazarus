@@ -7418,7 +7418,7 @@ begin
     SrcEdit.EditorComponent.EndUpdate;
     UI := EditableProject1.UnitWithEditorComponent(SrcEdit);
     if UI <> nil then
-      UI.Modified := False;
+      UI.Modified := SrcEdit.CodeBuffer.FileNeedsUpdate;
   end;
 end;
 

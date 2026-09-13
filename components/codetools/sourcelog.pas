@@ -118,6 +118,7 @@ type
     FReadOnly: boolean;
     FWriteLock: integer;
     FChangeHookLock: integer;
+    procedure SetDiskEncoding(AValue: string);
     procedure SetSource(const NewSrc: string);
     function GetItems(Index: integer): TSourceLogEntry;
     procedure SetItems(Index: integer; AnItem: TSourceLogEntry);
@@ -176,7 +177,7 @@ type
     procedure LoadFromStream(aStream: TStream);
     procedure SaveToStream(aStream: TStream);
     property ReadOnly: boolean read FReadOnly write SetReadOnly;
-    property DiskEncoding: string read FDiskEncoding write FDiskEncoding;
+    property DiskEncoding: string read FDiskEncoding write SetDiskEncoding;
     property MemEncoding: string read FMemEncoding write FMemEncoding;
     property DiskLineEnding: string read FDiskLineEnding write FDiskLineEnding;
     property WriteLock: integer read FWriteLock;
@@ -437,6 +438,13 @@ begin
     end;
     NotifyHooks(nil);
   end;
+end;
+
+procedure TSourceLog.SetDiskEncoding(AValue: string);
+begin
+  if FDiskEncoding = AValue then Exit;
+  FDiskEncoding := AValue;
+  IncreaseChangeStep;
 end;
 
 procedure TSourceLog.Insert(Pos: integer; const Txt: string);
