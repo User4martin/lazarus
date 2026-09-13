@@ -1475,7 +1475,7 @@ begin
   if not IsVirtual then begin
     cs:=ChangeStep;
     Result:=inherited LoadFromFile(Filename);
-    RevertChangeStep(cs);  // No need to save the file later.
+//    RevertChangeStep(cs);  // No need to save the file later.
     if Result then
       MakeFileDateValid;
   end else

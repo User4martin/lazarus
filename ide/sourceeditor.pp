@@ -7341,6 +7341,7 @@ var
   NewEncoding: String;
   OldEncoding: String;
   CurResult: TModalResult;
+  UI: TEditableUnitInfo;
 begin
   SrcEdit:=GetActiveSE;
   if (SrcEdit=nil) or not (Sender is TIDEMenuItem) then exit;
@@ -7415,6 +7416,9 @@ begin
     SrcEdit.EditorComponent.BeginUpdate;
     SrcEdit.CodeBuffer.AssignTo(SrcEdit.EditorComponent.Lines,False);
     SrcEdit.EditorComponent.EndUpdate;
+    UI := EditableProject1.UnitWithEditorComponent(SrcEdit);
+    if UI <> nil then
+      UI.Modified := False;
   end;
 end;
 
