@@ -4734,14 +4734,14 @@ begin
       alLeft:
         begin
           dec(NewBounds.Left,NewSite.Width+Splitter.Width);
-          MoveAllControls(NewSite.Width+Splitter.Width,0);
+//          MoveAllControls(NewSite.Width+Splitter.Width,0);
         end;
       alRight:
         inc(NewBounds.Right,NewSite.Width+Splitter.Width);
       alTop:
         begin
           dec(NewBounds.Top,NewSite.Height+Splitter.Height);
-          MoveAllControls(0,NewSite.Height+Splitter.Height);
+//          MoveAllControls(0,NewSite.Height+Splitter.Height);
         end;
       alBottom:
         inc(NewBounds.Bottom,NewSite.Height+Splitter.Height);
@@ -4759,8 +4759,10 @@ begin
         begin
           i:=NewSite.Width+Splitter.Width;
           dec(NewParentBounds.Left,i);
-          dec(NewBounds.Left,i);
-          MoveAllControls(i,0);
+          inc(NewBounds.Right,i);
+//          MoveAllControls(i,0);
+          NewSite.Top := NewSite.Left - i;
+          Splitter.Top := Splitter.Left - i;
         end;
       alRight:
         begin
@@ -4771,9 +4773,11 @@ begin
       alTop:
         begin
           i:=NewSite.Height+Splitter.Height;
-          dec(NewBounds.Top,i);
+          inc(NewBounds.Bottom,i);
           dec(NewParentBounds.Top,i);
-          MoveAllControls(0,i);
+          //MoveAllControls(0,i);
+          //NewSite.Top := NewSite.Top - i;
+          //Splitter.Top := Splitter.Top - i;
         end;
       alBottom:
         begin
@@ -5636,10 +5640,10 @@ begin
     Child:=Controls[i];
     NewBounds:=Child.BoundsRect;
     Types.OffsetRect(NewBounds,dx,dy);
-    if Child.AnchorSideLeft.Control=Self then
-      NewBounds.Left:=0;
-    if Child.AnchorSideTop.Control=Self then
-      NewBounds.Top:=0;
+    //if Child.AnchorSideLeft.Control=Self then
+    //  NewBounds.Left:=0;
+    //if Child.AnchorSideTop.Control=Self then
+    //  NewBounds.Top:=0;
     Child.BoundsRect:=NewBounds;
   end;
 end;
@@ -8062,7 +8066,7 @@ end;
 
 function TAnchorDockManager.CanBeDoubleDocked:Boolean;
 begin
-  Result := False;
+  Result := True;
 end;
 
 { TAnchorDockSplitter }
