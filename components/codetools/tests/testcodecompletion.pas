@@ -28,6 +28,7 @@ type
 
   TTestCodeCompletion = class(TCustomTestCTStdCodetools)
   private
+    function CreateFile(AFileName: string; Src: array of string): TCodeBuffer;
     procedure Test(Title: string; Src: array of string; Line, Col: integer;
       Expected: array of string);
   published
@@ -68,6 +69,8 @@ type
     procedure TestCompleteClass_Unit_NewClass_BetweenOldClasses;
     procedure TestCompleteNestedClass_Unit_NewClass_BehindParentClass;
 
+    // procedure completion
+    procedure TestCompleteProcWithScopedParam;
     // procedure completion
     procedure TestCompleteGenericProcBodyObjFpc;
     procedure TestCompleteGenericProcBodyDelphi;
@@ -113,20 +116,30 @@ implementation
 
 { TTestCodeCompletion }
 
+function StringArray2Text(Src: array of string): String;
+var
+  i: Integer;
+begin
+  Result:='';
+  for i:=Low(Src) to High(Src) do
+    Result+=Src[i]+LineEnding;
+end;
+
+function TTestCodeCompletion.CreateFile(AFileName: string; Src: array of string): TCodeBuffer;
+begin
+  Result:=CodeToolBoss.CreateFile(AFileName);
+  Result.Source:=StringArray2Text(Src);
+end;
+
 procedure TTestCodeCompletion.Test(Title: string; Src: array of string; Line,
   Col: integer; Expected: array of string);
 var
-  i, NewX, NewY, NewTopLine, BlockTopLine, BlockBottomLine: Integer;
+  NewX, NewY, NewTopLine, BlockTopLine, BlockBottomLine: Integer;
   s: String;
   NewCode, Code: TCodeBuffer;
 begin
-  Code:=CodeToolBoss.CreateFile('test1.pas');
+  Code:=CreateFile('test1.pas', Src);
   try
-    s:='';
-    for i:=Low(Src) to High(Src) do
-      s+=Src[i]+LineEnding;
-    Code.Source:=s;
-
     if not CodeToolBoss.CompleteCode(Code,Col,Line,Line,NewCode,NewX,NewY,NewTopLine,
       BlockTopLine,BlockBottomLine,false)
     and (CodeToolBoss.ErrorDbgMsg<>'') then
@@ -142,9 +155,7 @@ begin
       WriteSource(NewCode.Filename,NewY,NewX);
       Fail(Title+': call CompleteCode failed: "'+CodeToolBoss.ErrorDbgMsg+'"');
     end;
-    s:='';
-    for i:=Low(Expected) to High(Expected) do
-      s+=Expected[i]+LineEnding;
+    s:=StringArray2Text(Expected);
     CheckDiff(Title,s,Code.Source);
   finally
     Code.IsDeleted:=true;
@@ -2820,6 +2831,214 @@ begin
     ,'begin'
     ,'end;'
     ,'end.']);
+end;
+
+procedure TTestCodeCompletion.TestCompleteProcWithScopedParam;
+var
+  u1, u2: TCodeBuffer;
+begin
+  u1:=CreateFile('u_completion_hiding_scope_a.pas',[
+    'unit u_completion_hiding_scope_a;',
+    '{$Mode objfpc}',
+    'interface',
+    'type',
+    'TFoo1 = word;',
+    'TFoo4 = record end;',
+    'TFoo5 = record end;',
+    '',
+    'TScopeA = record end;',
+    '',
+    'implementation',
+    '',
+    'end.',
+    ''
+  ]);
+  u2:=CreateFile('u_completion_hiding_scope_b.pas',[
+    'unit u_completion_hiding_scope_b;',
+    '{$Mode objfpc}',
+    'interface',
+    'type',
+    'TBar1 = word;',
+    'TBar6 = record end;',
+    'TBar7 = record end;',
+    'u_completion_hiding_scope_a = class',
+    'public type',
+    'TScopeA = record end;',
+    'end;',
+    'implementation',
+    'end.'
+  ]);
+
+  Test('TestCompleteGenericProcBodyObjFpc',
+  [ 'unit t_completion_hiding_scope;',
+    '{$Mode objfpc}',
+    'interface',
+    'uses u_completion_hiding_scope_b;',
+    'type',
+    '',
+    '{ TClass }',
+    '',
+    'TClass = class',
+    'public type',
+    't_completion_hiding_scope = class end;',
+    'u_completion_hiding_scope_b = class end;',
+    'u_completion_hiding_scope_a = class',
+    'public type',
+    'TFoo1 = record end;',
+    'end;',
+    'TBar6 = class end;',
+    'TFoo4 = record end;',
+    'public',
+    'procedure P1(a: t_completion_hiding_scope; b: u_completion_hiding_scope_b);',
+    'procedure P2(a: TBar6; b: TFoo4);',
+    'procedure P3(a: u_completion_hiding_scope_a.TFoo1);',
+    'end;',
+    '',
+    'implementation',
+    'uses u_completion_hiding_scope_a;',
+    'type',
+    'TBar6 = class end;',
+    '',
+    'end.'
+  ],
+  20,2,
+  [ 'unit t_completion_hiding_scope;',
+    '{$Mode objfpc}',
+    'interface',
+    'uses u_completion_hiding_scope_b;',
+    'type',
+    '',
+    '{ TClass }',
+    '',
+    'TClass = class',
+    'public type',
+    't_completion_hiding_scope = class end;',
+    'u_completion_hiding_scope_b = class end;',
+    'u_completion_hiding_scope_a = class',
+    'public type',
+    'TFoo1 = record end;',
+    'end;',
+    'TBar6 = class end;',
+    'TFoo4 = record end;',
+    'public',
+    'procedure P1(a: t_completion_hiding_scope; b: u_completion_hiding_scope_b);',
+    'procedure P2(a: TBar6; b: TFoo4);',
+    'procedure P3(a: u_completion_hiding_scope_a.TFoo1);',
+    'end;',
+    '',
+    'implementation',
+    'uses u_completion_hiding_scope_a;',
+    'type',
+    'TBar6 = class end;',
+    '',
+    '{ TClass }',
+    '',
+    'procedure TClass.P1(a: t_completion_hiding_scope; b: u_completion_hiding_scope_b);',
+    'begin',
+    '',
+    'end;',
+    '',
+    'procedure TClass.P2(a: TBar6; b: TFoo4);',
+    'begin',
+    '',
+    'end;',
+    '',
+    'procedure TClass.P3(a: u_completion_hiding_scope_a.TFoo1);',
+    'begin',
+    '',
+    'end;',
+    '',
+    'end.'
+  ]);
+
+
+
+  Test('TestCompleteGenericProcBodyObjFpc',
+  [ 'unit t_completion_hiding_scope;',
+    '{$Mode objfpc}',
+    'interface',
+    'uses u_completion_hiding_scope_b;',
+    'type',
+    'TFoo1 = record end;',
+    'TFoo2 = byte;',
+    'TFoo3 = type byte;',
+    '',
+    'procedure P1(a: TFoo1);',
+    'procedure P2(a: TBar1);',
+    'procedure P3(a: TBar6);',
+    'procedure P3(a: TBar7);',
+    'procedure P4(a: u_completion_hiding_scope_a); // refers to the type in u_completion_hiding_scope_b',
+    'procedure P5(a: u_completion_hiding_scope_a.TScopeA); // refers to the type in u_completion_hiding_scope_b',
+    '',
+    'implementation',
+    'uses u_completion_hiding_scope_a;',
+    'type',
+    'TBar1 = record end;',
+    'TBar6 = u_completion_hiding_scope_b.TBar6;',
+    'TBar7 = type u_completion_hiding_scope_b.TBar7;',
+    '',
+    'end.'
+  ],
+  10,2,
+  [ 'unit t_completion_hiding_scope;',
+    '{$Mode objfpc}',
+    'interface',
+    'uses u_completion_hiding_scope_b;',
+    'type',
+    'TFoo1 = record end;',
+    'TFoo2 = byte;',
+    'TFoo3 = type byte;',
+    '',
+    'procedure P1(a: TFoo1);',
+    'procedure P2(a: TBar1);',
+    'procedure P3(a: TBar6);',
+    'procedure P3(a: TBar7);',
+    'procedure P4(a: u_completion_hiding_scope_a); // refers to the type in u_completion_hiding_scope_b',
+    'procedure P5(a: u_completion_hiding_scope_a.TScopeA); // refers to the type in u_completion_hiding_scope_b',
+    '',
+    'implementation',
+    'uses u_completion_hiding_scope_a;',
+    'type',
+    'TBar1 = record end;',
+    'TBar6 = u_completion_hiding_scope_b.TBar6;',
+    'TBar7 = type u_completion_hiding_scope_b.TBar7;',
+    '',
+    '',
+    'procedure P1(a: TFoo1);',
+    'begin',
+    '',
+    'end;',
+    '',
+    'procedure P2(a: u_completion_hiding_scope_b.TBar1);',
+    'begin',
+    '',
+    'end;',
+    '',
+    'procedure P3(a: TBar6);',
+    'begin',
+    '',
+    'end;',
+    '',
+    'procedure P3(a: u_completion_hiding_scope_b.TBar7);',
+    'begin',
+    '',
+    'end;',
+    '',
+    'procedure P4(a: u_completion_hiding_scope_b.u_completion_hiding_scope_a); // refers to the type in u_completion_hiding_scope_b',
+    'begin',
+    '',
+    'end;',
+    '',
+    'procedure P5(a: u_completion_hiding_scope_b.u_completion_hiding_scope_a.TScopeA); // refers to the type in u_completion_hiding_scope_b',
+    'begin',
+    '',
+    'end;',
+    '',
+    'end.'
+  ]);
+
+  u1.IsDeleted := True;
+  u2.IsDeleted := True;
 end;
 
 procedure TTestCodeCompletion.TestCompleteGenericProcBodyObjFpc;
