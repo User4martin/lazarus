@@ -458,7 +458,8 @@ begin
   if AthreadIdentifier>-1 then
     begin
     IsMainThread := AthreadIdentifier=ProcessID;
-    result := DbgThreadClass.Create(Self, AthreadIdentifier, AthreadIdentifier)
+    result := DbgThreadClass.Create(Self, AthreadIdentifier, AthreadIdentifier);
+    TDbgLinuxThread(Result).FIsPaused := True;
     end
   else
     result := nil;
