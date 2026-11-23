@@ -600,6 +600,7 @@ var
   ThreadToContinue: TDbgRspThread;
   PC: word;
 begin
+  Result := True;
   // Terminating process and all threads
   if FIsTerminating or (FStatus = SIGHUP) then
   begin

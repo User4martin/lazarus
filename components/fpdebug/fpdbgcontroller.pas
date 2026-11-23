@@ -1952,7 +1952,9 @@ begin
         if not assigned(FCommand) then
           begin
           DebugLnEnter(FPDBG_COMMANDS, 'Continue process without command.');
-          FCurrentProcess.Continue(FCurrentProcess, FCurrentThread, False)
+          DidContinue := FCurrentProcess.Continue(FCurrentProcess, FCurrentThread, False);
+          if not IsTerminating then
+            DidContinue := True;  // pretend for now.
           end
         else
           begin
@@ -1972,6 +1974,8 @@ begin
     end;
     if not DidContinue then begin
       FPDEvent := deFailed;
+      if IsTerminating then
+        FPDEvent := deExitProcess; // TODO: support deFailed in SendEvent
       break;
     end;
 

@@ -1105,6 +1105,7 @@ var
   PID: THandle;
   IP: TDBGPtr;
 begin
+  Result := True;
   if (FSOLibEventBreakpoint <> nil) and not FSOLibEventBreakpoint.Enabled then
     FSOLibEventBreakpoint.Enabled:=True;
   {$IFDEF DebuglnLinuxDebugEvents}

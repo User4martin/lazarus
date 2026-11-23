@@ -1063,6 +1063,7 @@ var
   WinAThread: TDbgWinThread absolute AThread;
   HasExceptionCleared, EventThreadNeedsTempBrkRemove, RaiseSingleStep: Boolean;
 begin
+  Result := True;
   debugln(FPDBG_WINDOWS, ['TDbgWinProcess.Continue ',SingleStep, ' # ', ' # ',DbgSTime]);
   HasExceptionCleared := (WinAThread <> nil) and WinAThread.FHasExceptionCleared;
   RaiseSingleStep := (udeReRaiseExternalWatchPoint in HandleUserDebugEvents) and
